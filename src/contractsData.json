@@ -1,0 +1,8 @@
+{
+  "collateralManagerAddress": "0x90C1623049B7DC9e06CCE97D6a6c79291B68B0E0",
+  "auctionEngineAddress": "0x7373Ce08Bab719C10732Cd82aeD198080D5012b8",
+  "lendingVaultAddress": "0x9bF932b453312952c400434Dfc20e018c733B945",
+  "bidManagerAddress": "0x08947862049244f518B57E17de441e927C3AE80C",
+  "offerManagerAddress": "0x4AD816b660FEad9f9B57359cA1004E20Eb7F78B5",
+  "deployedAuctions": []
+}
