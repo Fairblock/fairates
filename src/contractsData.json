@@ -1,8 +1,132 @@
 {
-  "collateralManagerAddress": "0x90C1623049B7DC9e06CCE97D6a6c79291B68B0E0",
-  "auctionEngineAddress": "0x7373Ce08Bab719C10732Cd82aeD198080D5012b8",
-  "lendingVaultAddress": "0x9bF932b453312952c400434Dfc20e018c733B945",
-  "bidManagerAddress": "0x08947862049244f518B57E17de441e927C3AE80C",
-  "offerManagerAddress": "0x4AD816b660FEad9f9B57359cA1004E20Eb7F78B5",
-  "deployedAuctions": []
+  "auctions": [
+    {
+      "collateralManagerAddress": "0x69839deeA872e59330ed445489868aE152a7eFb9",
+      "auctionTokenAddress": "0xEC9cD7F0B7DB71A27950F35681d0125FF87D5BD6",
+      "auctionEngineAddress": "0x92d483186424e8d633070c0B9173D8E8CcAd35cB",
+      "lendingVaultAddress": "0x01E3178C751b70C37b6cd448CeFC3477bC842380",
+      "bidManagerAddress": "0xEA952bA943CC0a1284DC9Ace65157e64D5688B9c",
+      "offerManagerAddress": "0x93119A66807180b6A88e1bC36C7d43b00e308F81"
+    },
+    {
+      "collateralManagerAddress": "0xd2ede0e01Aceb8f85775ed754630d5c9476bAc0A",
+      "auctionTokenAddress": "0xf63e7f2548a775C21e5165F76B3255E2a41eb8Bf",
+      "auctionEngineAddress": "0xB7321ffC1dDfE34De6191372877DB2379c8C0556",
+      "lendingVaultAddress": "0xB5736BBB41D6Fb06781c6d43F00fC2dE1a95c7f1",
+      "bidManagerAddress": "0xEBE6cE304455f54DCb70f1310C954e7e5a11Da5d",
+      "offerManagerAddress": "0xDccCc6056a371fEe5f40F0e3Ff7DdCF61dc575Ce"
+    },
+    {
+      "collateralManagerAddress": "0x978486a3266a595f79abF9f089E5Ce49f04a2b97",
+      "auctionTokenAddress": "0x46B8571c4d12c9A9651DC7A7d8a0F2D74F9948C6",
+      "auctionEngineAddress": "0xe51212846DCF044Ae7767bFB22cf905706de21B4",
+      "lendingVaultAddress": "0xE0CEc3485f60Fa7b70790581EA5846136808668D",
+      "bidManagerAddress": "0x1eD7bc7582cF98760DF7cbadaFcA1a8aB69c3C98",
+      "offerManagerAddress": "0x280E11A8d12642192247b4C00Dcc481469d9dadb"
+    },
+    {
+      "collateralManagerAddress": "0x197cb992DbFC11AC20c29aA1DC45c3aF23A93877",
+      "auctionTokenAddress": "0xcFb4967cF77FF331Fb5B5dd932C325712Ad5855f",
+      "auctionEngineAddress": "0xFfe3776855A18cB4dF02b9EbFC164A6F9CA60407",
+      "lendingVaultAddress": "0x1133FaF4f203a037a5CA62C9F537dEFA318e1ec3",
+      "bidManagerAddress": "0x830f6EB87caE32c8d1803eDdEf2EF7Ea62AA9598",
+      "offerManagerAddress": "0x49FB4d261B15297256B93d6BF77a8728062deDec"
+    },
+    {
+      "collateralManagerAddress": "0xebc7F813B08924B32932d81fcCCD68164bA97f41",
+      "auctionTokenAddress": "0x9bEBA2BD9362d5051d23aE3523fe476e3D9F96b6",
+      "auctionEngineAddress": "0xc10C42aa612E8AcF5529ce35D4e197d5B214D6EC",
+      "lendingVaultAddress": "0x3C44ee3961da05CfEE404362848D8c8d9f8C9763",
+      "bidManagerAddress": "0x452511977BBb621471d67A1041EC9Cfb2bb821c3",
+      "offerManagerAddress": "0x850cd8C57bd5B63BEF53f57f71FA6E38Da5BB498"
+    },
+    {
+      "collateralManagerAddress": "0x66360Ad58744bCe5e2552B6814122F28c3D58AaC",
+      "auctionTokenAddress": "0x9332c444986d59dBC0eD3C47325Fca20166440F9",
+      "auctionEngineAddress": "0x447CFA267e4291C3C761324B1B38378B792808F8",
+      "lendingVaultAddress": "0x9384846c593Ee7bAe5350371064fC3008024Daa4",
+      "bidManagerAddress": "0xC6E17570Fbe54b56DFe9db92d09C5c817d85FC07",
+      "offerManagerAddress": "0x827462f570462D1553C75E749A2854F92A822d2D"
+    },
+    {
+      "collateralManagerAddress": "0x5295F7471F8767944195fe59F584f2c2e7bC70EF",
+      "auctionTokenAddress": "0x6C8fD317f361d22f50a85E54cc719eee3d9EB499",
+      "auctionEngineAddress": "0xEAF83353c3E50f59451Ad7fB0b9f934F823eAA8B",
+      "lendingVaultAddress": "0xCE92E8445c3928812C346E258321ab888383CE97",
+      "bidManagerAddress": "0xC9CBa9c341C68222C330313e602e7e1651702c3b",
+      "offerManagerAddress": "0xE0ba0C9657dA550c0f6c78dE9Ac4B0E020ce1759"
+    },
+    {
+      "collateralManagerAddress": "0x03AB9160F9007c2483FA8723C3c2FE6eD366fba2",
+      "auctionTokenAddress": "0x4465a5a94F2165d1FD48411A9aC48Ef4d05FF65B",
+      "auctionEngineAddress": "0xA5DbE3955512b80ca6065ef41c10210F65Ad3909",
+      "lendingVaultAddress": "0x44274D7BFe35eC079178955CA58616E8d26F1F11",
+      "bidManagerAddress": "0xb0840F728E9C27d73996Efd7207bF3F01772DC60",
+      "offerManagerAddress": "0xEC46084779B9170592f3A0395dd691CEf0ADc6A7"
+    },
+    {
+      "collateralManagerAddress": "0xAFE39b44B71E05bA4edC59a0aaf9c1dE70c1D5Dc",
+      "auctionTokenAddress": "0x869606C8BeAAA73c56E60e6103636568505b758d",
+      "auctionEngineAddress": "0x9996fCcd1dEce94bBe43DfDE172Ad6CE45569503",
+      "lendingVaultAddress": "0xB20640714F6Ea4eF0e9f2F938a2221516F366194",
+      "bidManagerAddress": "0x9396b9E60b58Bf2B59A21C015fF72662F8213531",
+      "offerManagerAddress": "0x9aA387805355E0Df8184952bf96aa9438DbBdBB3"
+    },
+    {
+      "collateralManagerAddress": "0xa2405251F59BAcE9661C66e1d4247d233928826f",
+      "auctionTokenAddress": "0xF1a3B6B5caD0fEaBFA8a2AB3c0499dcF78e4EA96",
+      "auctionEngineAddress": "0xbc65481193810a5C94152624d10cA544D8ca181e",
+      "lendingVaultAddress": "0x524e247Be56cbC0fB539c0d822b9B3fD929a3554",
+      "bidManagerAddress": "0xa2c9e58D8262203Dff1C63f31c9c18cbFC19A4EB",
+      "offerManagerAddress": "0x881E4996801bdb6828C523a595FF2F57a8EEdB74"
+    },
+    {
+      "collateralManagerAddress": "0x539d3221c5848B0348c9664bfeF9940F78Bf804b",
+      "auctionTokenAddress": "0x372009e269F68526467c8c06f50C600E0C67ee6C",
+      "auctionEngineAddress": "0xbbF034b3DD83D59f6768C9bb1775de33A84bb3aA",
+      "lendingVaultAddress": "0xB812Dc73c1095616814101B28395C9922025B222",
+      "bidManagerAddress": "0x5971dA176451386F78EdDec1C8626698FD0d2a91",
+      "offerManagerAddress": "0xC3CD87B51c576a5604e7C7De0D082291d61e13d5"
+    },
+    {
+      "collateralManagerAddress": "0x30F82457aB9690ce7a214f93c140EcAfe564636D",
+      "auctionTokenAddress": "0x8b529d4d6e221dC670758bE958158D80bE156042",
+      "auctionEngineAddress": "0x216660871ae18dD8BB00ad7b9F46D40334fC3845",
+      "lendingVaultAddress": "0x07e7D1Dc68DaFb5830a7F32a19aA1c9c25876647",
+      "bidManagerAddress": "0xF3BE24c9AeA269E65252df5deD84cd0eFf8044a1",
+      "offerManagerAddress": "0xe564C7f317e94eF79c0a37937135aA3EeD6EEf2c"
+    },
+    {
+      "collateralManagerAddress": "0x85B3532EEA64A040A406cE781BA576E06A4A6260",
+      "auctionTokenAddress": "0x897d84eb789A44514F9522589C94EE566253c814",
+      "auctionEngineAddress": "0x0d9a7F7bfcd3598132f9ab2162B70A8aC7b695A8",
+      "lendingVaultAddress": "0xe5c4c7c06C16888036A03C6FEb03fe6C65682215",
+      "bidManagerAddress": "0xb38e8253Ef2E855C2D5a76B01a87971842f0e39a",
+      "offerManagerAddress": "0x3d12ce1c3C6aC3dd7B060554788f50BD660D0e39"
+    },
+    {
+      "collateralManagerAddress": "0x94770AC4F2f9802297DACbA243641aE2c465FDAe",
+      "auctionTokenAddress": "0x2257a4466424a67C08728e9FE30f31d7c40bBfac",
+      "auctionEngineAddress": "0xA99720797a70fd4439B651269c952Ca960B73fC1",
+      "lendingVaultAddress": "0xf2E07c9D96f168534e22bb986752D84019cEB1aF",
+      "bidManagerAddress": "0x01212F6BD2da20C7ef8a6B7FA8683ca841Ba09b8",
+      "offerManagerAddress": "0xA2597711B9052127293875610d19C84923Fc8728"
+    },
+    {
+      "collateralManagerAddress": "0x084945682112A86DC646a1DE4343f7a14Ec0998c",
+      "auctionTokenAddress": "0x1EEf228F39ad39a81F9a5cBF9E8f8bdAdcE34cBC",
+      "auctionEngineAddress": "0xD869F457B68e95CFd4EB6CdF4327736271c2cDe9",
+      "lendingVaultAddress": "0x13EcbF7c5638E1c75138b2Afd116ae2A645d7dF9",
+      "bidManagerAddress": "0x7Ed7595D7365e950F6b2B05DE8DC402067811C4d",
+      "offerManagerAddress": "0x9950cAF14AbfD91Aa814Ea5660b78504Bf8E4B60"
+    },
+    {
+      "collateralManagerAddress": "0x67eB21b255A2067A90F41021e87C0817eE88643c",
+      "auctionTokenAddress": "0x2630ff8Bd2ae77df8378c13D8265F34daCE9dbF6",
+      "auctionEngineAddress": "0x788Ca3A187477a078A5B3882922706E281a69cDB",
+      "lendingVaultAddress": "0x3A67435DEa662f039af2633819bF18402a3BcF1D",
+      "bidManagerAddress": "0x430A10A3d678537FDDfcB393D288fED18070b6c0",
+      "offerManagerAddress": "0x07F93E2BaD71A1f6Dbb99936E86302CB9cC316f4"
+    }
+  ]
 }
