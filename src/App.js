@@ -194,6 +194,14 @@ export const secondaryBtn = {
 };
 
 
+/* ── Force-network constants ─────────────────────────────── */
+const ARBITRUM_SEPOLIA = {
+  chainId: "0x66eee",             // 421614 dec
+  chainName: "Arbitrum Sepolia Testnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+  blockExplorerUrls: ["https://sepolia.arbiscan.io"],
+};
 
 
 /* ─── Global CSS (background uses your PNG) ──────────────────────────── */
@@ -348,7 +356,35 @@ function AppProvider({ children }) {
   const [walletAddress, setWalletAddress] = useState("");
   const [availableAccounts, setAvailableAccounts] = useState([]);
 
-
+  async function ensureArbitrumSepolia() {
+    const { chainId } = ARBITRUM_SEPOLIA;
+    const eth = window.ethereum;
+    if (!eth) return;
+  
+    try {
+      // try to switch
+      await eth.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId }],
+      });
+    } catch (switchErr) {
+      // error code 4902 = chain is not yet added
+      if (switchErr.code === 4902) {
+        await eth.request({
+          method: "wallet_addEthereumChain",
+          params: [ARBITRUM_SEPOLIA],
+        });
+        // immediately switch after adding
+        await eth.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId }],
+        });
+      } else {
+        throw switchErr;
+      }
+    }
+  }
+  
   const [deployedAuctions, setDeployedAuctions] = useState(() => {
     const saved = localStorage.getItem("deployedAuctions");
     return saved ? JSON.parse(saved) : [];
@@ -485,6 +521,19 @@ function AppProvider({ children }) {
 
   useEffect(() => {
     if (window.ethereum) {
+      /* …existing accountsChanged listener… */
+    
+      window.ethereum.on("chainChanged", async () => {
+        try {
+          await ensureArbitrumSepolia();
+        } catch (err) {
+          console.error("Network switch failed", err);
+        }
+      });
+    }
+    
+    if (window.ethereum) {
+      
       window.ethereum.on("accountsChanged", async (accounts) => {
         if (accounts.length > 0) {
           setAvailableAccounts(accounts);
@@ -508,18 +557,25 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      /* 1.  Make sure we’re on Arbitrum Sepolia */
+      await ensureArbitrumSepolia();
+  
+      /* 2.  Request accounts */
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
       setAvailableAccounts(accounts);
+  
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const newSigner = provider.getSigner(0);
-      const address = accounts[0];
+      const newSigner = provider.getSigner();
       setSigner(newSigner);
-      setWalletAddress(address);
+      setWalletAddress(accounts[0]);
     } catch (error) {
       console.error(error);
       alert("Failed to connect wallet: " + error.message);
     }
   }
+  
 
   function disconnectWallet() {
     setSigner(null);
