@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import { useLocation } from "react-router-dom";
 import React, {
   useState,
   useEffect,
@@ -2011,7 +2012,7 @@ const mobileCss = `
                   – Select an auction –
                 </option>
                 {myAuctions.map((a) => (
-                  <option key={a.auctionEngineAddress} value={a.auctionEngineAddress}>
+                  <option      key={a.auctionEngineAddress}    value={a.auctionEngineAddress}  style={{ background: "#231726", color: "#fff" }}  >
                     {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
                   </option>
                 ))}
@@ -2332,7 +2333,7 @@ function useIsMobile(breakpoint = 768) {
     const page = {
       maxWidth: 1200,
       margin: "0 auto",
-      padding: "48px 32px 120px",
+      padding: "0px 32px 120px",
       display: "flex",
       gap: 64,
     };
@@ -2352,7 +2353,7 @@ function useIsMobile(breakpoint = 768) {
       fontSize: 18,
       lineHeight: 1.55,
       color: COLORS.textMuted,
-      marginBottom: 40,
+      marginBottom: 20,
       maxWidth: 640,
     };
   
@@ -2365,10 +2366,13 @@ function useIsMobile(breakpoint = 768) {
       "@media(max-width:860px){grid-template-columns:1fr !important;}";
   
     const label = {
-      fontSize: 15,
+      fontSize: 20,
       fontWeight: 600,
       color: "#fff",
       marginBottom: 8,
+      display: "block",
+      textAlign: "left",
+      marginTop: 12,
     };
     const inp = {
       width: "90%",
@@ -2506,11 +2510,7 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="0x…"
               />
-            </div>
-  
-            {/* column B */}
-            <div>
-              <label style={label}>Reveal duration (secs)</label>
+                 <label style={label}>Reveal duration (secs)</label>
               <input
                 style={inp}
                 value={customRevealDuration}
@@ -2519,6 +2519,12 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="86400"
               />
+               
+            </div>
+  
+            {/* column B */}
+            <div>
+           
   
               <label style={label}>Auction token ratio</label>
               <input
@@ -2569,9 +2575,10 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="1"
               />
+              
             </div>
+            
           </div>
-  
           <button style={btn} onClick={deployContractsCustom}>
             Deploy
           </button>
@@ -2651,7 +2658,8 @@ function useIsMobile(breakpoint = 768) {
               >
                 <option value="">– Select an auction –</option>
                 {deployedAuctions.map((a) => (
-                  <option key={a.auctionEngineAddress} value={a.auctionEngineAddress}>
+                
+                     <option      key={a.auctionEngineAddress}    value={a.auctionEngineAddress}  style={{ background: "#231726", color: "#fff" }}  >
                     {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
                   </option>
                 ))}
@@ -2738,10 +2746,13 @@ function useIsMobile(breakpoint = 768) {
     };
   
     const label = {
-      fontSize: 16,
+      fontSize: 20,
       fontWeight: 600,
       color: "#fff",
       marginBottom: 8,
+      display: "block",
+      textAlign: "left",
+      marginTop: 12,
     };
     const input = {
       width: "90%",
@@ -3011,14 +3022,39 @@ function useIsMobile(breakpoint = 768) {
       </div>
     );
   }
-  function App() {
+  /* ─── Background toggler ------------------------------------ */
+function BackgroundManager() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.pathname === "/") {
+      document.body.classList.remove("arb-bg");
+    } else {
+      document.body.classList.add("arb-bg");
+    }
+  }, [location.pathname]);
+
+  return null;        // this component only has the side-effect
+}
+function App() {
   return (
     <>
+      {/* global CSS blocks you already had */}
       <style>{globalBgCss}</style>
+      <style>{`
+        body.arb-bg{
+          background:#0a0605 url("${process.env.PUBLIC_URL}/deploy-bg.png")
+                     no-repeat bottom right/cover;
+          background-attachment:fixed;
+        }
+      `}</style>
       <style>{mobileCss}</style>
 
       <AppProvider>
         <Router>
+          {/*  <- hook now lives *inside* the router  */}
+          <BackgroundManager />
+
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/developer/*" element={<DeveloperWrapper />} />
@@ -3029,5 +3065,6 @@ function useIsMobile(breakpoint = 768) {
     </>
   );
 }
+
 
 export default App;
