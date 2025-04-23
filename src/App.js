@@ -58,6 +58,66 @@ const COLORS = {
 };
 const FONT_FAMILY = `"Inter", sans-serif`;
 
+/* ─── Figma-matching field / section styles (shared) ──────────── */
+const sectionWrap = {
+  marginBottom: "54px",
+};
+
+const sectionHeading = {
+  fontSize: "28px",
+  fontWeight: 700,
+  color: COLORS.accent,
+  marginBottom: "8px",
+};
+
+const sectionSub = {
+  fontSize: "18px",
+  lineHeight: 1.55,
+  color: COLORS.textMuted,
+  marginBottom: "32px",
+  maxWidth: 640,
+};
+
+const formGrid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "32px",
+};
+const formGridMobile = "@media(max-width: 860px){grid-template-columns:1fr!important;}";
+
+const labelNew = {
+  fontSize: "16px",
+  fontWeight: 600,
+  color: "#FFFFFF",
+  marginBottom: "8px",
+};
+
+const inputNew = {
+  width: "100%",
+  padding: "18px 20px",
+  borderRadius: "12px",
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.25)",
+  color: COLORS.textPrimary,
+  fontSize: "18px",
+  outline: "none",
+  transition: "box-shadow .18s,border .18s",
+};
+const inputFocusGlow =
+  "box-shadow:0 0 0 3px rgba(155,61,255,0.45);border-color:#9B3DFF";
+
+
+
+/* helper to apply focus style */
+function applyFocusGlow(e) {
+  e.currentTarget.style.boxShadow = inputFocusGlow;
+  e.currentTarget.style.borderColor = COLORS.accent;
+}
+function removeFocusGlow(e) {
+  e.currentTarget.style.boxShadow = "";
+  e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+}
+
 /* NAV BAR */
 export const topBarStyle = {
   display: "flex",
@@ -122,6 +182,10 @@ export const primaryBtn = {
   fontWeight: 700,
   cursor: "pointer",
   transition: "background .18s",
+};
+const primaryBtnWide = {
+  ...primaryBtn,
+  width: 260,
 };
 export const secondaryBtn = {
   ...primaryBtn,
@@ -1374,59 +1438,111 @@ function TokenDisplay({ address }) {
 // --------------------------------------------------------
 // Faucet Page Component 
 // --------------------------------------------------------
-function FaucetPage() {
-  const { signer } = useAppContext();
-  const handleWithdraw = async (tokenName, faucetAddress) => {
-    if (!signer) {
-      alert("Please connect your wallet first.");
-      return;
-    }
-    try {
-      const FaucetABI = ["function withdraw() public"];
-      const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
-      const tx = await faucetContract.withdraw();
-      await tx.wait();
-      alert(`${tokenName} withdrawal successful.`);
-    } catch (error) {
-      console.error(error);
-      alert(`${tokenName} withdrawal failed: ${error.message}`);
-    }
-  };
-
-  return (
-    <div style={cardStyle}>
-      <h2>Faucet</h2>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h3>T1</h3>
-        <p>Token Address: <TokenDisplay address={T1_ADDRESS} /></p>
-        <p>Faucet Address: {T1_FAUCET}</p>
-        <button style={buttonStyle} onClick={() => handleWithdraw("T1", T1_FAUCET)}>Request T1</button>
+/* ─────────────────────────────────────────────────────────────
+   F A U C E T   P A G E  –  unified styling
+   ─────────────────────────────────────────────────────────── */
+   function FaucetPage() {
+    const { signer } = useAppContext();
+  
+    /* – internal helper – */
+    const handleWithdraw = async (tokenName, faucetAddress) => {
+      if (!signer) {
+        alert("Please connect your wallet first.");
+        return;
+      }
+      try {
+        const FaucetABI = ["function withdraw() public"];
+        const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
+        const tx = await faucetContract.withdraw();
+        await tx.wait();
+        alert(`${tokenName} withdrawal successful.`);
+      } catch (error) {
+        console.error(error);
+        alert(`${tokenName} withdrawal failed: ${error.message}`);
+      }
+    };
+  
+    /* – atoms reused from previous pages – */
+    const card = {
+      maxWidth: 620,
+      margin: "0 auto",
+      padding: 32,
+      borderRadius: 20,
+      border: "1px solid rgba(155,61,255,.45)",
+      background:
+        "linear-gradient(135deg, rgba(155,61,255,.15) 0%, rgba(155,61,255,.05) 100%)",
+      backdropFilter: "blur(4px)",
+      color: "#fff",
+      fontFamily: FONT_FAMILY,
+    };
+  
+    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 32 };
+    const sub = { fontSize: 17, marginBottom: 14, lineHeight: 1.45 };
+  
+    const btn = {
+      background: COLORS.accent,
+      border: "none",
+      color: "#fff",
+      fontWeight: 700,
+      fontSize: 16,
+      padding: "14px 32px",
+      borderRadius: 12,
+      cursor: "pointer",
+      marginTop: 12,
+      width: "100%",
+    };
+  
+    /* – render – */
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+        <div style={card}>
+          <h2 style={heading}>Faucet</h2>
+  
+          {/* T1 */}
+          <div style={{ marginBottom: 28 }}>
+            <p style={sub}>
+              <strong>T1 token</strong>
+              <br />
+              Address:&nbsp;<TokenDisplay address={T1_ADDRESS} />
+            </p>
+            <button style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
+              Request&nbsp;T1
+            </button>
+          </div>
+  
+          {/* T2 */}
+          <div style={{ marginBottom: 28 }}>
+            <p style={sub}>
+              <strong>T2 token</strong>
+              <br />
+              Address:&nbsp;<TokenDisplay address={T2_ADDRESS} />
+            </p>
+            <button style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
+              Request&nbsp;T2
+            </button>
+          </div>
+  
+          {/* T3 */}
+          <div>
+            <p style={sub}>
+              <strong>T3 token</strong>
+              <br />
+              Address:&nbsp;<TokenDisplay address={T3_ADDRESS} />
+            </p>
+            <button style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
+              Request&nbsp;T3
+            </button>
+          </div>
+        </div>
       </div>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h3>T2</h3>
-        <p>Token Address: <TokenDisplay address={T2_ADDRESS} /></p>
-        <p>Faucet Address: {T2_FAUCET}</p>
-        <button style={buttonStyle} onClick={() => handleWithdraw("T2", T2_FAUCET)}>Request T2</button>
-      </div>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h3>T3</h3>
-        <p>Token Address: <TokenDisplay address={T3_ADDRESS} /></p>
-        <p>Faucet Address: {T3_FAUCET}</p>
-        <button style={buttonStyle} onClick={() => handleWithdraw("T3", T3_FAUCET)}>Request T3</button>
-      </div>
-    </div>
-  );
-}
+    );
+  }
+  
 
 /* ──────────────────────────────────────────────────────────────
    WALLET-CONNECT 
    ──────────────────────────────────────────────────────────── */
-   /* ───────────────────────────────────────────────────────────────
-   WALLET-CONNECT  with modal overlay
-   ───────────────────────────────────────────────────────────── */
-/* ──────────────────────────────────────────────────────────────
-   WALLET-CONNECT  (modal is now portalled, so it centres)
-   ──────────────────────────────────────────────────────────── */
+
    function WalletConnect() {
     const {
       signer,
@@ -1764,46 +1880,104 @@ const mobileCss = `
 
 
 
-function ManageAuctionsPage() {
-  const { myAuctions, selectAuction } = useAppContext();
-  const navigate = useNavigate();
-
-  return (
-    <div style={cardStyle}>
-      <h2>Manage My Auctions</h2>
-      {myAuctions.length === 0 ? (
-        <p>No auctions deployed yet by this wallet.</p>
-      ) : (
-        <>
-          <select
-            style={selectStyle}
-            className="responsive-select"
-            onChange={(e) => {
-              const selectedEngine = e.target.value;
-              if (!selectedEngine) {
-                alert("Please select an auction first.");
-                return;
-              }
-              const auctionObj = myAuctions.find(a => a.auctionEngineAddress === selectedEngine);
-              if(auctionObj) {
-                selectAuction(auctionObj);
-              }
-              navigate(`/developer/auction/${selectedEngine}`);
-            }}
-          >
-            <option value="">-- Select an Auction --</option>
-            {myAuctions.map((auction) => (
-              <option key={auction.auctionEngineAddress} value={auction.auctionEngineAddress}>
-                {auction.auctionEngineAddress}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
-    </div>
-  );
-}
-
+/* ─────────────────────────────────────────────────────────────
+   M A N A G E   M Y   A U C T I O N S   (developer)
+   ─────────────────────────────────────────────────────────── */
+   function ManageAuctionsPage() {
+    const { myAuctions, selectAuction } = useAppContext();
+    const navigate = useNavigate();
+  
+    /* atoms */
+    const wrap = { display: "flex", justifyContent: "center", padding: 48 };
+  
+    const card = {
+      width: 420,
+      padding: 32,
+      borderRadius: 20,
+      border: "1px solid rgba(155,61,255,.45)",
+      background:
+        "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+      backdropFilter: "blur(4px)",
+      color: "#fff",
+      fontFamily: FONT_FAMILY,
+      textAlign: "center",
+    };
+  
+    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 24 };
+    const selectBox = {
+      width: "100%",
+      padding: "16px 20px",
+      fontSize: 17,
+      borderRadius: 12,
+      background: "rgba(255,255,255,0.05)",
+      color: "#fff",
+      border: "1px solid rgba(255,255,255,0.25)",
+      outline: "none",
+    };
+    const btn = {
+      background: COLORS.accent,
+      border: "none",
+      color: "#fff",
+      fontWeight: 700,
+      fontSize: 16,
+      padding: "16px",
+      borderRadius: 12,
+      cursor: "pointer",
+      width: "100%",
+      marginTop: 28,
+    };
+  
+    return (
+      <div style={wrap}>
+        <div style={card}>
+          <h2 style={heading}>Manage my auctions</h2>
+  
+          {myAuctions.length === 0 ? (
+            <p style={{ fontSize: 16, lineHeight: 1.5 }}>
+              No auctions deployed yet by this wallet.
+            </p>
+          ) : (
+            <>
+              <select
+                style={selectBox}
+                defaultValue=""
+                onChange={(e) => {
+                  const addr = e.target.value;
+                  if (!addr) return;
+                  const found = myAuctions.find(
+                    (a) => a.auctionEngineAddress === addr
+                  );
+                  if (found) selectAuction(found);
+                  navigate(`/developer/auction/${addr}`);
+                }}
+              >
+                <option value="" disabled>
+                  – Select an auction –
+                </option>
+                {myAuctions.map((a) => (
+                  <option key={a.auctionEngineAddress} value={a.auctionEngineAddress}>
+                    {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
+                  </option>
+                ))}
+              </select>
+  
+              <button
+                style={btn}
+                onClick={() => {
+                  const sel = document.querySelector("select").value;
+                  if (!sel) return alert("Please select an auction first.");
+                  navigate(`/developer/auction/${sel}`);
+                }}
+              >
+                Open dashboard
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
 // --------------------------------------------------------
 // AuctionManagementPage
 // --------------------------------------------------------
@@ -1959,498 +2133,727 @@ function useIsMobile(breakpoint = 768) {
 }
 
 
-function DeployPage() {
-  const {
-    deployContracts,
-    deployContractsCustom,
-    customPriceOracle,
-    setCustomPriceOracle,
-    customBidDuration,
-    setCustomBidDuration,
-    customRevealDuration,
-    setCustomRevealDuration,
-    customRepaymentDuration,
-    setCustomRepaymentDuration,
-    customFee,
-    setCustomFee,
-    customAuctionTokenAmount,
-    setCustomAuctionTokenAmount,
-    customPurchaseToken,
-    setCustomPurchaseToken,
-    customMaxBid,
-    setCustomMaxBid,
-    customMaxOffer,
-    setCustomMaxOffer,
-    customCollateralToken,
-    setCustomCollateralToken,
-    customCollateralRatio,
-    setCustomCollateralRatio
-  } = useAppContext();
-
-  return (
-    <div style={cardStyle}>
-      <h2>Deploy Contracts</h2>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Test Deployment</h3>
-        <p>
-          Deploy all contracts for testing. This option automatically sets the auction characteristics and disables some checks for easier testing.
+/* ──────────────────────────────────────────────────────────────
+   D E P L O Y  P A G E   (replace whole function)
+   ──────────────────────────────────────────────────────────── */
+   /* ─────────────────────────────────────────────────────────────
+   D E P L O Y   P A G E   (Figma-exact)
+   ─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   D E P L O Y  P A G E  – no overlap, flex layout
+   ─────────────────────────────────────────────────────────── */
+   function DeployPage() {
+    const {
+      deployContracts,
+      deployContractsCustom,
+      customPriceOracle,
+      setCustomPriceOracle,
+      customBidDuration,
+      setCustomBidDuration,
+      customRevealDuration,
+      setCustomRevealDuration,
+      customRepaymentDuration,
+      setCustomRepaymentDuration,
+      customFee,
+      setCustomFee,
+      customAuctionTokenAmount,
+      setCustomAuctionTokenAmount,
+      customPurchaseToken,
+      setCustomPurchaseToken,
+      customMaxBid,
+      setCustomMaxBid,
+      customMaxOffer,
+      setCustomMaxOffer,
+      customCollateralToken,
+      setCustomCollateralToken,
+      customCollateralRatio,
+      setCustomCollateralRatio,
+    } = useAppContext();
+  
+    /* —— atoms (same sizes as earlier) ——————————————— */
+    const page = {
+      maxWidth: 1200,
+      margin: "0 auto",
+      padding: "48px 32px 120px",
+      display: "flex",
+      gap: 64,
+    };
+    const columnStyle = { flex: "1 1 0%" };
+  
+    const cardBreak =
+      "@media(max-width: 1020px){flex-direction:column;gap:48px;}";
+  
+    const h1 = { fontSize: 40, fontWeight: 700, marginBottom: 56 };
+    const h2 = {
+      fontSize: 26,
+      fontWeight: 700,
+      color: COLORS.accent,
+      marginBottom: 6,
+    };
+    const subP = {
+      fontSize: 18,
+      lineHeight: 1.55,
+      color: COLORS.textMuted,
+      marginBottom: 40,
+      maxWidth: 640,
+    };
+  
+    const grid = {
+      display: "grid",
+      gridTemplateColumns: "repeat(2,1fr)",
+      gap: 24,
+    };
+    const gridMobile =
+      "@media(max-width:860px){grid-template-columns:1fr !important;}";
+  
+    const label = {
+      fontSize: 15,
+      fontWeight: 600,
+      color: "#fff",
+      marginBottom: 8,
+    };
+    const inp = {
+      width: "90%",
+      padding: "16px 20px",
+      fontSize: 17,
+      borderRadius: 12,
+      background: "rgba(255,255,255,0.04)",
+      color: "#fff",
+      border: "1px solid rgba(255,255,255,0.22)",
+      outline: "none",
+      transition: "border .18s,box-shadow .18s",
+    };
+    const onF = (e) => {
+      e.currentTarget.style.border = "1px solid #9B3DFF";
+      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,.45)";
+    };
+    const onB = (e) => {
+      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.22)";
+      e.currentTarget.style.boxShadow = "none";
+    };
+  
+    const btn = {
+      background: COLORS.accent,
+      border: "none",
+      color: "#fff",
+      fontSize: 18,
+      fontWeight: 700,
+      padding: "18px 60px",
+      borderRadius: 14,
+      cursor: "pointer",
+      marginTop: 48,
+    };
+  
+    /* —— CARD ——————————————————————————————— */
+    const card = (
+      <div
+        style={{
+          width: 320,
+          padding: 28,
+          borderRadius: 20,
+          border: "1px solid rgba(155,61,255,.45)",
+          background:
+            "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+          backdropFilter: "blur(4px)",
+          flexShrink: 0,
+          height: "20%",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            marginBottom: 18,
+            color: "#fff",
+          }}
+        >
+          Test Deployment
+        </h3>
+        <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 20 }}>
+          Deploy all contracts for testing. This option automatically sets the
+          auction characteristics and disables some checks for easier testing.
         </p>
-        <p>In the generated auction, T1 is set as purchase token and T2 is the collateral by default.</p>
-        <button style={buttonStyle} className="responsive-button" onClick={deployContracts}>
-          Deploy (Test)
+        <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 32 }}>
+          In the generated auction, T1 is set as purchase token and T2 is the
+          collateral by default.
+        </p>
+        <button style={btn} onClick={deployContracts}>
+          Deploy&nbsp;(Test)
         </button>
       </div>
-      <hr style={{ margin: "2rem 0" }} />
-      <div>
-        <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Custom Deployment</h3>
-        <p>
-          Deploy all contracts with custom parameters. Decrypter is always set to our fixed address.
-        </p>
-        <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", width:"50%" }}>
-          <label style={labelStyle}>Price Oracle Address:</label>
-          <input
-            type="text"
-            placeholder="0x..."
-            value={customPriceOracle}
-            onChange={(e) => setCustomPriceOracle(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Bid Duration (seconds):</label>
-          <input
-            type="text"
-            placeholder="86400"
-            value={customBidDuration}
-            onChange={(e) => setCustomBidDuration(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Reveal Duration (seconds):</label>
-          <input
-            type="text"
-            placeholder="86400"
-            value={customRevealDuration}
-            onChange={(e) => setCustomRevealDuration(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Repayment Duration (seconds):</label>
-          <input
-            type="text"
-            placeholder="172800"
-            value={customRepaymentDuration}
-            onChange={(e) => setCustomRepaymentDuration(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Fee:</label>
-          <input
-            type="text"
-            placeholder="0"
-            value={customFee}
-            onChange={(e) => setCustomFee(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Auction Token Ratio:</label>
-          <input
-            type="text"
-            placeholder="1"
-            value={customAuctionTokenAmount}
-            onChange={(e) => setCustomAuctionTokenAmount(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Purchase Token Address:</label>
-          <input
-            type="text"
-            placeholder="0x..."
-            value={customPurchaseToken}
-            onChange={(e) => setCustomPurchaseToken(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Max Bid Value:</label>
-          <input
-            type="text"
-            placeholder="e.g., 15000"
-            value={customMaxBid}
-            onChange={(e) => setCustomMaxBid(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Max Offer Value:</label>
-          <input
-            type="text"
-            placeholder="e.g., 10000"
-            value={customMaxOffer}
-            onChange={(e) => setCustomMaxOffer(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Initial Collateral Token Address:</label>
-          <input
-            type="text"
-            placeholder="0x..."
-            value={customCollateralToken}
-            onChange={(e) => setCustomCollateralToken(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Initial Collateral Ratio:</label>
-          <input
-            type="text"
-            placeholder="e.g., 1"
-            value={customCollateralRatio}
-            onChange={(e) => setCustomCollateralRatio(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <button style={buttonStyleAuction} className="responsive-button" onClick={deployContractsCustom}>
+    );
+  
+    /* —— RENDER ——————————————————————————————— */
+    return (
+      <div style={{ ...page, [cardBreak]: {} }}>
+        {/* LEFT COLUMN (form) */}
+        <div style={columnStyle}>
+          <h1 style={h1}>Deploy contracts</h1>
+  
+          <h2 style={h2}>Custom Deployment</h2>
+          <p style={subP}>
+            Deploy all contracts with custom parameters. Decrypter is always set
+            to our fixed address.
+          </p>
+  
+          <div style={{ ...grid, [gridMobile]: {} }}>
+            {/* column A */}
+            <div>
+              <label style={label}>Price Oracle Address</label>
+              <input
+                style={inp}
+                value={customPriceOracle}
+                onChange={(e) => setCustomPriceOracle(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0x…"
+              />
+  
+              <label style={label}>Bid duration (secs)</label>
+              <input
+                style={inp}
+                value={customBidDuration}
+                onChange={(e) => setCustomBidDuration(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="86400"
+              />
+  
+              <label style={label}>Repayment duration (secs)</label>
+              <input
+                style={inp}
+                value={customRepaymentDuration}
+                onChange={(e) => setCustomRepaymentDuration(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="172800"
+              />
+  
+              <label style={label}>Fee</label>
+              <input
+                style={inp}
+                value={customFee}
+                onChange={(e) => setCustomFee(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0"
+              />
+  
+              <label style={label}>Purchase token address</label>
+              <input
+                style={inp}
+                value={customPurchaseToken}
+                onChange={(e) => setCustomPurchaseToken(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0x…"
+              />
+            </div>
+  
+            {/* column B */}
+            <div>
+              <label style={label}>Reveal duration (secs)</label>
+              <input
+                style={inp}
+                value={customRevealDuration}
+                onChange={(e) => setCustomRevealDuration(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="86400"
+              />
+  
+              <label style={label}>Auction token ratio</label>
+              <input
+                style={inp}
+                value={customAuctionTokenAmount}
+                onChange={(e) => setCustomAuctionTokenAmount(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="1"
+              />
+  
+              <label style={label}>Max bid value</label>
+              <input
+                style={inp}
+                value={customMaxBid}
+                onChange={(e) => setCustomMaxBid(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="15000"
+              />
+  
+              <label style={label}>Max offer value</label>
+              <input
+                style={inp}
+                value={customMaxOffer}
+                onChange={(e) => setCustomMaxOffer(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="10000"
+              />
+  
+              <label style={label}>Initial collateral token address</label>
+              <input
+                style={inp}
+                value={customCollateralToken}
+                onChange={(e) => setCustomCollateralToken(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0x…"
+              />
+  
+              <label style={label}>Initial collateral ratio</label>
+              <input
+                style={inp}
+                value={customCollateralRatio}
+                onChange={(e) => setCustomCollateralRatio(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="1"
+              />
+            </div>
+          </div>
+  
+          <button style={btn} onClick={deployContractsCustom}>
             Deploy
           </button>
         </div>
+  
+        {/* RIGHT COLUMN (card) */}
+        {card}
       </div>
-    </div>
-  );
-}
+    );
+  }
+  
 
-const UserDashboard = () => {
-  const { deployedAuctions, selectAuction } = useAppContext();
-  const navigate = useNavigate();
-  const [selectedAuction, setSelectedAuction] = useState("");
 
-  return (
-    <div style={cardStyle}>
-      <h2>Available Auctions</h2>
-      {deployedAuctions.length === 0 ? (
-        <p>No auctions deployed yet.</p>
-      ) : (
-        <>
-          <select
-            style={selectStyle}
-            className="responsive-select"
-            value={selectedAuction}
-            onChange={(e) => {
-              setSelectedAuction(e.target.value);
-              const auctionObj = deployedAuctions.find(a => a.auctionEngineAddress === e.target.value);
-              if (auctionObj) selectAuction(auctionObj);
-            }}
-          >
-            <option value="">-- Select an Auction --</option>
-            {deployedAuctions.map((auction) => (
-              <option key={auction.auctionEngineAddress} value={auction.auctionEngineAddress}>
-                {auction.auctionEngineAddress}
-              </option>
-            ))}
-          </select>
-          <button
-            style={buttonStyle}
-            className="responsive-button"
-            onClick={() => {
-              if (!selectedAuction) {
-                alert("Please select an auction first.");
-                return;
-              }
-              navigate(`/user/auction/${selectedAuction}`);
-            }}
-          >
-            View &amp; Participate
-          </button>
-        </>
-      )}
-    </div>
-  );
-};
+/* ─────────────────────────────────────────────────────────────
+   U S E R   D A S H B O A R D  (available auctions)
+   ─────────────────────────────────────────────────────────── */
+   function UserDashboard() {
+    const { deployedAuctions, selectAuction } = useAppContext();
+    const navigate = useNavigate();
+    const [selected, setSelected] = React.useState("");
+  
+    /* atoms (same as Manage) */
+    const wrap = { display: "flex", justifyContent: "center", padding: 48 };
+  
+    const card = {
+      width: 420,
+      padding: 32,
+      borderRadius: 20,
+      border: "1px solid rgba(155,61,255,.45)",
+      background:
+        "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+      backdropFilter: "blur(4px)",
+      color: "#fff",
+      fontFamily: FONT_FAMILY,
+      textAlign: "center",
+    };
+  
+    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 24 };
+    const selectBox = {
+      width: "100%",
+      padding: "16px 20px",
+      fontSize: 17,
+      borderRadius: 12,
+      background: "rgba(255,255,255,0.05)",
+      color: "#fff",
+      border: "1px solid rgba(255,255,255,0.25)",
+      outline: "none",
+    };
+    const btn = {
+      background: COLORS.accent,
+      border: "none",
+      color: "#fff",
+      fontWeight: 700,
+      fontSize: 16,
+      padding: "16px",
+      borderRadius: 12,
+      cursor: "pointer",
+      width: "100%",
+      marginTop: 28,
+    };
+  
+    return (
+      <div style={wrap}>
+        <div style={card}>
+          <h2 style={heading}>Available auctions</h2>
+  
+          {deployedAuctions.length === 0 ? (
+            <p style={{ fontSize: 16, lineHeight: 1.5 }}>
+              No auctions deployed yet.
+            </p>
+          ) : (
+            <>
+              <select
+                style={selectBox}
+                value={selected}
+                onChange={(e) => setSelected(e.target.value)}
+              >
+                <option value="">– Select an auction –</option>
+                {deployedAuctions.map((a) => (
+                  <option key={a.auctionEngineAddress} value={a.auctionEngineAddress}>
+                    {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
+                  </option>
+                ))}
+              </select>
+  
+              <button
+                style={btn}
+                onClick={() => {
+                  if (!selected)
+                    return alert("Please select an auction first.");
+                  const found = deployedAuctions.find(
+                    (a) => a.auctionEngineAddress === selected
+                  );
+                  if (found) selectAuction(found);
+                  navigate(`/user/auction/${selected}`);
+                }}
+              >
+                View &amp; participate
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
 
 // --------------------------------------------------------
 // UserAuctionPage
 // --------------------------------------------------------
-function UserAuctionPage() {
-  const { auctionAddress } = useParams();
-  const {
-    currentAuction,
-    deployedAuctions,
-    selectAuction,
-    placeBid,
-    placeOffer,
-    bidAmount,
-    setBidAmount,
-    bidRate,
-    setBidRate,
-    offerAmount,
-    setOfferAmount,
-    offerRate,
-    setOfferRate,
-    bidCollateralSelections,
-    setBidCollateralSelections,
-    repayAmount,
-    setRepayAmount,
-    repay,
-    owedAmount,
-    checkOwed,
-    liquidationBorrower,
-    setLiquidationBorrower,
-    liquidationCollateralSelections,
-    setLiquidationCollateralSelections,
-    liquidate,
-    redemptionAmount,
-    setRedemptionAmount,
-    redeemToken,
-    signer,
-    auctionEngineAddress
-  } = useAppContext();
-
-  const [auctionDetails, setAuctionDetails] = useState({
-    token: "",
-    isFinalized: false,
-    auctionCancelled: false,
-    biddingEnd: "",
-    repaymentDue: ""
-  });
-
-  function formatDate(timestamp) {
-    const d = new Date(timestamp * 1000);
-    let day = d.getDate().toString().padStart(2, "0");
-    let month = (d.getMonth() + 1).toString().padStart(2, "0");
-    let year = d.getFullYear().toString().slice(-2);
-    return `${day}/${month}/${year}`;
-  }
-
-  useEffect(() => {
-    async function fetchAuctionInfo() {
-      if (signer && auctionEngineAddress) {
-        try {
-          const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
-          const token = await ae.token();
-          const finalized = await ae.isFinalized();
-          const cancelled = await ae.auctionCancelled();
-          const biddingEndBN = await ae.biddingEnd();
-          const repaymentDueBN = await ae.repaymentDue();
-          setAuctionDetails({
-            token: token,
-            isFinalized: finalized,
-            auctionCancelled: cancelled,
-            biddingEnd: formatDate(biddingEndBN.toNumber()),
-            repaymentDue: formatDate(repaymentDueBN.toNumber())
-          });
-        } catch (error) {
-          console.error("Failed to fetch auction info:", error);
-        }
-      }
-    }
-    fetchAuctionInfo();
-  }, [signer, auctionEngineAddress]);
-
-  useEffect(() => {
-    if (auctionAddress && (!currentAuction || currentAuction.auctionEngineAddress !== auctionAddress)) {
-      const foundAuction = deployedAuctions.find(a => a.auctionEngineAddress === auctionAddress);
-      if (foundAuction) {
-        selectAuction(foundAuction);
-      }
-    }
-  }, [auctionAddress, currentAuction, deployedAuctions, selectAuction]);
-
-  const handleBidCollateralAmountChange = (index, newVal) => {
-    setBidCollateralSelections((prev) => {
-      const updated = [...prev];
-      updated[index].amount = newVal;
-      return updated;
-    });
-  };
-
-  const handleLiquidationCollateralAmountChange = (index, newVal) => {
-    setLiquidationCollateralSelections((prev) => {
-      const updated = [...prev];
-      updated[index].amount = newVal;
-      return updated;
-    });
-  };
-
-  return (
-    <div className="auction-page-outer" style={auctionPageOuterStyle}>
-      <h2 style={{auctionTitleStyle, fontSize: useIsMobile() ? "0.8rem":"1.8rem" }}>Auction: "{auctionAddress}"</h2>
-      <div style={{ marginBottom: "1rem", padding: "1rem", border: "1px solid #ccc", borderRadius: "6px", backgroundColor: "#f9f9f9" ,width: useIsMobile() ? "90%":"100%"  }}>
-        <p><strong>Auction Token:</strong> {auctionDetails.token ? <TokenDisplay address={auctionDetails.token} /> : "N/A"}</p>
-        <p>
-          <strong>Status:</strong>{" "}
-          {auctionDetails.auctionCancelled ? "Cancelled" : auctionDetails.isFinalized ? "Finalized" : "Active"}
-        </p>
-        <p><strong>Bidding Deadline:</strong> {auctionDetails.biddingEnd || "N/A"}</p>
-        <p><strong>Repayment Due:</strong> {auctionDetails.repaymentDue || "N/A"}</p>
-      </div>
-      <div style={{  width: useIsMobile() ? "100%":"100%" }}>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Place a Bid</h3>
-          <label style={labelStyle}>Bid Amount:</label>
-          <input
-            type="text"
-            placeholder="Enter bid amount"
-            value={bidAmount}
-            onChange={(e) => setBidAmount(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Bid Rate:</label>
-          <input
-            type="text"
-            placeholder="Enter bid rate"
-            value={bidRate}
-            onChange={(e) => setBidRate(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <p style={{ margin: "0.5rem 0", fontSize: "0.9rem", fontWeight: 600, color: "#555" }}>
-            Collateral for Bid:
-          </p>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={{ backgroundColor: "#f1f1f1" }}>
-                <th style={{ padding: "0.5rem", fontWeight: 600 }}>Token</th>
-                <th style={{ padding: "0.5rem", fontWeight: 600 }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bidCollateralSelections.map((coll, idx) => (
-                <tr key={`${coll.address}-${idx}`}>
-                  <td style={tdStyle}><TokenDisplay address={coll.address} /></td>
-                  <td style={tdStyle}>
-                    <input
-                      type="text"
-                      placeholder="0"
-                      style={{ ...inputStyle, marginBottom: 0 }}
-                      className="responsive-input"
-                      value={coll.amount}
-                      onChange={(e) => handleBidCollateralAmountChange(idx, e.target.value)}
-                    />
-                  </td>
+/* ─────────────────────────────────────────────────────────────
+   U S E R   A U C T I O N   P A G E
+   fully styled to match the Figma spec (node 810-3211)
+   ─────────────────────────────────────────────────────────── */
+   function UserAuctionPage() {
+    /* grab every piece of state / action you already expose
+       (add/remove lines if you have more) */
+    const {
+      /* basics */
+      auctionEngineAddress,
+      bidAmount,
+      setBidAmount,
+      bidRate,
+      setBidRate,
+      placeBid,
+      offerAmount,
+      setOfferAmount,
+      offerRate,
+      setOfferRate,
+      placeOffer,
+      repayAmount,
+      setRepayAmount,
+      repay,
+      owedAmount,
+      checkOwed,
+      liquidationBorrower,
+      setLiquidationBorrower,
+      liquidationCollateralSelections,
+      setLiquidationCollateralSelections,
+      liquidate,
+      redemptionAmount,
+      setRedemptionAmount,
+      redeemToken,
+      bidCollateralSelections,
+      setBidCollateralSelections,
+      /* etc. */
+    } = useAppContext();
+  
+    /* ── style helpers (local) ─────────────────────────────── */
+    const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
+  
+    const section = { marginBottom: 64 };
+    const h2 = {
+      fontSize: 28,
+      fontWeight: 700,
+      color: COLORS.accent,
+      marginBottom: 24,
+    };
+  
+    const grid2 = {
+      display: "grid",
+      gap: 40,
+      gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))",
+    };
+  
+    const label = {
+      fontSize: 16,
+      fontWeight: 600,
+      color: "#fff",
+      marginBottom: 8,
+    };
+    const input = {
+      width: "100%",
+      padding: "18px 20px",
+      fontSize: 18,
+      borderRadius: 12,
+      background: "rgba(255,255,255,0.04)",
+      color: "#fff",
+      border: "1px solid rgba(255,255,255,0.25)",
+      outline: "none",
+      transition: "box-shadow .18s,border .18s",
+    };
+    const focusOn = (e) => {
+      e.currentTarget.style.boxShadow =
+        "0 0 0 3px rgba(155,61,255,0.45)";
+      e.currentTarget.style.borderColor = COLORS.accent;
+    };
+    const focusOff = (e) => {
+      e.currentTarget.style.boxShadow = "";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+    };
+  
+    const purpleBtn = {
+      background: COLORS.accent,
+      border: "none",
+      color: "#fff",
+      fontSize: 18,
+      fontWeight: 700,
+      padding: "18px 64px",
+      borderRadius: 14,
+      cursor: "pointer",
+      marginTop: 28,
+    };
+  
+    const table = {
+      width: "100%",
+      borderCollapse: "collapse",
+      marginTop: 24,
+    };
+    const td = {
+      border: "1px solid rgba(255,255,255,0.15)",
+      padding: 12,
+      fontSize: 15,
+    };
+  
+    /* helpers to update collateral arrays */
+    const updateBidCollat = (idx, val) =>
+      setBidCollateralSelections((prev) => {
+        const copy = [...prev];
+        copy[idx].amount = val;
+        return copy;
+      });
+  
+    const updateLiqCollat = (idx, val) =>
+      setLiquidationCollateralSelections((prev) => {
+        const copy = [...prev];
+        copy[idx].amount = val;
+        return copy;
+      });
+  
+    /* ── Render ─────────────────────────────────────────────── */
+    return (
+      <div style={wrapper}>
+        <h1 style={{ fontSize: 38, fontWeight: 700, marginBottom: 48 }}>
+          Participate in auction&nbsp;
+          <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
+            ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
+          </span>
+        </h1>
+  
+        {/* 1.  BID  +  OFFER  side-by-side */}
+        <div style={{ ...grid2, ...section }}>
+          {/* ▸ BID */}
+          <div>
+            <h2 style={h2}>Place a Bid</h2>
+  
+            <label style={label}>Bid amount</label>
+            <input
+              style={input}
+              value={bidAmount}
+              onChange={(e) => setBidAmount(e.target.value)}
+              onFocus={focusOn}
+              onBlur={focusOff}
+              placeholder="0"
+            />
+  
+            <label style={label}>Bid rate</label>
+            <input
+              style={input}
+              value={bidRate}
+              onChange={(e) => setBidRate(e.target.value)}
+              onFocus={focusOn}
+              onBlur={focusOff}
+              placeholder="0"
+            />
+  
+            {/* collateral table */}
+            <table style={table}>
+              <thead>
+                <tr>
+                  <th style={td}>Collateral token</th>
+                  <th style={td}>Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <button style={buttonStyleBid} className="responsive-button" onClick={placeBid}>
-            Submit
-          </button>
+              </thead>
+              <tbody>
+                {bidCollateralSelections.map((c, i) => (
+                  <tr key={c.address}>
+                    <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
+                    <td style={td}>
+                      <input
+                        style={{
+                          ...input,
+                          margin: 0,
+                          padding: "8px 10px",
+                          fontSize: 15,
+                        }}
+                        value={c.amount}
+                        onChange={(e) => updateBidCollat(i, e.target.value)}
+                        onFocus={focusOn}
+                        onBlur={focusOff}
+                        placeholder="0"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+  
+            <button style={purpleBtn} onClick={placeBid}>
+              Submit bid
+            </button>
+          </div>
+  
+          {/* ▸ OFFER */}
+          <div>
+            <h2 style={h2}>Place an Offer</h2>
+  
+            <label style={label}>Offer amount</label>
+            <input
+              style={input}
+              value={offerAmount}
+              onChange={(e) => setOfferAmount(e.target.value)}
+              onFocus={focusOn}
+              onBlur={focusOff}
+              placeholder="0"
+            />
+  
+            <label style={label}>Offer rate</label>
+            <input
+              style={input}
+              value={offerRate}
+              onChange={(e) => setOfferRate(e.target.value)}
+              onFocus={focusOn}
+              onBlur={focusOff}
+              placeholder="0"
+            />
+  
+            <button style={purpleBtn} onClick={placeOffer}>
+              Submit offer
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="three-column-grid" style={{...threeColumnGridStyle,width: useIsMobile() ? "100%":"100%"}}>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Place an Offer</h3>
-          <label style={labelStyle}>Offer Amount:</label>
-          <input
-            type="text"
-            placeholder="Enter offer amount"
-            value={offerAmount}
-            onChange={(e) => setOfferAmount(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <label style={labelStyle}>Offer Rate:</label>
-          <input
-            type="text"
-            placeholder="Enter offer rate"
-            value={offerRate}
-            onChange={(e) => setOfferRate(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <button style={buttonStyleBid} className="responsive-button" onClick={placeOffer}>
-            Submit
-          </button>
+  
+        {/* 2.  REPAY + OWED  */}
+        <div style={{ ...grid2, ...section }}>
+          {/* repay */}
+          <div>
+            <h2 style={h2}>Repay loan</h2>
+  
+            <label style={label}>Repay amount</label>
+            <input
+              style={input}
+              value={repayAmount}
+              onChange={(e) => setRepayAmount(e.target.value)}
+              onFocus={focusOn}
+              onBlur={focusOff}
+              placeholder="0"
+            />
+  
+            <button style={purpleBtn} onClick={repay}>
+              Repay
+            </button>
+          </div>
+  
+          {/* check owed */}
+          <div>
+            <h2 style={h2}>Check owed</h2>
+            <button style={purpleBtn} onClick={checkOwed}>
+              Check
+            </button>
+            {owedAmount && (
+              <p style={{ marginTop: 18, fontSize: 20 }}>
+                You owe: <strong>{owedAmount}</strong>
+              </p>
+            )}
+          </div>
         </div>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Repay Loan</h3>
-          <label style={labelStyle}>Repay Amount:</label>
+  
+        {/* 3.  LIQUIDATE (full-width) */}
+        <div style={{ ...section }}>
+          <h2 style={h2}>Liquidate borrower</h2>
+  
+          <label style={label}>Borrower address</label>
           <input
-            type="text"
-            placeholder="Enter repay amount"
-            value={repayAmount}
-            onChange={(e) => setRepayAmount(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
-          />
-          <button style={buttonStyleBid} className="responsive-button" onClick={repay}>
-            Repay
-          </button>
-        </div>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Check Owed</h3>
-          <button style={{ ...buttonStyleBid, marginBottom: "0.7rem" }} className="responsive-button" onClick={checkOwed}>
-            Check
-          </button>
-          {owedAmount && (
-            <p style={{ marginTop: "0.5rem", fontSize: "1rem" }}>
-              You owe: <strong>{owedAmount}</strong>
-            </p>
-          )}
-        </div>
-      </div>
-      <div style={{ width: useIsMobile() ? "100%":"100%"}}>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Liquidate Borrower</h3>
-          <label style={labelStyle}>Borrower Address:</label>
-          <input
-            type="text"
-            placeholder="0x..."
+            style={input}
             value={liquidationBorrower}
             onChange={(e) => setLiquidationBorrower(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
+            onFocus={focusOn}
+            onBlur={focusOff}
+            placeholder="0x…"
           />
-          <p style={{ margin: "0.5rem 0", fontSize: "0.9rem", fontWeight: 600, color: "#555" }}>
-            Coverage amounts for each collateral:
-          </p>
-          <table style={tableStyle}>
+  
+          <table style={table}>
             <thead>
-              <tr style={{ backgroundColor: "#f1f1f1" }}>
-                <th style={{ padding: "0.5rem", fontWeight: 600 }}>Collateral Token</th>
-                <th style={{ padding: "0.5rem", fontWeight: 600 }}>Coverage Amount</th>
+              <tr>
+                <th style={td}>Collateral token</th>
+                <th style={td}>Coverage amount</th>
               </tr>
             </thead>
             <tbody>
-              {liquidationCollateralSelections.map((coll, idx) => (
-                <tr key={`${coll.address}-${idx}`}>
-                  <td style={tdStyle}><TokenDisplay address={coll.address} /></td>
-                  <td style={tdStyle}>
+              {liquidationCollateralSelections.map((c, i) => (
+                <tr key={c.address}>
+                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
+                  <td style={td}>
                     <input
-                      type="text"
+                      style={{
+                        ...input,
+                        margin: 0,
+                        padding: "8px 10px",
+                        fontSize: 15,
+                      }}
+                      value={c.amount}
+                      onChange={(e) => updateLiqCollat(i, e.target.value)}
+                      onFocus={focusOn}
+                      onBlur={focusOff}
                       placeholder="0"
-                      style={{ ...inputStyle, marginBottom: 0 }}
-                      className="responsive-input"
-                      value={coll.amount}
-                      onChange={(e) => handleLiquidationCollateralAmountChange(idx, e.target.value)}
                     />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <button style={buttonStyleBid} className="responsive-button" onClick={liquidate}>
+  
+          <button style={purpleBtn} onClick={liquidate}>
             Liquidate
           </button>
         </div>
-      </div >
-      <div style={{ width: useIsMobile() ? "100%":"100%"}}>
-        <div style={proSectionCardStyle}>
-          <h3 style={{ marginBottom: "1rem", color: "#9B3DFF" }}>Redeem Auction Tokens</h3>
-          <label style={labelStyle}>Redemption Amount:</label>
+  
+        {/* 4.  REDEEM TOKEN (full-width) */}
+        <div style={{ ...section }}>
+          <h2 style={h2}>Redeem auction tokens</h2>
+  
+          <label style={label}>Redemption amount</label>
           <input
-            type="text"
-            placeholder="Enter redemption amount"
+            style={input}
             value={redemptionAmount}
             onChange={(e) => setRedemptionAmount(e.target.value)}
-            style={inputStyle}
-            className="responsive-input"
+            onFocus={focusOn}
+            onBlur={focusOff}
+            placeholder="0"
           />
-          <button style={buttonStyleBid} className="responsive-button" onClick={redeemToken}>
-            Redeem Tokens
+  
+          <button style={purpleBtn} onClick={redeemToken}>
+            Redeem
           </button>
         </div>
       </div>
-     </div>
-  );
-}
-function App() {
+    );
+  }
+  function App() {
   return (
     <>
       <style>{globalBgCss}</style>
