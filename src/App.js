@@ -1,4 +1,4 @@
-
+import ReactDOM from "react-dom";
 import React, {
   useState,
   useEffect,
@@ -56,7 +56,7 @@ const COLORS = {
   accentHover: "#B570FF",
   buttonBorder: "rgba(255,255,255,0.15)",
 };
-const FONT_FAMILY = `"Inter", "Helvetica Neue", Arial, sans-serif`;
+const FONT_FAMILY = `"Inter", sans-serif`;
 
 /* NAV BAR */
 export const topBarStyle = {
@@ -92,12 +92,7 @@ export const walletBtnBase = {
 };
 
 /* HERO */
-export const heroWrap = {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  padding: "220px 24px 260px",
-  textAlign: "center",
-};
+
 export const heroHeading = {
   fontSize: "96px",
   fontWeight: 700,
@@ -1426,6 +1421,12 @@ function FaucetPage() {
 /* ──────────────────────────────────────────────────────────────
    WALLET-CONNECT 
    ──────────────────────────────────────────────────────────── */
+   /* ───────────────────────────────────────────────────────────────
+   WALLET-CONNECT  with modal overlay
+   ───────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────
+   WALLET-CONNECT  (modal is now portalled, so it centres)
+   ──────────────────────────────────────────────────────────── */
    function WalletConnect() {
     const {
       signer,
@@ -1436,52 +1437,124 @@ function FaucetPage() {
       switchAccount,
     } = useAppContext();
   
-    /* pill style we exported earlier */
+    const [open, setOpen] = React.useState(false);
+  
+    /* pill */
     const pill = walletBtnBase;
   
-    /* dark select so white text remains visible */
-    const selectStyle = {
+    /* dark select */
+    const selectDark = {
       ...pill,
-      width: "260px",
-      /* neutral dark background */
+      width: 260,
       background: "rgba(255,255,255,0.05)",
       color: COLORS.textPrimary,
-      /* remove native arrow and add our own so it’s still visible */
       appearance: "none",
-      WebkitAppearance: "none",
-      MozAppearance: "none",
-      paddingRight: "42px",
+      paddingRight: 42,
       backgroundImage:
         'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
       backgroundRepeat: "no-repeat",
       backgroundPosition: "calc(100% - 16px) center",
     };
+    const optionDark = { background: "#121212", color: "#fff" };
   
-    /* option tag inherits color, but we also insure dark bg here */
-    const optionStyle = {
-      background: "#121212",
-      color: COLORS.textPrimary,
+    /* modal */
+    const overlay = {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.60)",
+      backdropFilter: "blur(4px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+    };
+    const card = {
+      width: 420,
+      padding: "48px 56px 56px",
+      background: "#fff",
+      borderRadius: 20,
+      boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+      textAlign: "center",
+      fontFamily: FONT_FAMILY,
+    };
+    const fox = { width: 140, marginBottom: 32 };
+    const connectBtn = {
+      background: COLORS.accent,
+      border: "none",
+      width: "100%",
+      padding: "20px 0",
+      borderRadius: 12,
+      color: "#fff",
+      fontSize: 20,
+      fontWeight: 700,
+      cursor: "pointer",
+      marginTop: 40,
     };
   
-    return (
-      <div style={{ marginLeft: "auto", display: "flex", gap: "12px" }}>
-        {signer ? (
-          <>
-            <select
-              value={walletAddress}
-              style={selectStyle}
-              onChange={(e) => switchAccount(e.target.value)}
-            >
-              {availableAccounts.map((acc) => (
-                <option key={acc} value={acc} style={optionStyle}>
-                  {acc.slice(0, 6)}…{acc.slice(-4)}
-                </option>
-              ))}
-            </select>
+    /* ESC closes modal */
+    React.useEffect(() => {
+      if (!open) return;
+      const onKey = (e) => e.key === "Escape" && setOpen(false);
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }, [open]);
   
+    /* helper to render the modal via portal */
+    const modal = (
+      <div style={overlay} onClick={() => setOpen(false)}>
+        <div style={card} onClick={(e) => e.stopPropagation()}>
+          <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
+          <p style={{ color: "#000", fontSize: 22, fontWeight: 600 }}>
+            To get started, connect your<br />MetaMask wallet.
+          </p>
+          <button
+            style={connectBtn}
+            onClick={async () => {
+              await connectWallet();
+              setOpen(false);
+            }}
+          >
+            Connect
+          </button>
+        </div>
+      </div>
+    );
+  
+    return (
+      <>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+          {signer ? (
+            <>
+              <select
+                value={walletAddress}
+                style={selectDark}
+                onChange={(e) => switchAccount(e.target.value)}
+              >
+                {availableAccounts.map((acc) => (
+                  <option key={acc} value={acc} style={optionDark}>
+                    {acc.slice(0, 6)}…{acc.slice(-4)}
+                  </option>
+                ))}
+              </select>
+  
+              <button
+                style={pill}
+                onClick={disconnectWallet}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background =
+                    "rgba(255,255,255,0.08)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
             <button
               style={pill}
-              onClick={disconnectWallet}
+              onClick={() => setOpen(true)}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background =
                   "rgba(255,255,255,0.08)")
@@ -1490,25 +1563,14 @@ function FaucetPage() {
                 (e.currentTarget.style.background = "transparent")
               }
             >
-              Disconnect
+              Connect Wallet
             </button>
-          </>
-        ) : (
-          <button
-            style={pill}
-            onClick={connectWallet}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background =
-                "rgba(255,255,255,0.08)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "transparent")
-            }
-          >
-            Connect Wallet
-          </button>
-        )}
-      </div>
+          )}
+        </div>
+  
+        {/* render modal into <body> so nav backdrop-filter doesn’t trap it */}
+        {open && ReactDOM.createPortal(modal, document.body)}
+      </>
     );
   }
   
@@ -1549,7 +1611,7 @@ function LandingPage() {
   const heroWrap = {
     maxWidth: "1120px",
     margin: "0 auto",
-    padding: "140px 20px 160px",
+    padding: "50px 20px 160px",
     textAlign: "center",
   };
   const heading = {
@@ -1593,7 +1655,6 @@ function LandingPage() {
     <div style={{ minHeight: "100vh" }}>
       {/* top navigation */}
       <TopBar sectionLinks={links} />
-
       {/* main hero copy */}
       <div style={heroWrap}>
   <h1 style={heroHeading}>
@@ -1602,11 +1663,10 @@ function LandingPage() {
   </h1>
 
   <p style={heroSub}>
-    One rate for everyone — discovered by a sealed-bid auction. No black-box
-    algorithms; only transparent fair price discovery powered by
-    confidential computing.
+  One rate: Fixed-rate for all lenders and borrowers through sealed-bid auctions. 
+  <p></p>
+  Zero game: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing
   </p>
-
   <div style={ctaRow}>
     <button
       style={primaryBtn}
