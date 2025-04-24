@@ -1942,6 +1942,19 @@ const mobileCss = `
    (nothing here changes desktop; it only overrides ≤ 860 px)
    ─────────────────────────────────────────────────────────── */
    const responsiveCss = `
+   /*  Deploy-page layout : stack on narrow screens  */
+@media (max-width: 860px){
+  .deploy-flex{
+    flex-direction:column!important;
+    gap:48px!important;
+    align-items:center;         /* keeps the card centred          */
+  }
+  .deploy-flex .purple-card{
+    width:90%!important;        /* card fills width nicely          */
+    margin:0 auto!important;
+  }
+}
+
    /* 1 — fluid body font-size … 320 → 1440 px */
    html{font-size:clamp(14px,1.2vw + .5rem,18px);}
    
@@ -2492,7 +2505,7 @@ function useIsMobile(breakpoint = 768) {
   
     /* —— RENDER ——————————————————————————————— */
     return (
-      <div style={{ ...page, [cardBreak]: {} }}>
+      <div className="deploy-flex" style={{ ...page, [cardBreak]: {} }}>
         {/* LEFT COLUMN (form) */}
         <div style={columnStyle}>
           <h1 style={h1}>Deploy contracts</h1>
