@@ -128,6 +128,7 @@ export const topBarStyle = {
   backdropFilter: "blur(6px)",
   background: "rgba(8,8,8,0.72)",
   borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexWrap: "wrap", 
 };
 export const navLink = {
   fontSize: "28px",
@@ -155,7 +156,7 @@ export const walletBtnBase = {
 /* HERO */
 
 export const heroHeading = {
-  fontSize: "96px",
+  fontSize: "70px",
   fontWeight: 700,
   lineHeight: 1.1,
   marginBottom: "40px",
@@ -1712,6 +1713,7 @@ function TokenDisplay({ address }) {
               </select>
   
               <button
+              className="wallet-pill"
                 style={pill}
                 onClick={disconnectWallet}
                 onMouseEnter={(e) =>
@@ -1759,7 +1761,7 @@ function TokenDisplay({ address }) {
         <img src="/fairates-logo.png" alt="Fairates" style={logoStyle} />
   
         {sectionLinks.map(({ to, label }) => (
-          <Link key={label} to={to} style={navLink}>
+          <Link key={label} to={to} style={navLink} className="nav-link">
             {label}
           </Link>
         ))}
@@ -1964,6 +1966,16 @@ const mobileCss = `
      h2{font-size:1.4rem!important;}
      h3{font-size:1.2rem!important;}
    }
+
+   /*  nav bar  -------------------------------------------------- */
+@media(max-width:640px){
+  nav{padding:0 20px !important;}        /* narrower side-gutter           */
+  .nav-link{                            /* we’ll add this class below     */
+    font-size:18px!important;           /* smaller text                   */
+    margin-left:24px!important;         /* tighter spacing                */
+  }
+  .wallet-pill{margin-top:12px!important;} /* pill drops to its own line   */
+}
    `;
    
 
