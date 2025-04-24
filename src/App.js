@@ -1561,7 +1561,9 @@ function TokenDisplay({ address }) {
             <p style={sub}>
               <strong>T1 token</strong>
               <br />
-              Address:&nbsp;<TokenDisplay address={T1_ADDRESS} />
+               Address:&nbsp;<span className="wrap-addr">
+   <TokenDisplay address={T1_ADDRESS}/>
+ </span>
             </p>
             <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
               Request&nbsp;T1
@@ -1573,7 +1575,9 @@ function TokenDisplay({ address }) {
             <p style={sub}>
               <strong>T2 token</strong>
               <br />
-              Address:&nbsp;<TokenDisplay address={T2_ADDRESS} />
+              Address:&nbsp;<span className="wrap-addr">
+   <TokenDisplay address={T2_ADDRESS}/>
+ </span>
             </p>
             <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
               Request&nbsp;T2
@@ -1585,7 +1589,9 @@ function TokenDisplay({ address }) {
             <p style={sub}>
               <strong>T3 token</strong>
               <br />
-              Address:&nbsp;<TokenDisplay address={T3_ADDRESS} />
+              Address:&nbsp;<span className="wrap-addr">
+   <TokenDisplay address={T3_ADDRESS}/>
+ </span>
             </p>
             <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
               Request&nbsp;T3
@@ -1942,6 +1948,15 @@ const mobileCss = `
    (nothing here changes desktop; it only overrides ≤ 860 px)
    ─────────────────────────────────────────────────────────── */
    const responsiveCss = `
+    @media (max-width: 768px) {
+   .auction-page-outer { … }
+   .three-column-grid  { … }
+   .responsive-input,
+   .responsive-select,
+   .responsive-button { … }
+
+ }
+
    /*  Deploy-page layout : stack on narrow screens  */
 @media (max-width: 860px){
   .deploy-flex{
