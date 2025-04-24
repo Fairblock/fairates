@@ -1552,7 +1552,7 @@ function TokenDisplay({ address }) {
     /* – render – */
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-        <div style={card}>
+        <div className="purple-card" style={card}>
           <h2 style={heading}>Faucet</h2>
   
           {/* T1 */}
@@ -1562,7 +1562,7 @@ function TokenDisplay({ address }) {
               <br />
               Address:&nbsp;<TokenDisplay address={T1_ADDRESS} />
             </p>
-            <button style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
+            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
               Request&nbsp;T1
             </button>
           </div>
@@ -1574,7 +1574,7 @@ function TokenDisplay({ address }) {
               <br />
               Address:&nbsp;<TokenDisplay address={T2_ADDRESS} />
             </p>
-            <button style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
+            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
               Request&nbsp;T2
             </button>
           </div>
@@ -1586,7 +1586,7 @@ function TokenDisplay({ address }) {
               <br />
               Address:&nbsp;<TokenDisplay address={T3_ADDRESS} />
             </p>
-            <button style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
+            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
               Request&nbsp;T3
             </button>
           </div>
@@ -1675,12 +1675,13 @@ function TokenDisplay({ address }) {
     /* helper to render the modal via portal */
     const modal = (
       <div style={overlay} onClick={() => setOpen(false)}>
-        <div style={card} onClick={(e) => e.stopPropagation()}>
+        <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
           <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
           <p style={{ color: "#000", fontSize: 22, fontWeight: 600 }}>
             To get started, connect your<br />MetaMask wallet.
           </p>
           <button
+          className="btn-primary"
             style={connectBtn}
             onClick={async () => {
               await connectWallet();
@@ -1842,6 +1843,7 @@ function LandingPage() {
   </p>
   <div style={ctaRow}>
     <button
+    className="btn-primary"
       style={primaryBtn}
       onClick={() => navigate("/user")}
       onMouseEnter={(e) =>
@@ -1933,7 +1935,37 @@ const mobileCss = `
     }
   }
 `;
-
+/* ─────────────────────────────────────────────────────────────
+   G L O B A L   R E S P O N S I V E   C S S
+   (nothing here changes desktop; it only overrides ≤ 860 px)
+   ─────────────────────────────────────────────────────────── */
+   const responsiveCss = `
+   /* 1 — fluid body font-size … 320 → 1440 px */
+   html{font-size:clamp(14px,1.2vw + .5rem,18px);}
+   
+   /* 2 — ‘purple-card’ (the frosted rectangles) go edge-to-edge */
+   @media(max-width:640px){
+     .purple-card{width:90%!important;padding:24px!important;}
+   }
+   
+   /* 3 — 2-column grids collapse */
+   @media(max-width:860px){
+     .grid-2{grid-template-columns:1fr!important;}
+   }
+   
+   /* 4 — big CTA buttons fill the width */
+   @media(max-width:540px){
+     .btn-primary{width:100%!important;padding:16px 0!important;}
+   }
+   
+   /* 5 — headings down-scale just a bit */
+   @media(max-width:540px){
+     h1{font-size:2rem!important;}
+     h2{font-size:1.4rem!important;}
+     h3{font-size:1.2rem!important;}
+   }
+   `;
+   
 
 
 
@@ -1986,7 +2018,7 @@ const mobileCss = `
   
     return (
       <div style={wrap}>
-        <div style={card}>
+        <div className="purple-card" style={card}>
           <h2 style={heading}>Manage my auctions</h2>
   
           {myAuctions.length === 0 ? (
@@ -2019,6 +2051,7 @@ const mobileCss = `
               </select>
   
               <button
+              className="btn-primary"
                 style={btn}
                 onClick={() => {
                   const sel = document.querySelector("select").value;
@@ -2169,13 +2202,13 @@ const mobileCss = `
     /* ── render ─────────────────────────────────────────────── */
     return (
       <div style={wrapper}>
-        <div style={card}>
+        <div className="purple-card" style={card}>
           <h2 style={h2}>Auction&nbsp;management</h2>
   
           {/* Finalize + Clearing rate */}
           <div style={{ marginBottom: 40 }}>
             <h3 style={sectionH3}>Finalize auction</h3>
-            <button style={btn} onClick={finalizeAuction}>
+            <button className="btn-primary" style={btn} onClick={finalizeAuction}>
               Finalize
             </button>
             {isDecrypting && (
@@ -2183,7 +2216,7 @@ const mobileCss = `
             )}
   
             <h3 style={{ ...sectionH3, marginTop: 32 }}>Check clearing rate</h3>
-            <button style={btn} onClick={checkClearingRate}>
+            <button className="btn-primary" style={btn} onClick={checkClearingRate}>
               Get rate
             </button>
             {clearingRate && (
@@ -2214,7 +2247,7 @@ const mobileCss = `
               onBlur={focusOff}
               placeholder="1"
             />
-            <button style={btn} onClick={registerNewCollateral}>
+            <button className="btn-primary" style={btn} onClick={registerNewCollateral}>
               Register
             </button>
   
@@ -2242,7 +2275,7 @@ const mobileCss = `
               onBlur={focusOff}
               placeholder="e.g. testing"
             />
-            <button style={btn} onClick={cancelAuction}>
+            <button className="btn-primary" style={btn} onClick={cancelAuction}>
               Cancel auction
             </button>
           </div>
@@ -2439,7 +2472,7 @@ function useIsMobile(breakpoint = 768) {
           In the generated auction, T1 is set as purchase token and T2 is the
           collateral by default.
         </p>
-        <button style={btn} onClick={deployContracts}>
+        <button className="btn-primary" style={btn} onClick={deployContracts}>
           Deploy&nbsp;(Test)
         </button>
       </div>
@@ -2458,7 +2491,7 @@ function useIsMobile(breakpoint = 768) {
             to our fixed address.
           </p>
   
-          <div style={{ ...grid, [gridMobile]: {} }}>
+          <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
             {/* column A */}
             <div>
               <label style={label}>Price Oracle Address</label>
@@ -2579,7 +2612,7 @@ function useIsMobile(breakpoint = 768) {
             </div>
             
           </div>
-          <button style={btn} onClick={deployContractsCustom}>
+          <button className="btn-primary" style={btn} onClick={deployContractsCustom}>
             Deploy
           </button>
         </div>
@@ -2642,7 +2675,7 @@ function useIsMobile(breakpoint = 768) {
   
     return (
       <div style={wrap}>
-        <div style={card}>
+        <div className="purple-card" style={card}>
           <h2 style={heading}>Available auctions</h2>
   
           {deployedAuctions.length === 0 ? (
@@ -2666,6 +2699,7 @@ function useIsMobile(breakpoint = 768) {
               </select>
   
               <button
+              className="btn-primary"
                 style={btn}
                 onClick={() => {
                   if (!selected)
@@ -2824,7 +2858,7 @@ function useIsMobile(breakpoint = 768) {
         </h1>
   
         {/* 1.  BID  +  OFFER  side-by-side */}
-        <div style={{ ...grid2, ...section }}>
+        <div className="grid-2" style={{ ...grid2, ...section }}>
           {/* ▸ BID */}
           <div>
             <h2 style={h2}>Place a Bid</h2>
@@ -2881,7 +2915,7 @@ function useIsMobile(breakpoint = 768) {
               </tbody>
             </table>
   
-            <button style={purpleBtn} onClick={placeBid}>
+            <button className="btn-primary" style={purpleBtn} onClick={placeBid}>
               Submit bid
             </button>
           </div>
@@ -2910,7 +2944,7 @@ function useIsMobile(breakpoint = 768) {
               placeholder="0"
             />
   
-            <button style={purpleBtn} onClick={placeOffer}>
+            <button className="btn-primary" style={purpleBtn} onClick={placeOffer}>
               Submit offer
             </button>
           </div>
@@ -2932,7 +2966,7 @@ function useIsMobile(breakpoint = 768) {
               placeholder="0"
             />
   
-            <button style={purpleBtn} onClick={repay}>
+            <button className="btn-primary" style={purpleBtn} onClick={repay}>
               Repay
             </button>
           </div>
@@ -2940,7 +2974,7 @@ function useIsMobile(breakpoint = 768) {
           {/* check owed */}
           <div>
             <h2 style={h2}>Check owed</h2>
-            <button style={purpleBtn} onClick={checkOwed}>
+            <button className="btn-primary" style={purpleBtn} onClick={checkOwed}>
               Check
             </button>
             {owedAmount && (
@@ -2996,7 +3030,7 @@ function useIsMobile(breakpoint = 768) {
             </tbody>
           </table>
   
-          <button style={purpleBtn} onClick={liquidate}>
+          <button className="btn-primary" style={purpleBtn} onClick={liquidate}>
             Liquidate
           </button>
         </div>
@@ -3015,7 +3049,7 @@ function useIsMobile(breakpoint = 768) {
             placeholder="0"
           />
   
-          <button style={purpleBtn} onClick={redeemToken}>
+          <button className="btn-primary" style={purpleBtn} onClick={redeemToken}>
             Redeem
           </button>
         </div>
@@ -3049,7 +3083,7 @@ function App() {
         }
       `}</style>
       <style>{mobileCss}</style>
-
+      <style>{responsiveCss}</style>
       <AppProvider>
         <Router>
           {/*  <- hook now lives *inside* the router  */}
