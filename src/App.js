@@ -1956,7 +1956,7 @@ const mobileCss = `
    .responsive-button { … }
 
  }
-
+.wrap-addr { word-break: break-all; overflow-wrap: anywhere; }
    /*  Deploy-page layout : stack on narrow screens  */
 @media (max-width: 860px){
   .deploy-flex{
