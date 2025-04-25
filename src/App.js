@@ -1692,7 +1692,7 @@ function TokenDisplay({ address }) {
             To get started, connect your<br />MetaMask wallet.
           </p>
           <button
-          className="btn-primary"
+          className="wallet-pill"
             style={connectBtn}
             onClick={async () => {
               await connectWallet();
@@ -2053,6 +2053,31 @@ const mobileCss = `
     padding:    2px 6px !important;
     height:     auto     !important;
     line-height: 1      !important;
+  }
+}
+/* responsiveCss */
+@media (max-width: 540px) {
+  /* tighten nav container */
+  nav {
+    padding: 0 8px !important;
+  }
+  /* shrink logo */
+  nav > img {
+    height: 48px !important;
+    width: auto   !important;
+  }
+  /* extra-small links */
+  .nav-link {
+    font-size: 8px !important;
+    margin-left: 4px  !important;
+  }
+  /* super-compact wallet select & pill */
+  nav select,
+  .wallet-pill {
+    font-size:   8px      !important;
+    padding:     2px 6px  !important;
+    height:      auto     !important;
+    line-height: 1        !important;
   }
 }
 
