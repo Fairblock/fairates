@@ -2068,7 +2068,7 @@ const mobileCss = `
   }
   /* extra-small links */
   .nav-link {
-    font-size: 12px !important;
+    font-size: 13px !important;
     margin-left: 4px  !important;
   }
   /* super-compact wallet select & pill */
