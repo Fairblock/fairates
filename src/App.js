@@ -2084,11 +2084,11 @@ const mobileCss = `
 @media (max-width: 540px) {
   /* phone: fixed bg-height, let width overflow */
   body {
-    background-size: auto 200px !important;       /* height 180px, width auto */
+    background-size: 540px auto !important;       /* height 180px, width auto */
     background-position: center bottom !important;
   }
   body.arb-bg {
-    background-size: auto 200px !important;       /* a bit shorter on arb-bg pages */
+    background-size: 540px auto !important;       /* a bit shorter on arb-bg pages */
     background-position: center bottom !important;
   }
 }
