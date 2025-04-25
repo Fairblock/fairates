@@ -1961,34 +1961,32 @@ const mobileCss = `
 
  }
 @media (max-width: 540px) {
-  /* keep everything on one line */
+  /* tighten up the nav container */
   nav {
-    flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
+    padding: 0 8px !important;
   }
-  /* tighten up spacing between logo and links */
-  nav > img {
-    margin-right: 8px !important;
-  }
-  /* shrink link spacing */
+
+  /* really small links */
   .nav-link {
-    margin-left: 12px !important;
-    font-size: 8px  !important;
+    font-size: 12px !important;
+    margin-left: 6px  !important;
   }
-  /* push wallet/faucet container to the far right */
-  nav > div {
-    margin-left: auto !important;
-    display: flex      !important;
-    align-items: center!important;
-    gap: 8px           !important;
-  }
-  /* ensure the wallet-pill itself stays inline with no extra top margin */
+
+  /* shrink the wallet-connect select & button */
+  nav > div select,
   .wallet-pill {
-    display: inline-flex !important;
-    margin-top: 0       !important;
+    font-size: 12px !important;
+    padding:    4px 6px !important;
   }
 }
 
+@media (max-width: 540px) {
+  /* shrink the logo height */
+  nav > img {
+    height: 32px !important;
+    width: auto    !important;
+  }
+}
 
    @media (max-width: 540px) {
   .hero-sub {
