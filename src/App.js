@@ -2070,13 +2070,13 @@ const mobileCss = `
   /* extra-small links */
   .nav-link {
     font-size: 16px !important;
-    margin-left: 4px  !important;
+    margin-left: 6px  !important;
   }
   /* super-compact wallet select & pill */
   nav select,
   .wallet-pill {
-    font-size:   8px      !important;
-    padding:     2px 6px  !important;
+    font-size:   9px      !important;
+    padding:     3px 7px  !important;
     height:      auto     !important;
     line-height: 1        !important;
   }
