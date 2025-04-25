@@ -1960,24 +1960,35 @@ const mobileCss = `
    .responsive-button { … }
 
  }
-   @media (max-width: 540px) {
-  /* shrink the nav bar height & side padding */
-  nav {
-    height: 80px !important;
-    padding: 0 16px !important;
-  }
-  /* shrink each link’s font and tighten spacing */
-  .nav-link {
-    font-size: 16px  !important;
-    margin-left: 16px !important;
-  }
-}
 @media (max-width: 540px) {
+  /* keep everything on one line */
+  nav {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+  /* tighten up spacing between logo and links */
+  nav > img {
+    margin-right: 8px !important;
+  }
+  /* shrink link spacing */
+  .nav-link {
+    margin-left: 12px !important;
+    font-size: 16px  !important;
+  }
+  /* push wallet/faucet container to the far right */
+  nav > div {
+    margin-left: auto !important;
+    display: flex      !important;
+    align-items: center!important;
+    gap: 8px           !important;
+  }
+  /* ensure the wallet-pill itself stays inline with no extra top margin */
   .wallet-pill {
-    display: block !important;
-    margin: 8px auto 0 !important;
+    display: inline-flex !important;
+    margin-top: 0       !important;
   }
 }
+
 
    @media (max-width: 540px) {
   .hero-sub {
