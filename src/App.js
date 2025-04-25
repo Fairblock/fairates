@@ -1961,6 +1961,25 @@ const mobileCss = `
 
  }
    @media (max-width: 540px) {
+  /* shrink the nav bar height & side padding */
+  nav {
+    height: 80px !important;
+    padding: 0 16px !important;
+  }
+  /* shrink each link’s font and tighten spacing */
+  .nav-link {
+    font-size: 16px  !important;
+    margin-left: 16px !important;
+  }
+}
+@media (max-width: 540px) {
+  .wallet-pill {
+    display: block !important;
+    margin: 8px auto 0 !important;
+  }
+}
+
+   @media (max-width: 540px) {
   .hero-sub {
     font-size: 18px !important;
     line-height: 1.4 !important;
