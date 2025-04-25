@@ -2081,6 +2081,17 @@ const mobileCss = `
     line-height: 1        !important;
   }
 }
+@media (max-width: 540px) {
+  /* phone: fixed bg-height, let width overflow */
+  body {
+    background-size: auto 540px !important;       /* height 180px, width auto */
+    background-position: center bottom !important;
+  }
+  body.arb-bg {
+    background-size: auto 540px !important;       /* a bit shorter on arb-bg pages */
+    background-position: center bottom !important;
+  }
+}
 
   
    `;
