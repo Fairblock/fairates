@@ -1960,7 +1960,7 @@ const mobileCss = `
    .responsive-button { … }
 
  }
-@media (max-width: 540px) {
+@media (max-width: 768x) {
   /* tighten up the nav container */
   nav {
     padding: 0 8px !important;
