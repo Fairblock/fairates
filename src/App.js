@@ -1848,7 +1848,7 @@ function LandingPage() {
     not fixed games.
   </h1>
 
-  <p style={heroSub}>
+  <p className="hero-sub" style={heroSub}>
   One rate: Fixed-rate for all lenders and borrowers through sealed-bid auctions. 
   <p></p>
   Zero game: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing
@@ -1960,6 +1960,15 @@ const mobileCss = `
    .responsive-button { … }
 
  }
+   @media (max-width: 540px) {
+  .hero-sub {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+    max-width: 90%   !important;
+    margin: 0 auto 32px !important;
+  }
+}
+
 .wrap-addr { word-break: break-all; overflow-wrap: anywhere; }
    /*  Deploy-page layout : stack on narrow screens  */
 @media (max-width: 860px){
