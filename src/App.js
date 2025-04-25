@@ -1973,7 +1973,7 @@ const mobileCss = `
   /* shrink link spacing */
   .nav-link {
     margin-left: 12px !important;
-    font-size: 16px  !important;
+    font-size: 8px  !important;
   }
   /* push wallet/faucet container to the far right */
   nav > div {
