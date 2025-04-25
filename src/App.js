@@ -147,7 +147,7 @@ export const walletBtnBase = {
   border: `1px solid ${COLORS.buttonBorder}`,
   background: "transparent",
   color: COLORS.textPrimary,
-  fontWeight: 600,
+  fontWeight: 500,
   fontFamily: FONT_FAMILY,
   cursor: "pointer",
   transition: "background .18s",
@@ -2044,10 +2044,15 @@ const mobileCss = `
     margin-left:24px!important;         /* tighter spacing                */
   }
 
+ 
+}
+@media (max-width: 540px) {
+  /* super-compact wallet button */
   .wallet-pill {
-    font-size: 9px !important;
-    padding:    2px 4px !important;
+    font-size: 9px      !important;
+    padding:    2px 6px !important;
     height:     auto     !important;
+    line-height: 1      !important;
   }
 }
 
