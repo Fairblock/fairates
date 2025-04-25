@@ -2040,11 +2040,12 @@ const mobileCss = `
 @media(max-width:640px){
   nav{padding:0 20px !important;}        /* narrower side-gutter           */
   .nav-link{                            /* we’ll add this class below     */
-    font-size:18px!important;           /* smaller text                   */
+    font-size:10px!important;           /* smaller text                   */
     margin-left:24px!important;         /* tighter spacing                */
   }
   .wallet-pill{margin-top:12px!important;} /* pill drops to its own line   */
 }
+  
    `;
    
 
