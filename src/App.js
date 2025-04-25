@@ -142,7 +142,7 @@ export const walletBtnBase = {
   height: "56px",
   display: "flex",
   alignItems: "center",
-  padding: "0 32px",
+  padding: "0 20px",
   borderRadius: "9999px",
   border: `1px solid ${COLORS.buttonBorder}`,
   background: "transparent",
@@ -1739,6 +1739,7 @@ function TokenDisplay({ address }) {
             </>
           ) : (
             <button
+            className="wallet-pill"
               style={pill}
               onClick={() => setOpen(true)}
               onMouseEnter={(e) =>
