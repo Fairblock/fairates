@@ -1983,7 +1983,7 @@ const mobileCss = `
 @media (max-width: 540px) {
   /* shrink the logo height */
   nav > img {
-    height: 50px !important;
+    height: 65px !important;
     width: auto    !important;
   }
 }
