@@ -2043,9 +2043,14 @@ const mobileCss = `
     font-size:10px!important;           /* smaller text                   */
     margin-left:24px!important;         /* tighter spacing                */
   }
-  .wallet-pill{font-size: 10px !important;
-    padding:    3px 5px !important;} /* pill drops to its own line   */
+
+  .wallet-pill {
+    font-size: 9px !important;
+    padding:    2px 4px !important;
+    height:     auto     !important;
+  }
 }
+
   
    `;
    
