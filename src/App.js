@@ -1968,7 +1968,7 @@ const mobileCss = `
 
   /* really small links */
   .nav-link {
-    font-size: 12px !important;
+    font-size: 6px !important;
     margin-left: 6px  !important;
   }
 
