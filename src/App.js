@@ -57,7 +57,7 @@ const COLORS = {
   accentHover: "#B570FF",
   buttonBorder: "rgba(255,255,255,0.15)",
 };
-const FONT_FAMILY = `"Inter", sans-serif`;
+const FONT_FAMILY = `"Montserrat", sans-serif`;
 
 /* ─── Figma-matching field / section styles (shared) ──────────── */
 const sectionWrap = {
@@ -66,7 +66,7 @@ const sectionWrap = {
 
 const sectionHeading = {
   fontSize: "28px",
-  fontWeight: 700,
+  fontWeight: 400,
   color: COLORS.accent,
   marginBottom: "8px",
 };
@@ -131,12 +131,12 @@ export const topBarStyle = {
   flexWrap: "wrap", 
 };
 export const navLink = {
-  fontSize: "28px",
-  fontWeight: 600,
+  fontSize: "18px",
+  fontWeight: 400,
   marginLeft: "64px",
   color: COLORS.textPrimary,
 };
-export const logoStyle = { height: 80 };
+export const logoStyle = { height: 100 };
 
 export const walletBtnBase = {
   height: "56px",
@@ -156,11 +156,15 @@ export const walletBtnBase = {
 /* HERO */
 
 export const heroHeading = {
-  fontSize: "70px",
-  fontWeight: 700,
-  lineHeight: 1.1,
+  fontFamily: "'Montserrat', sans-serif",
+  fontSize: "65px",
+  fontWeight: 200,       // ← ultra-light
+  lineHeight: 1.2,       // a little more breathing room between lines
+  letterSpacing: "-0.02em", // tighten it up slightly
   marginBottom: "40px",
+  color: "#fff",         // assuming you’re on a dark bg
 };
+
 export const heroSub = {
   fontSize: "26px",
   lineHeight: 1.55,
@@ -181,7 +185,7 @@ export const primaryBtn = {
   padding: "24px 56px",
   borderRadius: "16px",
   fontSize: "22px",
-  fontWeight: 700,
+  fontWeight: 400,
   cursor: "pointer",
   transition: "background .18s",
 };
@@ -1534,14 +1538,14 @@ function TokenDisplay({ address }) {
       fontFamily: FONT_FAMILY,
     };
   
-    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 32 };
+    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 32 };
     const sub = { fontSize: 17, marginBottom: 14, lineHeight: 1.45 };
   
     const btn = {
       background: COLORS.accent,
       border: "none",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 400,
       fontSize: 16,
       padding: "14px 32px",
       borderRadius: 12,
@@ -1666,7 +1670,7 @@ function TokenDisplay({ address }) {
       borderRadius: 12,
       color: "#fff",
       fontSize: 20,
-      fontWeight: 700,
+      fontWeight: 400,
       cursor: "pointer",
       marginTop: 40,
     };
@@ -1798,7 +1802,7 @@ function LandingPage() {
   };
   const heading = {
     fontSize: "64px",
-    fontWeight: 700,
+    fontWeight: 400,
     lineHeight: 1.1,
     marginBottom: "28px",
   };
@@ -2032,7 +2036,7 @@ const mobileCss = `
       textAlign: "center",
     };
   
-    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 24 };
+    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
     const selectBox = {
       width: "100%",
       padding: "16px 20px",
@@ -2047,7 +2051,7 @@ const mobileCss = `
       background: COLORS.accent,
       border: "none",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 400,
       fontSize: 16,
       padding: "16px",
       borderRadius: 12,
@@ -2190,12 +2194,12 @@ const mobileCss = `
   
     const h2 = {
       fontSize: 28,
-      fontWeight: 700,
+      fontWeight: 400,
       marginBottom: 32,
     };
     const sectionH3 = {
       fontSize: 22,
-      fontWeight: 700,
+      fontWeight: 400,
       color: COLORS.accent,
       marginBottom: 16,
     };
@@ -2231,7 +2235,7 @@ const mobileCss = `
       background: COLORS.accent,
       border: "none",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 400,
       fontSize: 16,
       padding: "14px 32px",
       borderRadius: 12,
@@ -2415,10 +2419,10 @@ function useIsMobile(breakpoint = 768) {
     const cardBreak =
       "@media(max-width: 1020px){flex-direction:column;gap:48px;}";
   
-    const h1 = { fontSize: 40, fontWeight: 700, marginBottom: 56 };
+    const h1 = { fontSize: 40, fontWeight: 400, marginBottom: 56 };
     const h2 = {
       fontSize: 26,
-      fontWeight: 700,
+      fontWeight: 400,
       color: COLORS.accent,
       marginBottom: 6,
     };
@@ -2440,7 +2444,7 @@ function useIsMobile(breakpoint = 768) {
   
     const label = {
       fontSize: 20,
-      fontWeight: 600,
+      fontWeight: 400,
       color: "#fff",
       marginBottom: 8,
       display: "block",
@@ -2472,7 +2476,7 @@ function useIsMobile(breakpoint = 768) {
       border: "none",
       color: "#fff",
       fontSize: 18,
-      fontWeight: 700,
+      fontWeight: 400,
       padding: "18px 60px",
       borderRadius: 14,
       cursor: "pointer",
@@ -2497,7 +2501,7 @@ function useIsMobile(breakpoint = 768) {
         <h3
           style={{
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 400,
             marginBottom: 18,
             color: "#fff",
           }}
@@ -2689,7 +2693,7 @@ function useIsMobile(breakpoint = 768) {
       textAlign: "center",
     };
   
-    const heading = { fontSize: 28, fontWeight: 700, marginBottom: 24 };
+    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
     const selectBox = {
       width: "100%",
       padding: "16px 20px",
@@ -2704,7 +2708,7 @@ function useIsMobile(breakpoint = 768) {
       background: COLORS.accent,
       border: "none",
       color: "#fff",
-      fontWeight: 700,
+      fontWeight: 400,
       fontSize: 16,
       padding: "16px",
       borderRadius: 12,
@@ -2808,7 +2812,7 @@ function useIsMobile(breakpoint = 768) {
     const section = { marginBottom: 64 };
     const h2 = {
       fontSize: 28,
-      fontWeight: 700,
+      fontWeight: 400,
       color: COLORS.accent,
       marginBottom: 24,
     };
@@ -2854,7 +2858,7 @@ function useIsMobile(breakpoint = 768) {
       border: "none",
       color: "#fff",
       fontSize: 18,
-      fontWeight: 700,
+      fontWeight: 400,
       padding: "18px 64px",
       borderRadius: 14,
       cursor: "pointer",
@@ -2890,7 +2894,7 @@ function useIsMobile(breakpoint = 768) {
     /* ── Render ─────────────────────────────────────────────── */
     return (
       <div style={wrapper}>
-        <h1 style={{ fontSize: 38, fontWeight: 700, marginBottom: 48 }}>
+        <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
           Participate in auction&nbsp;
           <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
             ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
