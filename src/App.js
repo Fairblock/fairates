@@ -2069,7 +2069,7 @@ const mobileCss = `
   }
   /* extra-small links */
   .nav-link {
-    font-size: 13px !important;
+    font-size: 16px !important;
     margin-left: 4px  !important;
   }
   /* super-compact wallet select & pill */
