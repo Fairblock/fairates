@@ -440,8 +440,9 @@ function AppProvider({ children }) {
 
 
   const [redemptionAmount, setRedemptionAmount] = useState("");
+const [extraCollateralSelections, setExtraCollateralSelections] = useState([]);
+const [removeCollateralSelections, setRemoveCollateralSelections] = useState([]);
 
-  
   const [customPriceOracle, setCustomPriceOracle] = useState("");
   const [customBidDuration, setCustomBidDuration] = useState("");
   const [customRevealDuration, setCustomRevealDuration] = useState("");
@@ -450,6 +451,12 @@ function AppProvider({ children }) {
   const [customAuctionTokenAmount, setCustomAuctionTokenAmount] = useState("");
   const [customDecrypter, setCustomDecrypter] = useState("");
   const [customPurchaseToken, setCustomPurchaseToken] = useState("");
+  const [customMaxNumBids, setCustomMaxNumBids] = useState("");
+  const [customMaxNumOffers, setCustomMaxNumOffers] = useState("");
+  const [customMinBid, setCustomMinBid] = useState("");
+  const [customMinOffer, setCustomMinOffer] = useState("");
+  const [customProtocolLiquidationFee, setCustomProtocolLiquidationFee] = useState("");
+  const [customLiquidationFee, setCustomLiquidationFee] = useState("");
 
 
   const [customMaxBid, setCustomMaxBid] = useState("");
@@ -673,7 +680,7 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      const priceOracle = "0x0cE2ae8BC8c40F341d950d2Fbf7B3180d5783ce4";
+      const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       const CollateralManagerFactory = new ethers.ContractFactory(
         CollateralManagerArtifact.abi,
         CollateralManagerArtifact.bytecode,
@@ -702,9 +709,9 @@ function AppProvider({ children }) {
       await atContract.deployed();
       const auctionTokenAddress = atContract.address;
 
-      const BID_DURATION = 6000;
+      const BID_DURATION = 60000;
       const REVEAL_DURATION = 31104000;
-      const REPAYMENT_DURATION = 1;
+      const LOAN_DURATION = 1;
       const FEE = 0;
       const AUCTION_TOKEN_AMOUNT = 1;
       const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
@@ -717,9 +724,11 @@ function AppProvider({ children }) {
         DECRYPTER,
         BID_DURATION,
         REVEAL_DURATION,
-        REPAYMENT_DURATION,
+        LOAN_DURATION,
         ID,
         T1_ADDRESS,
+        FEE,
+        FEE,
         FEE,
         auctionTokenAddress,
         AUCTION_TOKEN_AMOUNT
@@ -744,12 +753,14 @@ function AppProvider({ children }) {
         BidManagerArtifact.bytecode,
         signer
       );
+      const maxBid  = ethers.utils.parseUnits("15000", 18);
+      const minBid  = ethers.utils.parseUnits("10", 18); 
       const bmContract = await BidManagerFactory.deploy(
         cmContract.address,
         aeContract.address,
-        15000,
+        maxBid,
         T1_ADDRESS,
-        10,
+        minBid,
         50
       );
       await bmContract.deployed();
@@ -763,11 +774,13 @@ function AppProvider({ children }) {
         OfferManagerArtifact.bytecode,
         signer
       );
+      const maxOffer  = ethers.utils.parseUnits("10000", 18);
+      const minOffer  = ethers.utils.parseUnits("10", 18); 
       const omContract = await OfferManagerFactory.deploy(
         lvContract.address,
         aeContract.address,
-        10000,
-        10,
+        maxOffer,
+        minOffer,
         50
       );
       await omContract.deployed();
@@ -830,11 +843,17 @@ function AppProvider({ children }) {
       const REVEAL_DURATION = Number(customRevealDuration);
       const REPAYMENT_DURATION = Number(customRepaymentDuration);
       const FEE = Number(customFee);
+      const LIQUIDATION_FEE = Number(customLiquidationFee);
+      const PROTOCOL_LIQUIDATION_FEE = Number(customProtocolLiquidationFee);
       const AUCTION_TOKEN_AMOUNT = Number(customAuctionTokenAmount);
       const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
       const purchaseToken = customPurchaseToken;
       const maxBid = Number(customMaxBid);
       const maxOffer = Number(customMaxOffer);
+      const minBid = Number(customMinBid);
+      const minOffer = Number(customMinOffer);
+      const maxNumBids = Number(customMaxNumBids);
+      const maxNumOffers = Number(customMaxNumOffers);
 
       const CollateralManagerFactory = new ethers.ContractFactory(
         CollateralManagerArtifact.abi,
@@ -877,6 +896,8 @@ function AppProvider({ children }) {
         ID,
         purchaseToken,
         FEE,
+        LIQUIDATION_FEE,
+        PROTOCOL_LIQUIDATION_FEE,
         auctionTokenAddress,
         AUCTION_TOKEN_AMOUNT
       );
@@ -900,12 +921,14 @@ function AppProvider({ children }) {
         BidManagerArtifact.bytecode,
         signer
       );
+
       const bmContract = await BidManagerFactory.deploy(
         cmContract.address,
         aeContract.address,
         maxBid,
-        purchaseToken
-        // TODO: add min bid value and max num bids                                                                    
+        purchaseToken,
+        minBid,
+        maxNumBids
       );
       await bmContract.deployed();
       setBidManagerAddress(bmContract.address);
@@ -921,8 +944,9 @@ function AppProvider({ children }) {
       const omContract = await OfferManagerFactory.deploy(
         lvContract.address,
         aeContract.address,
-        maxOffer
-        // TODO: add min offer and max number of offers                                                                                          
+        maxOffer,
+        minOffer,
+        maxNumOffers                                                                 
       );
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
@@ -959,6 +983,12 @@ function AppProvider({ children }) {
       setCustomRevealDuration("");
       setCustomRepaymentDuration("");
       setCustomFee("");
+      setCustomLiquidationFee("");
+      setCustomProtocolLiquidationFee("");
+      setCustomMaxNumBids("");
+      setCustomMaxNumOffers("");
+      setCustomMinBid("");
+      setCustomMinOffer("");
       setCustomAuctionTokenAmount("");
       setCustomPurchaseToken("");
       setCustomMaxBid("");
@@ -1018,6 +1048,7 @@ function AppProvider({ children }) {
 
   async function placeBid() {
     const bm = getBidManagerContract();
+    console.log("BidManager address:", bidManagerAddress);
     if (!bm) {
       alert("BidManager not found. Deploy or connect your wallet.");
       return;
@@ -1053,6 +1084,7 @@ function AppProvider({ children }) {
       for (let i = 0; i < tokensArray.length; i++) {
         await approveToken(tokensArray[i], collateralManagerAddress);
       }
+    
       const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, T1_ADDRESS);
       await tx.wait();
       alert("Bid placed successfully.");
@@ -1062,6 +1094,91 @@ function AppProvider({ children }) {
     } catch (error) {
       console.error("Bid failed:", error);
       alert("Bid failed: " + error.message);
+    }
+  }
+  // ── NEW collateral‐management actions ───────────────────────
+  async function externalLockCollateral(tokens, amounts) {
+    const bm = getBidManagerContract();
+    if (!bm) {
+      alert("BidManager not found. Deploy or connect your wallet.");
+      return;
+    }
+    try {
+      // make sure the CollateralManager is approved to pull each token
+      for (const token of tokens) {
+        await approveToken(token, collateralManagerAddress);
+      }
+      const tx = await bm.externalLockCollateral(tokens, amounts);
+      await tx.wait();
+      alert("Extra collateral locked successfully.");
+      // reset those inputs
+      setExtraCollateralSelections(
+        extraCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
+      );
+    } catch (err) {
+      console.error("Lock collateral failed:", err);
+      alert("Lock collateral failed: " + err.message);
+    }
+  }
+
+  async function externalUnlockCollateral(tokens, amounts) {
+    const bm = getBidManagerContract();
+    if (!bm) {
+      alert("BidManager not found. Deploy or connect your wallet.");
+      return;
+    }
+    try {
+      const tx = await bm.externalUnlockCollateral(tokens, amounts);
+      await tx.wait();
+      alert("Excessive collateral unlocked successfully.");
+      setRemoveCollateralSelections(
+        removeCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
+      );
+    } catch (err) {
+      console.error("Unlock collateral failed:", err);
+      alert("Unlock collateral failed: " + err.message);
+    }
+  }
+
+  // ── NEW bid‐removal action ──────────────────────────────────
+  async function removeBid() {
+    const bm = getBidManagerContract();
+    if (!bm) {
+      alert("BidManager not found. Deploy or connect your wallet.");
+      return;
+    }
+    try {
+      const tx = await bm.removeBid();
+      await tx.wait();
+      alert("Your bid was removed and collateral unlocked.");
+      // clear your UI
+      setBidAmount("");
+      setBidRate("");
+      setBidCollateralSelections(
+        bidCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
+      );
+    } catch (err) {
+      console.error("Remove bid failed:", err);
+      alert("Remove bid failed: " + err.message);
+    }
+  }
+
+  // ── NEW offer‐removal action ────────────────────────────────
+  async function removeOffer() {
+    const om = getOfferManagerContract();
+    if (!om) {
+      alert("OfferManager not found. Deploy or connect your wallet.");
+      return;
+    }
+    try {
+      const tx = await om.removeOffer();
+      await tx.wait();
+      alert("Your offer was removed and funds unlocked.");
+      setOfferAmount("");
+      setOfferRate("");
+    } catch (err) {
+      console.error("Remove offer failed:", err);
+      alert("Remove offer failed: " + err.message);
     }
   }
 
@@ -1322,7 +1439,7 @@ function AppProvider({ children }) {
   }
 
   useEffect(() => {
-    fetch("https://34.228.190.48:9092/contracts")
+    fetch("https://0.0.0.0:9092/contracts")
       .then((response) => response.json())
       .then((data) => {
         if (data.auctions && data.auctions.length > 0) {
@@ -1347,7 +1464,7 @@ function AppProvider({ children }) {
     const allEmpty = deployedAuctions.length === 0;
     if (allEmpty) return;
 
-    fetch("https://34.228.190.48:9092/contracts", {
+    fetch("https://0.0.0.0:9092/contracts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(contractData)
@@ -1432,7 +1549,18 @@ function AppProvider({ children }) {
     redemptionAmount,
     setRedemptionAmount,
     redeemToken,
+    extraCollateralSelections,
+    setExtraCollateralSelections,
+    removeCollateralSelections,
+    setRemoveCollateralSelections,
 
+    /* new collateral-management actions */
+    externalLockCollateral,
+    externalUnlockCollateral,
+
+    /* new bid/offer removal actions */
+    removeBid,
+    removeOffer,
     customPriceOracle,
     setCustomPriceOracle,
     customBidDuration,
@@ -1443,6 +1571,10 @@ function AppProvider({ children }) {
     setCustomRepaymentDuration,
     customFee,
     setCustomFee,
+    setCustomLiquidationFee,
+    customLiquidationFee,
+    setCustomProtocolLiquidationFee,
+    customProtocolLiquidationFee,
     customAuctionTokenAmount,
     setCustomAuctionTokenAmount,
     customDecrypter,
@@ -1453,6 +1585,14 @@ function AppProvider({ children }) {
     setCustomMaxBid,
     customMaxOffer,
     setCustomMaxOffer,
+    setCustomMinBid,
+    customMinOffer,
+    setCustomMinOffer,
+    customMinBid,
+    setCustomMaxNumBids,
+    setCustomMaxNumOffers,
+    customMaxNumBids,
+    customMaxNumOffers,
     customCollateralToken,
     setCustomCollateralToken,
     customCollateralRatio,
@@ -1830,6 +1970,7 @@ function LandingPage() {
     fontWeight: 600,
     cursor: "pointer",
     transition: "background .18s",
+    fontFamily: FONT_FAMILY,
   };
   const secondaryBtn = {
     ...primaryBtn,
@@ -2468,6 +2609,10 @@ function useIsMobile(breakpoint = 768) {
       setCustomRepaymentDuration,
       customFee,
       setCustomFee,
+      setCustomLiquidationFee,
+      customLiquidationFee,
+      setCustomProtocolLiquidationFee,
+      customProtocolLiquidationFee,
       customAuctionTokenAmount,
       setCustomAuctionTokenAmount,
       customPurchaseToken,
@@ -2476,6 +2621,14 @@ function useIsMobile(breakpoint = 768) {
       setCustomMaxBid,
       customMaxOffer,
       setCustomMaxOffer,
+      setCustomMinBid,
+      customMinOffer,
+      setCustomMinOffer,
+      customMinBid,
+      setCustomMaxNumBids,
+      setCustomMaxNumOffers,
+      customMaxNumBids,
+      customMaxNumOffers,
       customCollateralToken,
       setCustomCollateralToken,
       customCollateralRatio,
@@ -2653,6 +2806,24 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="0"
               />
+              <label style={label}>Liquidation Fee</label>
+              <input
+                style={inp}
+                value={customLiquidationFee}
+                onChange={(e) => setCustomLiquidationFee(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0"
+              />
+              <label style={label}>Protocol Liquidation Fee</label>
+              <input
+                style={inp}
+                value={customProtocolLiquidationFee}
+                onChange={(e) => setCustomProtocolLiquidationFee(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="0"
+              />
   
               <label style={label}>Purchase token address</label>
               <input
@@ -2672,7 +2843,15 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="86400"
               />
-               
+                  <label style={label}>Initial collateral ratio</label>
+              <input
+                style={inp}
+                value={customCollateralRatio}
+                onChange={(e) => setCustomCollateralRatio(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="1"
+              />
             </div>
   
             {/* column B */}
@@ -2698,7 +2877,25 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="15000"
               />
-  
+
+              <label style={label}>Min bid value</label>
+              <input
+                style={inp}
+                value={customMinBid}
+                onChange={(e) => setCustomMinBid(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="10"
+              />
+              <label style={label}>Max number of bids</label>
+              <input
+                style={inp}
+                value={customMaxNumBids}
+                onChange={(e) => setCustomMaxNumBids(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="50"
+              />
               <label style={label}>Max offer value</label>
               <input
                 style={inp}
@@ -2708,7 +2905,25 @@ function useIsMobile(breakpoint = 768) {
                 onBlur={onB}
                 placeholder="10000"
               />
-  
+
+              <label style={label}>Min offer value</label>
+              <input
+                style={inp}
+                value={customMinOffer}
+                onChange={(e) => setCustomMinOffer(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="10"
+              />
+                <label style={label}>Max number of offers</label>
+              <input
+                style={inp}
+                value={customMaxNumOffers}
+                onChange={(e) => setCustomMaxNumOffers(e.target.value)}
+                onFocus={onF}
+                onBlur={onB}
+                placeholder="50"
+              />
               <label style={label}>Initial collateral token address</label>
               <input
                 style={inp}
@@ -2719,15 +2934,7 @@ function useIsMobile(breakpoint = 768) {
                 placeholder="0x…"
               />
   
-              <label style={label}>Initial collateral ratio</label>
-              <input
-                style={inp}
-                value={customCollateralRatio}
-                onChange={(e) => setCustomCollateralRatio(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="1"
-              />
+           
               
             </div>
             
@@ -2849,161 +3056,113 @@ function useIsMobile(breakpoint = 768) {
    fully styled to match the Figma spec (node 810-3211)
    ─────────────────────────────────────────────────────────── */
    function UserAuctionPage() {
-    /* grab every piece of state / action you already expose
-       (add/remove lines if you have more) */
     const {
-      /* basics */
       auctionEngineAddress,
+  
+      // ── Original auction actions & state ─────────────────────
       bidAmount,
       setBidAmount,
       bidRate,
       setBidRate,
       placeBid,
+  
       offerAmount,
       setOfferAmount,
       offerRate,
       setOfferRate,
       placeOffer,
+  
       repayAmount,
       setRepayAmount,
       repay,
       owedAmount,
       checkOwed,
+  
       liquidationBorrower,
       setLiquidationBorrower,
       liquidationCollateralSelections,
       setLiquidationCollateralSelections,
       liquidate,
+  
       redemptionAmount,
       setRedemptionAmount,
       redeemToken,
+  
       bidCollateralSelections,
       setBidCollateralSelections,
-      /* etc. */
+  
+      // ── NEW collateral-management state & actions ────────────
+      extraCollateralSelections,
+      setExtraCollateralSelections,
+      removeCollateralSelections,
+      setRemoveCollateralSelections,
+      externalLockCollateral,
+      externalUnlockCollateral,
+  
+      // ── NEW bid/offer removal actions ────────────────────────
+      removeBid,
+      removeOffer,
     } = useAppContext();
+    useEffect(() => {
+      if (bidCollateralSelections.length > 0) {
+        const rows = bidCollateralSelections.map((c) => ({
+          address: c.address,
+          amount: "",    // start blank
+        }));
+        setExtraCollateralSelections(rows);
+        setRemoveCollateralSelections(rows);
+      }
+    }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
   
-    /* ── style helpers (local) ─────────────────────────────── */
+    // ── style helpers ─────────────────────────────────────────
     const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
-  
     const section = { marginBottom: 64 };
-    const h2 = {
-      fontSize: 28,
-      fontWeight: 400,
-      color: COLORS.accent,
-      marginBottom: 24,
-    };
+    const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
+    const grid2 = { display: "grid", gap: 40, gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))" };
+    const label = { fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8, display: "block", textAlign: "left", marginTop: 12 };
+    const input = { width: "90%", padding: "18px 20px", fontSize: 18, borderRadius: 12, background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", outline: "none", transition: "box-shadow .18s,border .18s" };
+    const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,0.45)"; e.currentTarget.style.borderColor = COLORS.accent; };
+    const focusOff = e => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; };
+    const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28 };
+    const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
+    const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
   
-    const grid2 = {
-      display: "grid",
-      gap: 40,
-      gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))",
-    };
+    // ── helpers to update collateral arrays ────────────────────
+    const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+    const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+    const updateExtraCollat = (i, v) => setExtraCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+    const updateRemoveCollat = (i, v) => setRemoveCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   
-    const label = {
-      fontSize: 20,
-      fontWeight: 600,
-      color: "#fff",
-      marginBottom: 8,
-      display: "block",
-      textAlign: "left",
-      marginTop: 12,
-    };
-    const input = {
-      width: "90%",
-      padding: "18px 20px",
-      fontSize: 18,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.04)",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.25)",
-      outline: "none",
-      transition: "box-shadow .18s,border .18s",
-    };
-    const focusOn = (e) => {
-      e.currentTarget.style.boxShadow =
-        "0 0 0 3px rgba(155,61,255,0.45)";
-      e.currentTarget.style.borderColor = COLORS.accent;
-    };
-    const focusOff = (e) => {
-      e.currentTarget.style.boxShadow = "";
-      e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-    };
-  
-    const purpleBtn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontSize: 18,
-      fontWeight: 400,
-      padding: "18px 64px",
-      borderRadius: 14,
-      cursor: "pointer",
-      marginTop: 28,
-    };
-  
-    const table = {
-      width: "100%",
-      borderCollapse: "collapse",
-      marginTop: 24,
-    };
-    const td = {
-      border: "1px solid rgba(255,255,255,0.15)",
-      padding: 12,
-      fontSize: 15,
-    };
-  
-    /* helpers to update collateral arrays */
-    const updateBidCollat = (idx, val) =>
-      setBidCollateralSelections((prev) => {
-        const copy = [...prev];
-        copy[idx].amount = val;
-        return copy;
-      });
-  
-    const updateLiqCollat = (idx, val) =>
-      setLiquidationCollateralSelections((prev) => {
-        const copy = [...prev];
-        copy[idx].amount = val;
-        return copy;
-      });
-  
-    /* ── Render ─────────────────────────────────────────────── */
     return (
       <div style={wrapper}>
         <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
-          Participate in auction&nbsp;
+          Participate in auction{" "}
           <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
             ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
           </span>
         </h1>
   
-        {/* 1.  BID  +  OFFER  side-by-side */}
-        <div className="grid-2" style={{ ...grid2, ...section }}>
-          {/* ▸ BID */}
+        {/* 1. BID + OFFER */}
+        <div style={{ ...grid2, ...section }}>
+          {/* BID */}
           <div>
             <h2 style={h2}>Place a Bid</h2>
-  
             <label style={label}>Bid amount</label>
             <input
               style={input}
               value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
+              onChange={e => setBidAmount(e.target.value)}
+              onFocus={focusOn} onBlur={focusOff}
               placeholder="0"
             />
-  
             <label style={label}>Bid rate</label>
             <input
               style={input}
               value={bidRate}
-              onChange={(e) => setBidRate(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
+              onChange={e => setBidRate(e.target.value)}
+              onFocus={focusOn} onBlur={focusOff}
               placeholder="0"
             />
-  
-            {/* collateral table */}
             <table style={table}>
               <thead>
                 <tr>
@@ -3017,16 +3176,10 @@ function useIsMobile(breakpoint = 768) {
                     <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
                     <td style={td}>
                       <input
-                        style={{
-                          ...input,
-                          margin: 0,
-                          padding: "8px 10px",
-                          fontSize: 15,
-                        }}
+                        style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
                         value={c.amount}
-                        onChange={(e) => updateBidCollat(i, e.target.value)}
-                        onFocus={focusOn}
-                        onBlur={focusOff}
+                        onChange={e => updateBidCollat(i, e.target.value)}
+                        onFocus={focusOn} onBlur={focusOff}
                         placeholder="0"
                       />
                     </td>
@@ -3034,64 +3187,134 @@ function useIsMobile(breakpoint = 768) {
                 ))}
               </tbody>
             </table>
-  
-            <button className="btn-primary" style={purpleBtn} onClick={placeBid}>
-              Submit bid
-            </button>
+            <div style={{ display: "flex", gap: "8px" }}>
+  <button
+    className="btn-primary"
+    style={{ ...purpleBtn, flex: 1 }}
+    onClick={placeBid}
+  >
+    Submit Bid
+  </button>
+  <button
+    className="btn-primary"
+    style={{ ...purpleBtn, flex: 1 }}
+    onClick={removeBid}
+  >
+    Remove My Bid
+  </button>
+</div>
           </div>
   
-          {/* ▸ OFFER */}
+          {/* OFFER */}
           <div>
             <h2 style={h2}>Place an Offer</h2>
-  
             <label style={label}>Offer amount</label>
             <input
               style={input}
               value={offerAmount}
-              onChange={(e) => setOfferAmount(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
+              onChange={e => setOfferAmount(e.target.value)}
+              onFocus={focusOn} onBlur={focusOff}
               placeholder="0"
             />
-  
             <label style={label}>Offer rate</label>
             <input
               style={input}
               value={offerRate}
-              onChange={(e) => setOfferRate(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
+              onChange={e => setOfferRate(e.target.value)}
+              onFocus={focusOn} onBlur={focusOff}
               placeholder="0"
             />
-  
-            <button className="btn-primary" style={purpleBtn} onClick={placeOffer}>
-              Submit offer
-            </button>
+<div style={{ display: "flex", gap: "8px" }}>
+  <button
+    className="btn-primary"
+    style={{ ...purpleBtn, flex: 1 }}
+    onClick={placeOffer}
+  >
+    Submit offer
+  </button>
+  <button
+    className="btn-primary"
+    style={{ ...purpleBtn, flex: 1 }}
+    onClick={removeOffer}
+  >
+    Remove My Offer
+  </button>
+</div>
           </div>
         </div>
-  
-        {/* 2.  REPAY + OWED  */}
         <div style={{ ...grid2, ...section }}>
-          {/* repay */}
+        {/* 5. ADD EXTRA COLLATERAL */}
+        <div style={section}>
+          <h2 style={h2}>Add or remove Collateral</h2>
+          <table style={table}>
+            <thead>
+              <tr>
+                <th style={td}>Token</th>
+                <th style={td}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {extraCollateralSelections.map((c, i) => (
+                <tr key={c.address}>
+                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
+                  <td style={td}>
+                    <input
+                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
+                      value={c.amount}
+                      onChange={e => updateExtraCollat(i, e.target.value)}
+                      onFocus={focusOn} onBlur={focusOff}
+                      placeholder="0"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            className="btn-primary"
+            style={purpleBtn}
+            onClick={() =>
+              externalLockCollateral(
+                extraCollateralSelections.map(c => c.address),
+                extraCollateralSelections.map(c => c.amount)
+              )
+            }
+          >
+            Lock Collateral
+          </button>
+          <button
+            className="btn-primary"
+            style={purpleBtn}
+            onClick={() =>
+              externalUnlockCollateral(
+                extraCollateralSelections.map(c => c.address),
+                extraCollateralSelections.map(c => c.amount)
+              )
+            }
+          >
+            Unlock Collateral
+          </button>
+        </div>
+  </div>
+       </div>
+ 
+        {/* 2. REPAY + OWED */}
+        <div style={{ ...grid2, ...section }}>
           <div>
             <h2 style={h2}>Repay loan</h2>
-  
             <label style={label}>Repay amount</label>
             <input
               style={input}
               value={repayAmount}
-              onChange={(e) => setRepayAmount(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
+              onChange={e => setRepayAmount(e.target.value)}
+              onFocus={focusOn} onBlur={focusOff}
               placeholder="0"
             />
-  
             <button className="btn-primary" style={purpleBtn} onClick={repay}>
               Repay
             </button>
           </div>
-  
-          {/* check owed */}
           <div>
             <h2 style={h2}>Check owed</h2>
             <button className="btn-primary" style={purpleBtn} onClick={checkOwed}>
@@ -3104,21 +3327,18 @@ function useIsMobile(breakpoint = 768) {
             )}
           </div>
         </div>
-  
-        {/* 3.  LIQUIDATE (full-width) */}
-        <div style={{ ...section }}>
+        <div style={{ ...grid2, ...section }}>
+        {/* 3. LIQUIDATE */}
+        <div style={section}>
           <h2 style={h2}>Liquidate borrower</h2>
-  
           <label style={label}>Borrower address</label>
           <input
             style={input}
             value={liquidationBorrower}
-            onChange={(e) => setLiquidationBorrower(e.target.value)}
-            onFocus={focusOn}
-            onBlur={focusOff}
+            onChange={e => setLiquidationBorrower(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
             placeholder="0x…"
           />
-  
           <table style={table}>
             <thead>
               <tr>
@@ -3132,16 +3352,10 @@ function useIsMobile(breakpoint = 768) {
                   <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
                   <td style={td}>
                     <input
-                      style={{
-                        ...input,
-                        margin: 0,
-                        padding: "8px 10px",
-                        fontSize: 15,
-                      }}
+                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
                       value={c.amount}
-                      onChange={(e) => updateLiqCollat(i, e.target.value)}
-                      onFocus={focusOn}
-                      onBlur={focusOff}
+                      onChange={e => updateLiqCollat(i, e.target.value)}
+                      onFocus={focusOn} onBlur={focusOff}
                       placeholder="0"
                     />
                   </td>
@@ -3149,33 +3363,32 @@ function useIsMobile(breakpoint = 768) {
               ))}
             </tbody>
           </table>
-  
           <button className="btn-primary" style={purpleBtn} onClick={liquidate}>
             Liquidate
           </button>
         </div>
   
-        {/* 4.  REDEEM TOKEN (full-width) */}
-        <div style={{ ...section }}>
+        {/* 4. REDEEM */}
+        <div style={section}>
           <h2 style={h2}>Redeem auction tokens</h2>
-  
           <label style={label}>Redemption amount</label>
           <input
             style={input}
             value={redemptionAmount}
-            onChange={(e) => setRedemptionAmount(e.target.value)}
-            onFocus={focusOn}
-            onBlur={focusOff}
+            onChange={e => setRedemptionAmount(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
             placeholder="0"
           />
-  
           <button className="btn-primary" style={purpleBtn} onClick={redeemToken}>
             Redeem
           </button>
         </div>
       </div>
+      </div>
     );
   }
+  
+
   /* ─── Background toggler ------------------------------------ */
 function BackgroundManager() {
   const location = useLocation();

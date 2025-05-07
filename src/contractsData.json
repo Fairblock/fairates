@@ -127,6 +127,30 @@
       "lendingVaultAddress": "0x3A67435DEa662f039af2633819bF18402a3BcF1D",
       "bidManagerAddress": "0x430A10A3d678537FDDfcB393D288fED18070b6c0",
       "offerManagerAddress": "0x07F93E2BaD71A1f6Dbb99936E86302CB9cC316f4"
+    },
+    {
+      "collateralManagerAddress": "0x6C5aa7c14bEA876d6d72Ea201819F37F1B0afc0E",
+      "auctionTokenAddress": "0xc10306a27b885aC208cC5b7cE2147d9E3dbf465F",
+      "auctionEngineAddress": "0x17B816CEfd1Ae58d544512e6eCB8157a83221364",
+      "lendingVaultAddress": "0x77CBCB3486155b713d56fFBE0Dfa0E58D109a1C3",
+      "bidManagerAddress": "0x85527C11EaBD566A52f2628961f3395800A642A5",
+      "offerManagerAddress": "0x9db7e12D2441F35A14e29c6A0484F0019e7b6453"
+    },
+    {
+      "collateralManagerAddress": "0x9046fD134112E08757956F8d5522c626dc34beE9",
+      "auctionTokenAddress": "0xd89C6A8ea0C7d7D289f25A3D7bBD11b33635E725",
+      "auctionEngineAddress": "0xbADCF18bE14AF9Be0095618B8D37ba17B6a9aa1B",
+      "lendingVaultAddress": "0xf6A3CDa4b7Cf8504fec946ef211dEC0dc6cEd7b5",
+      "bidManagerAddress": "0x20Ad5b8C504C7d868a2f97B6a8C86958F5B7E588",
+      "offerManagerAddress": "0x4356340726c6320AcE8BdeaBedd57d6433ACfAA5"
+    },
+    {
+      "collateralManagerAddress": "0x9183f303AE20B17314050f876dcfe0c77B90b777",
+      "auctionTokenAddress": "0xEb4b44d706aE6bc02302C4a3678e1323A7D92306",
+      "auctionEngineAddress": "0x5555d505D78839a9200a3871C6D67C96Af75Ac9B",
+      "lendingVaultAddress": "0xdCab8C69BAB71432825e8D4e3434471369eca558",
+      "bidManagerAddress": "0x2FE4A99146c26DB523F954f20108886b06Dcfe94",
+      "offerManagerAddress": "0x858Bfa375FA67feccCb39a340c3356F274c17f19"
     }
   ]
 }
