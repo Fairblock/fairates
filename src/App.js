@@ -1643,114 +1643,106 @@ function TopBar({ sectionLinks = [] }) {
 /* ───────────────────────────────────────────────────────────────────────
    LANDING PAGE  – now uses background image, plus top nav
    ───────────────────────────────────────────────────────────────────── */
-function LandingPage() {
-  const navigate = useNavigate();
 
-  const links = [
-    { to: "/", label: "Home" },
-    { to: "/developer/deploy", label: "Deploy" },
-    { to: "/developer/manage", label: "Manage" },
-    { to: "/developer/faucet", label: "Faucet" },
-  ];
-
-  const heroWrap = {
-    maxWidth: "1120px",
-    margin: "0 auto",
-    padding: "50px 20px 160px",
-    textAlign: "center",         // centers your header
-  };
-  const heading = {
-    fontSize: "64px",
-    fontWeight: 400,
-    lineHeight: 1.1,
-    marginBottom: "28px",
-  };
-  const sub = {
-    fontSize: "20px",
-    lineHeight: 1.5,
-    maxWidth: "680px",
-    margin: "0 auto 56px",
-    color: COLORS.textMuted,
-  };
-  const ctaRow = {
-    display: "flex",
-    gap: "24px",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  };
-  const heroSubContainer = {
-    maxWidth: "650px",
-    margin: "0 auto 72px",       // keeps the block centered
-    textAlign: "justify",         // justify every line
-   
-    WebkitTextAlignLast: "justify"// (for WebKit browsers)
-  };
+  function LandingPage() {
+    const navigate = useNavigate()
   
-  const primaryBtn = {
-    background: COLORS.accent,
-    color: "#FFF",
-    border: "none",
-    padding: "18px 40px",
-    borderRadius: "12px",
-    fontSize: "18px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "background .18s",
-    fontFamily: FONT_FAMILY,
-  };
-  const secondaryBtn = {
-    ...primaryBtn,
-    background: "#FFF",
-    color: COLORS.bgDark,
-  };
-
-  return (
-
-    <div style={{ minHeight: "100vh" }}>
-      {/* top navigation */}
-      <TopBar sectionLinks={links} />
-      {/* main hero copy */}
-      <div style={heroWrap}>
-  <h1 style={heroHeading}>
-    Fixed <span style={{ color: COLORS.accent }}>rates</span>,<br />
-    not fixed games.
-  </h1>
-
-  <div style={heroSubContainer}>
-    <p style={heroSub}>
-    <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
-    </p>
-    <p style={heroSub}>
-    <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
-    </p>
-  </div>
-
-  <div style={ctaRow}>
-
-
-
-
-          <button
-            className="btn-primary"
-            style={primaryBtn}
-            onClick={() => navigate("/user")}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = COLORS.accentHover)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = COLORS.accent)
-            }
-          >
-            Bid or Supply
-          </button>
-
-
+    const links = [
+      { to: "/", label: "Home" },
+      { to: "/developer/deploy", label: "Deploy" },
+      { to: "/developer/manage", label: "Manage" },
+      { to: "/developer/faucet", label: "Faucet" },
+    ]
+  
+    const heroWrap = {
+      maxWidth: "1120px",
+      margin: "0 auto",
+      padding: "50px 20px 160px",
+      textAlign: "center",
+    }
+  
+    const heroHeading = {
+      fontSize: "clamp(2.5rem, 8vw, 4rem)",  // scales between 40px and 64px
+      fontWeight: 400,
+      lineHeight: 1.1,
+      marginBottom: "28px",
+      color: "#fff",
+      fontFamily: FONT_FAMILY,
+    }
+  
+    const heroSubContainer = {
+      maxWidth: "650px",
+      margin: "0 auto 72px",
+      textAlign: "justify",
+      WebkitTextAlignLast: "justify",
+    }
+  
+    const heroSub = {
+      fontSize: "clamp(1rem, 3vw, 1.25rem)", // scales between 16px and 20px
+      lineHeight: 1.5,
+      margin: "0 0 24px",
+      color: COLORS.textMuted,
+    }
+  
+    const ctaRow = {
+      display: "flex",
+      gap: "24px",
+      justifyContent: "center",
+      flexWrap: "wrap",
+    }
+  
+    const primaryBtn = {
+      background: COLORS.accent,
+      color: "#FFF",
+      border: "none",
+      padding: "18px 40px",
+      borderRadius: "12px",
+      fontSize: "18px",
+      fontWeight: 600,
+      cursor: "pointer",
+      transition: "background .18s",
+      fontFamily: FONT_FAMILY,
+    }
+  
+    const secondaryBtn = {
+      ...primaryBtn,
+      background: "#FFF",
+      color: COLORS.bgDark,
+    }
+  
+    return (
+      <div style={{ minHeight: "100vh" }}>
+        <TopBar sectionLinks={links} />
+  
+        <div style={heroWrap}>
+          <h1 style={heroHeading}>
+            Fixed <span style={{ color: COLORS.accent }}>rates</span>,<br />
+            not fixed games.
+          </h1>
+  
+          <div style={heroSubContainer}>
+            <p style={heroSub}>
+              <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
+            </p>
+            <p style={heroSub}>
+              <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
+            </p>
+          </div>
+  
+          <div style={ctaRow}>
+            <button
+              style={primaryBtn}
+              onClick={() => navigate("/user")}
+              onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
+              onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
+            >
+              Bid or Supply
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
-
+    )
+  }
 /* ───────────────────────────────────────────────────────────────────────
    Developer & User Wrappers reuse TopBar
    ───────────────────────────────────────────────────────────────────── */
