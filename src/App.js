@@ -710,7 +710,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
       await atContract.deployed();
       const auctionTokenAddress = atContract.address;
 
-      const BID_DURATION = 60000;
+      const BID_DURATION = 6000000;
       const REVEAL_DURATION = 31104000;
       const LOAN_DURATION = 1;
       const FEE = 0;
