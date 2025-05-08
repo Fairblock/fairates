@@ -1644,7 +1644,7 @@ function TopBar({ sectionLinks = [] }) {
    LANDING PAGE  – now uses background image, plus top nav
    ───────────────────────────────────────────────────────────────────── */
 
-  function LandingPage() {
+   function LandingPage() {
     const navigate = useNavigate()
   
     const links = [
@@ -1654,31 +1654,34 @@ function TopBar({ sectionLinks = [] }) {
       { to: "/developer/faucet", label: "Faucet" },
     ]
   
+    // drop the 100vh wrapper and just let content size itself
     const heroWrap = {
       maxWidth: "1120px",
       margin: "0 auto",
-      padding: "50px 20px 160px",
+      padding: "50px 20px 100px", // cut bottom padding from 160→100
       textAlign: "center",
     }
   
+    // tighter clamp: at medium widths this will now max at 3rem (48px)
     const heroHeading = {
-      fontSize: "clamp(2.5rem, 8vw, 4rem)",  // scales between 40px and 64px
+      fontSize: "clamp(2rem, 6vw, 3rem)", // 32px → 48px instead of 40→64
       fontWeight: 400,
       lineHeight: 1.1,
-      marginBottom: "28px",
+      marginBottom: "24px",
       color: "#fff",
       fontFamily: FONT_FAMILY,
     }
   
+    // subtitle container stays centered but with less bottom space
     const heroSubContainer = {
       maxWidth: "650px",
-      margin: "0 auto 72px",
-      textAlign: "justify",
-      WebkitTextAlignLast: "justify",
+      margin: "0 auto 56px", // 72→56
+      textAlign: "left",
     }
   
+    // smaller clamp: at medium widths this will max at 1rem (16px)
     const heroSub = {
-      fontSize: "clamp(1rem, 3vw, 1.25rem)", // scales between 16px and 20px
+      fontSize: "clamp(0.875rem, 2.5vw, 1rem)", // 14px → 16px
       lineHeight: 1.5,
       margin: "0 0 24px",
       color: COLORS.textMuted,
@@ -1686,7 +1689,7 @@ function TopBar({ sectionLinks = [] }) {
   
     const ctaRow = {
       display: "flex",
-      gap: "24px",
+      gap: "16px",
       justifyContent: "center",
       flexWrap: "wrap",
     }
@@ -1695,23 +1698,17 @@ function TopBar({ sectionLinks = [] }) {
       background: COLORS.accent,
       color: "#FFF",
       border: "none",
-      padding: "18px 40px",
+      padding: "14px 32px",  // scale down a bit
       borderRadius: "12px",
-      fontSize: "18px",
+      fontSize: "1rem",
       fontWeight: 600,
       cursor: "pointer",
       transition: "background .18s",
       fontFamily: FONT_FAMILY,
     }
   
-    const secondaryBtn = {
-      ...primaryBtn,
-      background: "#FFF",
-      color: COLORS.bgDark,
-    }
-  
     return (
-      <div style={{ minHeight: "100vh" }}>
+      <>
         <TopBar sectionLinks={links} />
   
         <div style={heroWrap}>
@@ -1740,7 +1737,7 @@ function TopBar({ sectionLinks = [] }) {
             </button>
           </div>
         </div>
-      </div>
+      </>
     )
   }
 /* ───────────────────────────────────────────────────────────────────────
