@@ -18,7 +18,6 @@ import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
 
-/* ─── Contract Artifacts ──────────────────────────────────────────────── */
 import CollateralManagerArtifact from "./CollateralManager.json";
 import AuctionTokenArtifact from "./AuctionToken.json";
 import AuctionEngineArtifact from "./AuctionEngine.json";
@@ -43,23 +42,23 @@ import {
 
   mobileCss,
   responsiveCss,
-  // NavBar
   topBarStyle,
   navLink,
   logoStyle,
 
-  // Hero
   heroHeading,
   heroSub,
 
 
-  // Force-network constants
 
   walletBtnBase,
-  // Re-usable inline styles
- 
-} from "./styles.js";
 
+} from "./styles.js";
+const ERC20_ABI = [
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function transfer(address recipient, uint256 amount) public returns (bool)"
+];
 
 function hexToUint8Array(hex) {
   if (hex.startsWith("0x")) hex = hex.slice(2);
@@ -69,9 +68,8 @@ function hexToUint8Array(hex) {
   }
   return arr;
 }
-// --------------------------------------------------------
-// App Context & Provider 
-// --------------------------------------------------------
+
+
 const AppContext = createContext(null);
 
 function AppProvider({ children }) {
@@ -85,19 +83,16 @@ function AppProvider({ children }) {
     if (!eth) return;
 
     try {
-      // try to switch
       await eth.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId }],
       });
     } catch (switchErr) {
-      // error code 4902 = chain is not yet added
       if (switchErr.code === 4902) {
         await eth.request({
           method: "wallet_addEthereumChain",
           params: [ARBITRUM_SEPOLIA],
         });
-        // immediately switch after adding
         await eth.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId }],
@@ -107,7 +102,11 @@ function AppProvider({ children }) {
       }
     }
   }
-
+  async function getTokenDecimals(tokenAddress) {
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    const decimals = await tokenContract.decimals();
+    return decimals;
+  }
   const [deployedAuctions, setDeployedAuctions] = useState(() => {
     const saved = localStorage.getItem("deployedAuctions");
     return saved ? JSON.parse(saved) : [];
@@ -251,7 +250,6 @@ function AppProvider({ children }) {
 
   useEffect(() => {
     if (window.ethereum) {
-      /* …existing accountsChanged listener… */
 
       window.ethereum.on("chainChanged", async () => {
         try {
@@ -287,10 +285,8 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      /* 1.  Make sure we’re on Arbitrum Sepolia */
       await ensureArbitrumSepolia();
 
-      /* 2.  Request accounts */
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
@@ -771,8 +767,16 @@ function AppProvider({ children }) {
       alert("BidManager not found. Deploy or connect your wallet.");
       return;
     }
+    const am = getAuctionEngineContract();
+    if (!am) {
+      alert("AuctionManager not found. Deploy or connect your wallet.");
+      return;
+    }
     try {
-      const quantityBN = ethers.BigNumber.from(bidAmount);
+      const purchaseToken = await am.repaymentToken();
+      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const quantityBN = ethers.utils.parseUnits(bidAmount, tokenDecimals);
+     
       let encryptedBid = "0x";
       const ae = getAuctionEngineContract();
       if (!ae) {
@@ -797,13 +801,26 @@ function AppProvider({ children }) {
         alert("Enter some collateral amounts > 0.");
         return;
       }
+      
       const tokensArray = usedCollaterals.map((c) => c.address);
-      const amountsArray = usedCollaterals.map((c) => c.amount);
+      const amountsArray = [];
+      
+      for (let i = 0; i < usedCollaterals.length; i++) {
+        const tokenAddress = tokensArray[i];
+        const collateralAmount = usedCollaterals[i].amount;
+      
+        const tokenDecimals = await getTokenDecimals(tokenAddress);
+        
+        const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
+      
+        amountsArray.push(amountInSmallestUnit);
+      }
+      
       for (let i = 0; i < tokensArray.length; i++) {
         await approveToken(tokensArray[i], collateralManagerAddress);
       }
-
-      const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, T1_ADDRESS);
+      console.log("amountsArray:", amountsArray);
+      const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken);
       await tx.wait();
       alert("Bid placed successfully.");
       setBidAmount("");
@@ -814,7 +831,6 @@ function AppProvider({ children }) {
       alert("Bid failed: " + error.message);
     }
   }
-  // ── NEW collateral‐management actions ───────────────────────
   async function externalLockCollateral(tokens, amounts) {
     const bm = getBidManagerContract();
     if (!bm) {
@@ -822,14 +838,24 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      // make sure the CollateralManager is approved to pull each token
+      const amountsInSmallestUnit = [];
+      for (let i = 0; i < tokens.length; i++) {
+        const tokenAddress = tokens[i];
+        const collateralAmount = amounts[i];
+  
+        const tokenDecimals = await getTokenDecimals(tokenAddress); 
+  
+        const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
+        amountsInSmallestUnit.push(amountInSmallestUnit);
+      }
+  
       for (const token of tokens) {
         await approveToken(token, collateralManagerAddress);
       }
-      const tx = await bm.externalLockCollateral(tokens, amounts);
+  
+      const tx = await bm.externalLockCollateral(tokens, amountsInSmallestUnit);
       await tx.wait();
       alert("Extra collateral locked successfully.");
-      // reset those inputs
       setExtraCollateralSelections(
         extraCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
       );
@@ -838,7 +864,7 @@ function AppProvider({ children }) {
       alert("Lock collateral failed: " + err.message);
     }
   }
-
+  
   async function externalUnlockCollateral(tokens, amounts) {
     const bm = getBidManagerContract();
     if (!bm) {
@@ -846,7 +872,18 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      const tx = await bm.externalUnlockCollateral(tokens, amounts);
+      const amountsInSmallestUnit = [];
+      for (let i = 0; i < tokens.length; i++) {
+        const tokenAddress = tokens[i];
+        const collateralAmount = amounts[i];
+  
+        const tokenDecimals = await getTokenDecimals(tokenAddress); 
+  
+        const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
+        amountsInSmallestUnit.push(amountInSmallestUnit);
+      }
+  
+      const tx = await bm.externalUnlockCollateral(tokens, amountsInSmallestUnit);
       await tx.wait();
       alert("Excessive collateral unlocked successfully.");
       setRemoveCollateralSelections(
@@ -857,8 +894,7 @@ function AppProvider({ children }) {
       alert("Unlock collateral failed: " + err.message);
     }
   }
-
-  // ── NEW bid‐removal action ──────────────────────────────────
+  
   async function removeBid() {
     const bm = getBidManagerContract();
     if (!bm) {
@@ -869,7 +905,6 @@ function AppProvider({ children }) {
       const tx = await bm.removeBid();
       await tx.wait();
       alert("Your bid was removed and collateral unlocked.");
-      // clear your UI
       setBidAmount("");
       setBidRate("");
       setBidCollateralSelections(
@@ -881,7 +916,6 @@ function AppProvider({ children }) {
     }
   }
 
-  // ── NEW offer‐removal action ────────────────────────────────
   async function removeOffer() {
     const om = getOfferManagerContract();
     if (!om) {
@@ -903,7 +937,8 @@ function AppProvider({ children }) {
   async function placeOffer() {
     const om = getOfferManagerContract();
     const lv = getLendingVaultContract();
-    if (!om || !lv) {
+    const am = getAuctionEngineContract();
+    if (!om || !lv || !am) {
       alert("OfferManager or LendingVault not found. Deploy or connect your wallet.");
       return;
     }
@@ -927,8 +962,11 @@ function AppProvider({ children }) {
         encryptedOffer = await timelockEncrypt(ID, PK_Val, bufferValue);
         encryptedOffer = "0x" + encryptedOffer;
       }
-      await approveToken(T1_ADDRESS, lendingVaultAddress);
-      const tx = await om.submitOffer(offerAmount, encryptedOffer);
+      const purchaseToken = await am.repaymentToken();
+      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
+      await approveToken(purchaseToken, lendingVaultAddress);
+      const tx = await om.submitOffer(quantity, encryptedOffer);
       await tx.wait();
       alert("Offer placed successfully.");
       setOfferAmount("");
@@ -997,9 +1035,16 @@ function AppProvider({ children }) {
       alert("LendingVault not found.");
       return;
     }
+    const am = getAuctionEngineContract();
+    if (!am) {
+      alert("AuctionManager not found.");
+      return;
+    }
     try {
-      await approveToken(T1_ADDRESS, auctionEngineAddress);
-      const amountBN = ethers.utils.parseUnits(repayAmount, 18);
+      const purchaseToken = await am.repaymentToken();
+      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const amountBN = ethers.utils.parseUnits(repayAmount, tokenDecimals);
+      await approveToken(purchaseToken, auctionEngineAddress);
       const tx = await ae.repay(amountBN);
       await tx.wait();
       alert("Repayment successful.");
@@ -1016,9 +1061,16 @@ function AppProvider({ children }) {
       alert("AuctionEngine not found.");
       return;
     }
+    const am = getAuctionEngineContract();
+    if (!am) {
+      alert("AuctionManager not found.");
+      return;
+    }
     try {
+      const purchaseToken = await am.repaymentToken();
+      const tokenDecimals = await getTokenDecimals(purchaseToken); 
       const owed = await ae.repayments(walletAddress);
-      const formattedOwed = ethers.utils.formatUnits(owed, 18);
+      const formattedOwed = ethers.utils.formatUnits(owed, tokenDecimals);
       setOwedAmount(formattedOwed);
       alert(`You owe: ${formattedOwed}`);
     } catch (error) {
@@ -1037,25 +1089,36 @@ function AppProvider({ children }) {
       alert("Enter borrower address.");
       return;
     }
-
+  
     try {
       const provider = ae.provider;
       const latestBlock = await provider.getBlock("latest");
       const currentTime = latestBlock.timestamp;
-
+  
       const repaymentDue = await ae.repaymentDue();
       const threshold = repaymentDue.add(ethers.BigNumber.from(172800));
-
+  
       const usedCollaterals = liquidationCollateralSelections.filter((c) => c.amount && c.amount !== "0");
       if (usedCollaterals.length === 0) {
         alert("Enter coverage amounts > 0.");
         return;
       }
+  
       const tokensArray = usedCollaterals.map((c) => c.address);
-      const coverageArray = usedCollaterals.map((c) => ethers.BigNumber.from(c.amount));
-
-      await approveToken(T1_ADDRESS, auctionEngineAddress);
-
+      const coverageArray = [];
+  
+      for (let i = 0; i < usedCollaterals.length; i++) {
+        const tokenAddress = tokensArray[i];
+        const collateralAmount = usedCollaterals[i].amount;
+  
+        const tokenDecimals = await getTokenDecimals(tokenAddress);
+  
+        const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
+        coverageArray.push(amountInSmallestUnit);
+      }
+      const purchaseToken = await ae.repaymentToken();
+      await approveToken(purchaseToken, auctionEngineAddress);
+  
       let tx;
       if (currentTime < threshold.toNumber()) {
         tx = await ae.batchEarlyLiquidation(liquidationBorrower, tokensArray, coverageArray);
@@ -1071,6 +1134,7 @@ function AppProvider({ children }) {
       alert("Liquidation failed: " + error.message);
     }
   }
+  
 
   async function cancelAuction() {
     const ae = getAuctionEngineContract();
@@ -1097,42 +1161,7 @@ function AppProvider({ children }) {
     });
   }
 
-  async function unlockMyCollateral() {
-    const bm = getBidManagerContract();
-    if (!bm) {
-      alert("BidManager not found.");
-      return;
-    }
-    try {
-      const toUnlock = unlockCollateralSelections.filter((c) => c.unlock).map((c) => c.address);
-      if (toUnlock.length === 0) {
-        alert("Select at least one collateral to unlock.");
-        return;
-      }
-      const tx = await bm.unlockMyCollateral(toUnlock);
-      await tx.wait();
-      alert("Collateral unlocked successfully.");
-    } catch (error) {
-      console.error("Unlock collateral failed:", error);
-      alert("Collateral unlock failed: " + error.message);
-    }
-  }
 
-  async function unlockMyOfferFunds() {
-    const om = getOfferManagerContract();
-    if (!om) {
-      alert("OfferManager not found.");
-      return;
-    }
-    try {
-      const tx = await om.unlockMyFunds();
-      await tx.wait();
-      alert("Offer funds unlocked successfully.");
-    } catch (error) {
-      console.error("Unlock offer funds failed:", error);
-      alert("Unlock offer funds failed: " + error.message);
-    }
-  }
 
   async function redeemToken() {
     if (!signer) {
@@ -1144,9 +1173,16 @@ function AppProvider({ children }) {
       alert("Auction token contract not found.");
       return;
     }
+    const am = getAuctionEngineContract();
+    if (!am) {
+      alert("AuctionManager not found.");
+      return;
+    }
     try {
-      const amountBN = ethers.BigNumber.from(redemptionAmount);
-      const tx = await atContract.redeemToken(amountBN);
+      const purchaseToken = await am.repaymentToken();
+      const tokenDecimals = await getTokenDecimals(purchaseToken);
+      const amount = ethers.utils.parseUnits(redemptionAmount, tokenDecimals);
+      const tx = await atContract.redeemToken(amount);
       await tx.wait();
       alert("Token redemption successful.");
       setRedemptionAmount("");
@@ -1261,8 +1297,7 @@ function AppProvider({ children }) {
     checkOwed,
     liquidate,
     cancelAuction,
-    unlockMyCollateral,
-    unlockMyOfferFunds,
+  
 
     redemptionAmount,
     setRedemptionAmount,
@@ -1272,11 +1307,9 @@ function AppProvider({ children }) {
     removeCollateralSelections,
     setRemoveCollateralSelections,
 
-    /* new collateral-management actions */
     externalLockCollateral,
     externalUnlockCollateral,
 
-    /* new bid/offer removal actions */
     removeBid,
     removeOffer,
     customPriceOracle,
@@ -1324,9 +1357,6 @@ function useAppContext() {
   return useContext(AppContext);
 }
 
-// --------------------------------------------------------
-// TokenDisplay Component
-// --------------------------------------------------------
 function TokenDisplay({ address }) {
   const { signer } = useAppContext();
   const [symbol, setSymbol] = useState("");
@@ -1355,16 +1385,9 @@ function TokenDisplay({ address }) {
   );
 }
 
-// --------------------------------------------------------
-// Faucet Page Component 
-// --------------------------------------------------------
-/* ─────────────────────────────────────────────────────────────
-   F A U C E T   P A G E  –  unified styling
-   ─────────────────────────────────────────────────────────── */
 function FaucetPage() {
   const { signer } = useAppContext();
 
-  /* – internal helper – */
   const handleWithdraw = async (tokenName, faucetAddress) => {
     if (!signer) {
       alert("Please connect your wallet first.");
@@ -1382,7 +1405,6 @@ function FaucetPage() {
     }
   };
 
-  /* – atoms reused from previous pages – */
   const card = {
     maxWidth: 620,
     margin: "0 auto",
@@ -1412,13 +1434,12 @@ function FaucetPage() {
     width: "100%",
   };
 
-  /* – render – */
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
       <div className="purple-card" style={card}>
         <h2 style={heading}>Faucet</h2>
 
-        {/* T1 */}
+        { }
         <div style={{ marginBottom: 28 }}>
           <p style={sub}>
             <strong>T1 token</strong>
@@ -1432,7 +1453,7 @@ function FaucetPage() {
           </button>
         </div>
 
-        {/* T2 */}
+        { }
         <div style={{ marginBottom: 28 }}>
           <p style={sub}>
             <strong>T2 token</strong>
@@ -1446,7 +1467,7 @@ function FaucetPage() {
           </button>
         </div>
 
-        {/* T3 */}
+        { }
         <div>
           <p style={sub}>
             <strong>T3 token</strong>
@@ -1465,9 +1486,6 @@ function FaucetPage() {
 }
 
 
-/* ──────────────────────────────────────────────────────────────
-   WALLET-CONNECT 
-   ──────────────────────────────────────────────────────────── */
 
 function WalletConnect() {
   const {
@@ -1481,10 +1499,8 @@ function WalletConnect() {
 
   const [open, setOpen] = React.useState(false);
 
-  /* pill */
   const pill = walletBtnBase;
 
-  /* dark select */
   const selectDark = {
     ...pill,
     width: 260,
@@ -1499,7 +1515,6 @@ function WalletConnect() {
   };
   const optionDark = { background: "#121212", color: "#fff" };
 
-  /* modal */
   const overlay = {
     position: "fixed",
     inset: 0,
@@ -1533,7 +1548,6 @@ function WalletConnect() {
     marginTop: 40,
   };
 
-  /* ESC closes modal */
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && setOpen(false);
@@ -1541,7 +1555,6 @@ function WalletConnect() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  /* helper to render the modal via portal */
   const modal = (
     <div style={overlay} onClick={() => setOpen(false)}>
       <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
@@ -1613,16 +1626,13 @@ function WalletConnect() {
         )}
       </div>
 
-      {/* render modal into <body> so nav backdrop-filter doesn’t trap it */}
+      { }
       {open && ReactDOM.createPortal(modal, document.body)}
     </>
   );
 }
 
 
-/* ───────────────────────────────────────────────────────────────────────
-   TOP BAR (logo + links)
-   ───────────────────────────────────────────────────────────────────── */
 
 function TopBar({ sectionLinks = [] }) {
   return (
@@ -1640,109 +1650,99 @@ function TopBar({ sectionLinks = [] }) {
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────────
-   LANDING PAGE  – now uses background image, plus top nav
-   ───────────────────────────────────────────────────────────────────── */
 
-   function LandingPage() {
-    const navigate = useNavigate()
-  
-    const links = [
-      { to: "/", label: "Home" },
-      { to: "/developer/deploy", label: "Deploy" },
-      { to: "/developer/manage", label: "Manage" },
-      { to: "/developer/faucet", label: "Faucet" },
-    ]
-  
-    // drop the 100vh wrapper and just let content size itself
-    const heroWrap = {
-      maxWidth: "1120px",
-      margin: "0 auto",
-      padding: "50px 20px 100px", // cut bottom padding from 160→100
-      textAlign: "center",
-    }
-  
-    // tighter clamp: at medium widths this will now max at 3rem (48px)
-    const heroHeading = {
-      fontSize: "clamp(2rem, 6vw, 3rem)", // 32px → 48px instead of 40→64
-      fontWeight: 400,
-      lineHeight: 1.1,
-      marginBottom: "24px",
-      color: "#fff",
-      fontFamily: FONT_FAMILY,
-    }
-  
-    // subtitle container stays centered but with less bottom space
-    const heroSubContainer = {
-      maxWidth: "650px",
-      margin: "0 auto 56px", // 72→56
-      textAlign: "left",
-    }
-  
-    // smaller clamp: at medium widths this will max at 1rem (16px)
-    const heroSub = {
-      fontSize: "clamp(0.875rem, 2.5vw, 1rem)", // 14px → 16px
-      lineHeight: 1.5,
-      margin: "0 0 24px",
-      color: COLORS.textMuted,
-    }
-  
-    const ctaRow = {
-      display: "flex",
-      gap: "16px",
-      justifyContent: "center",
-      flexWrap: "wrap",
-    }
-  
-    const primaryBtn = {
-      background: COLORS.accent,
-      color: "#FFF",
-      border: "none",
-      padding: "14px 32px",  // scale down a bit
-      borderRadius: "12px",
-      fontSize: "1rem",
-      fontWeight: 600,
-      cursor: "pointer",
-      transition: "background .18s",
-      fontFamily: FONT_FAMILY,
-    }
-  
-    return (
-      <>
-        <TopBar sectionLinks={links} />
-  
-        <div style={heroWrap}>
-          <h1 style={heroHeading}>
-            Fixed <span style={{ color: COLORS.accent }}>rates</span>,<br />
-            not fixed games.
-          </h1>
-  
-          <div style={heroSubContainer}>
-            <p style={heroSub}>
-              <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
-            </p>
-            <p style={heroSub}>
-              <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
-            </p>
-          </div>
-  
-          <div style={ctaRow}>
-            <button
-              style={primaryBtn}
-              onClick={() => navigate("/user")}
-              onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
-              onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
-            >
-              Bid or Supply
-            </button>
-          </div>
-        </div>
-      </>
-    )
+function LandingPage() {
+  const navigate = useNavigate()
+
+  const links = [
+    { to: "/", label: "Home" },
+    { to: "/developer/deploy", label: "Deploy" },
+    { to: "/developer/manage", label: "Manage" },
+    { to: "/developer/faucet", label: "Faucet" },
+  ]
+
+  const heroWrap = {
+    maxWidth: "1120px",
+    margin: "0 auto",
+    padding: "50px 20px 100px",
+    textAlign: "center",
   }
-/* ───────────────────────────────────────────────────────────────────────
-   Developer & User Wrappers reuse TopBar
-   ───────────────────────────────────────────────────────────────────── */
+
+  const heroHeading = {
+    fontSize: "clamp(2rem, 6vw, 3rem)",
+    fontWeight: 400,
+    lineHeight: 1.1,
+    marginBottom: "24px",
+    color: "#fff",
+    fontFamily: FONT_FAMILY,
+  }
+
+  const heroSubContainer = {
+    maxWidth: "650px",
+    margin: "0 auto 56px",
+    textAlign: "left",
+  }
+
+  const heroSub = {
+    fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
+    lineHeight: 1.5,
+    margin: "0 0 24px",
+    color: COLORS.textMuted,
+  }
+
+  const ctaRow = {
+    display: "flex",
+    gap: "16px",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  }
+
+  const primaryBtn = {
+    background: COLORS.accent,
+    color: "#FFF",
+    border: "none",
+    padding: "14px 32px",
+    borderRadius: "12px",
+    fontSize: "1rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background .18s",
+    fontFamily: FONT_FAMILY,
+  }
+
+  return (
+    <>
+      <TopBar sectionLinks={links} />
+
+      <div style={heroWrap}>
+        <h1 style={heroHeading}>
+          Fixed <span style={{ color: COLORS.accent }}>rates</span>,<br />
+          not fixed games.
+        </h1>
+
+        <div style={heroSubContainer}>
+          <p style={heroSub}>
+            <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
+          </p>
+          <p style={heroSub}>
+            <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
+          </p>
+        </div>
+
+        <div style={ctaRow}>
+          <button
+            style={primaryBtn}
+            onClick={() => navigate("/user")}
+            onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
+            onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
+          >
+            Bid or Supply
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
 function DeveloperWrapper() {
   const links = [
     { to: "/", label: "Home" },
@@ -1796,14 +1796,10 @@ function UserWrapper() {
 
 
 
-/* ─────────────────────────────────────────────────────────────
-   M A N A G E   M Y   A U C T I O N S   (developer)
-   ─────────────────────────────────────────────────────────── */
 function ManageAuctionsPage() {
   const { myAuctions, selectAuction } = useAppContext();
   const navigate = useNavigate();
 
-  /* atoms */
   const wrap = { display: "flex", justifyContent: "center", padding: 48 };
 
   const card = {
@@ -1895,12 +1891,6 @@ function ManageAuctionsPage() {
   );
 }
 
-// --------------------------------------------------------
-// AuctionManagementPage
-// --------------------------------------------------------
-/* ─────────────────────────────────────────────────────────────
-   A U C T I O N   M A N A G E M E N T  (developer view)
-   ─────────────────────────────────────────────────────────── */
 function AuctionManagementPage() {
   const { aeAddress } = useParams();
   const {
@@ -1911,7 +1901,6 @@ function AuctionManagementPage() {
     signer,
     auctionEngineAddress,
 
-    /* actions + state used on this screen */
     finalizeAuction,
     isDecrypting,
     registerNewCollateral,
@@ -1927,7 +1916,6 @@ function AuctionManagementPage() {
 
   const [clearingRate, setClearingRate] = React.useState("");
 
-  /* sync selection from URL */
   React.useEffect(() => {
     if (aeAddress && (!currentAuction || currentAuction.auctionEngineAddress !== aeAddress)) {
       const found = deployedAuctions.find(
@@ -1938,7 +1926,6 @@ function AuctionManagementPage() {
     }
   }, [aeAddress, currentAuction, deployedAuctions, selectAuction, setAuctionEngineAddress]);
 
-  /* fetch clearing rate */
   async function checkClearingRate() {
     if (!signer || !auctionEngineAddress) {
       alert("AuctionEngine not set or wallet not connected.");
@@ -1960,7 +1947,6 @@ function AuctionManagementPage() {
     }
   }
 
-  /* ── atoms (borrowed from Deploy/Faucet) ─────────────────── */
   const wrapper = { display: "flex", justifyContent: "center", padding: 48 };
 
   const card = {
@@ -2026,13 +2012,12 @@ function AuctionManagementPage() {
     marginTop: 8,
   };
 
-  /* ── render ─────────────────────────────────────────────── */
   return (
     <div style={wrapper}>
       <div className="purple-card" style={card}>
         <h2 style={h2}>Auction&nbsp;management</h2>
 
-        {/* Finalize + Clearing rate */}
+        { }
         <div style={{ marginBottom: 40 }}>
           <h3 style={sectionH3}>Finalize auction</h3>
           <button className="btn-primary" style={btn} onClick={finalizeAuction}>
@@ -2053,7 +2038,7 @@ function AuctionManagementPage() {
           )}
         </div>
 
-        {/* Register collateral */}
+        { }
         <div style={{ marginBottom: 40 }}>
           <h3 style={sectionH3}>Add collateral</h3>
           <label style={label}>Token address</label>
@@ -2090,7 +2075,7 @@ function AuctionManagementPage() {
           )}
         </div>
 
-        {/* Cancel auction */}
+        { }
         <div>
           <h3 style={sectionH3}>Cancel auction</h3>
           <label style={label}>Reason</label>
@@ -2111,9 +2096,6 @@ function AuctionManagementPage() {
   );
 }
 
-// --------------------------------------------------------
-// DeveloperWrapper
-// --------------------------------------------------------
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(() => {
@@ -2152,15 +2134,6 @@ function useIsMobile(breakpoint = 768) {
 }
 
 
-/* ──────────────────────────────────────────────────────────────
-   D E P L O Y  P A G E   (replace whole function)
-   ──────────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────────
-D E P L O Y   P A G E   (Figma-exact)
-─────────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────────
-   D E P L O Y  P A G E  – no overlap, flex layout
-   ─────────────────────────────────────────────────────────── */
 function DeployPage() {
   const {
     deployContracts,
@@ -2201,7 +2174,6 @@ function DeployPage() {
     setCustomCollateralRatio,
   } = useAppContext();
 
-  /* —— atoms (same sizes as earlier) ——————————————— */
   const page = {
     maxWidth: 1200,
     margin: "0 auto",
@@ -2278,7 +2250,6 @@ function DeployPage() {
     marginTop: 48,
   };
 
-  /* —— CARD ——————————————————————————————— */
   const card = (
     <div
       style={{
@@ -2317,10 +2288,9 @@ function DeployPage() {
     </div>
   );
 
-  /* —— RENDER ——————————————————————————————— */
   return (
     <div className="deploy-flex" style={{ ...page, [cardBreak]: {} }}>
-      {/* LEFT COLUMN (form) */}
+      { }
       <div style={columnStyle}>
         <h1 style={h1}>Deploy contracts</h1>
 
@@ -2331,7 +2301,7 @@ function DeployPage() {
         </p>
 
         <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
-          {/* column A */}
+          { }
           <div>
             <label style={label}>Price Oracle Address</label>
             <input
@@ -2420,7 +2390,7 @@ function DeployPage() {
             />
           </div>
 
-          {/* column B */}
+          { }
           <div>
 
 
@@ -2510,7 +2480,7 @@ function DeployPage() {
         </button>
       </div>
 
-      {/* RIGHT COLUMN (card) */}
+      { }
       {card}
     </div>
   );
@@ -2518,15 +2488,11 @@ function DeployPage() {
 
 
 
-/* ─────────────────────────────────────────────────────────────
-   U S E R   D A S H B O A R D  (available auctions)
-   ─────────────────────────────────────────────────────────── */
 function UserDashboard() {
   const { deployedAuctions, selectAuction } = useAppContext();
   const navigate = useNavigate();
   const [selected, setSelected] = React.useState("");
 
-  /* atoms (same as Manage) */
   const wrap = { display: "flex", justifyContent: "center", padding: 48 };
 
   const card = {
@@ -2614,18 +2580,10 @@ function UserDashboard() {
 }
 
 
-// --------------------------------------------------------
-// UserAuctionPage
-// --------------------------------------------------------
-/* ─────────────────────────────────────────────────────────────
-   U S E R   A U C T I O N   P A G E
-   fully styled to match the Figma spec (node 810-3211)
-   ─────────────────────────────────────────────────────────── */
 function UserAuctionPage() {
   const {
     auctionEngineAddress,
 
-    // ── Original auction actions & state ─────────────────────
     bidAmount,
     setBidAmount,
     bidRate,
@@ -2657,7 +2615,6 @@ function UserAuctionPage() {
     bidCollateralSelections,
     setBidCollateralSelections,
 
-    // ── NEW collateral-management state & actions ────────────
     extraCollateralSelections,
     setExtraCollateralSelections,
     removeCollateralSelections,
@@ -2665,7 +2622,6 @@ function UserAuctionPage() {
     externalLockCollateral,
     externalUnlockCollateral,
 
-    // ── NEW bid/offer removal actions ────────────────────────
     removeBid,
     removeOffer,
   } = useAppContext();
@@ -2673,14 +2629,13 @@ function UserAuctionPage() {
     if (bidCollateralSelections.length > 0) {
       const rows = bidCollateralSelections.map((c) => ({
         address: c.address,
-        amount: "",    // start blank
+        amount: "",
       }));
       setExtraCollateralSelections(rows);
       setRemoveCollateralSelections(rows);
     }
   }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
 
-  // ── style helpers ─────────────────────────────────────────
   const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
   const section = { marginBottom: 64 };
   const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
@@ -2693,7 +2648,6 @@ function UserAuctionPage() {
   const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
   const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
 
-  // ── helpers to update collateral arrays ────────────────────
   const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateExtraCollat = (i, v) => setExtraCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
@@ -2708,9 +2662,9 @@ function UserAuctionPage() {
         </span>
       </h1>
 
-      {/* 1. BID + OFFER */}
+      { }
       <div style={{ ...grid2, ...section }}>
-        {/* BID */}
+        { }
         <div>
           <h2 style={h2}>Place a Bid</h2>
           <label style={label}>Bid amount</label>
@@ -2771,7 +2725,7 @@ function UserAuctionPage() {
           </div>
         </div>
 
-        {/* OFFER */}
+        { }
         <div>
           <h2 style={h2}>Place an Offer</h2>
           <label style={label}>Offer amount</label>
@@ -2809,7 +2763,7 @@ function UserAuctionPage() {
         </div>
       </div>
       <div style={{ ...grid2, ...section }}>
-        {/* 5. ADD EXTRA COLLATERAL */}
+        { }
         <div style={section}>
           <h2 style={h2}>Add or Remove Collateral</h2>
           <table style={table}>
@@ -2865,7 +2819,7 @@ function UserAuctionPage() {
         </div>
       </div>
 
-      {/* 2. REPAY + OWED */}
+      { }
       <div style={{ ...grid2, ...section }}>
         <div>
           <h2 style={h2}>Repay Loan</h2>
@@ -2894,7 +2848,7 @@ function UserAuctionPage() {
         </div>
       </div>
       <div style={{ ...grid2, ...section }}>
-        {/* 3. LIQUIDATE */}
+        { }
         <div style={section}>
           <h2 style={h2}>Liquidate Borrower</h2>
           <label style={label}>Borrower address</label>
@@ -2934,7 +2888,7 @@ function UserAuctionPage() {
           </button>
         </div>
 
-        {/* 4. REDEEM */}
+        { }
         <div style={section}>
           <h2 style={h2}>Redeem Auction Tokens</h2>
           <label style={label}>Redemption amount</label>
@@ -2955,7 +2909,6 @@ function UserAuctionPage() {
 }
 
 
-/* ─── Background toggler ------------------------------------ */
 function BackgroundManager() {
   const location = useLocation();
 
@@ -2967,12 +2920,12 @@ function BackgroundManager() {
     }
   }, [location.pathname]);
 
-  return null;        // this component only has the side-effect
+  return null;
 }
 function App() {
   return (
     <>
-      {/* global CSS blocks you already had */}
+      { }
       <style>{globalBgCss}</style>
       <style>{`
         body.arb-bg{
@@ -2985,7 +2938,7 @@ function App() {
       <style>{responsiveCss}</style>
       <AppProvider>
         <Router>
-          {/*  <- hook now lives *inside* the router  */}
+          { }
           <BackgroundManager />
 
           <Routes>

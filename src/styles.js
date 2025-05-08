@@ -1,5 +1,4 @@
 
-/* ─── Constants (unchanged) ───────────────────────────────────────────── */
 const FAIRYRING_CONTRACT_ADDRESS =
   "0x1bdCDE229FE055D91C306987DB6f74737e13065f";
 const ERC20ABI = [
@@ -20,7 +19,6 @@ const T2_FAUCET =
   "0xb7D6e143417E0e097365296408f0c8B41b60493B";
 const T3_FAUCET =
   "0x2369F3ed583DE7cA80c46977d323119d24674824";
-/* ─── Brand palette & type ───────────────────────────────────────────── */
 const COLORS = {
   bgDark: "#080808",
   textPrimary: "#FFFFFF",
@@ -31,7 +29,6 @@ const COLORS = {
 };
 const FONT_FAMILY = `"Montserrat", sans-serif`;
 
-/* ─── Figma-matching field / section styles (shared) ──────────── */
 const sectionWrap = {
   marginBottom: "54px",
 };
@@ -81,7 +78,6 @@ const inputFocusGlow =
 
 
 
-/* helper to apply focus style */
 function applyFocusGlow(e) {
   e.currentTarget.style.boxShadow = inputFocusGlow;
   e.currentTarget.style.borderColor = COLORS.accent;
@@ -91,8 +87,7 @@ function removeFocusGlow(e) {
   e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
 }
 
-/* NAV BAR */
- const topBarStyle = {
+const topBarStyle = {
   display: "flex",
   alignItems: "center",
   padding: "0 64px",
@@ -100,17 +95,17 @@ function removeFocusGlow(e) {
   backdropFilter: "blur(6px)",
   background: "rgba(8,8,8,0.72)",
   borderBottom: "1px solid rgba(255,255,255,0.06)",
-  flexWrap: "wrap", 
+  flexWrap: "wrap",
 };
- const navLink = {
+const navLink = {
   fontSize: "18px",
   fontWeight: 400,
   marginLeft: "64px",
   color: COLORS.textPrimary,
 };
- const logoStyle = { height: 100 };
+const logoStyle = { height: 100 };
 
- const walletBtnBase = {
+const walletBtnBase = {
   height: "56px",
   display: "flex",
   alignItems: "center",
@@ -125,32 +120,31 @@ function removeFocusGlow(e) {
   transition: "background .18s",
 };
 
-/* HERO */
 
- const heroHeading = {
+const heroHeading = {
   fontFamily: "'Montserrat', sans-serif",
   fontSize: "65px",
-  fontWeight: 200,       // ← ultra-light
-  lineHeight: 1.2,       // a little more breathing room between lines
-  letterSpacing: "-0.02em", // tighten it up slightly
+  fontWeight: 200,
+  lineHeight: 1.2,
+  letterSpacing: "-0.02em",
   marginBottom: "40px",
-  color: "#fff",         // assuming you’re on a dark bg
+  color: "#fff",
 };
 
 const heroSub = {
   fontSize: "26px",
   lineHeight: 1.55,
-  margin: "0 0 24px 0", 
+  margin: "0 0 24px 0",
   color: COLORS.textMuted,
 };
 
- const ctaRow = {
+const ctaRow = {
   display: "flex",
   gap: "32px",
   justifyContent: "center",
   flexWrap: "wrap",
 };
- const primaryBtn = {
+const primaryBtn = {
   background: COLORS.accent,
   color: "#FFF",
   border: "none",
@@ -165,16 +159,15 @@ const primaryBtnWide = {
   ...primaryBtn,
   width: 260,
 };
- const secondaryBtn = {
+const secondaryBtn = {
   ...primaryBtn,
   background: "#FFF",
   color: COLORS.bgDark,
 };
 
 
-/* ── Force-network constants ─────────────────────────────── */
 const ARBITRUM_SEPOLIA = {
-  chainId: "0x66eee",             // 421614 dec
+  chainId: "0x66eee",
   chainName: "Arbitrum Sepolia Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
@@ -182,7 +175,6 @@ const ARBITRUM_SEPOLIA = {
 };
 
 
-/* ─── Global CSS (background uses your PNG) ──────────────────────────── */
 const globalBgCss = `
 html, body {
   margin: 0;
@@ -209,9 +201,7 @@ body {
 
 `;
 
-/* ─── Utility : hex→Uint8Array (unchanged) ───────────────────────────── */
 
-/* ─── Re-usable inline styles from your original file (kept intact) ─── */
 const buttonStyle = {
   backgroundColor: "#444",
   color: "#fff",
@@ -327,10 +317,7 @@ const selectStyleWallet = {
   width: "70%",
 };
 
-/* ───────────────────────────────────────────────────────────────────────
-   Mobile overrides (your original block)
-   ───────────────────────────────────────────────────────────────────── */
-   const mobileCss = `
+const mobileCss = `
    @media (max-width: 768px) {
      .auction-page-outer {
        padding: 1rem !important;
@@ -347,11 +334,7 @@ const selectStyleWallet = {
      }
    }
  `;
- /* ─────────────────────────────────────────────────────────────
-    G L O B A L   R E S P O N S I V E   C S S
-    (nothing here changes desktop; it only overrides ≤ 860 px)
-    ─────────────────────────────────────────────────────────── */
-    const responsiveCss = `
+const responsiveCss = `
      @media (max-width: 768px) {
     .auction-page-outer { … }
     .three-column-grid  { … }
@@ -484,55 +467,51 @@ const selectStyleWallet = {
  
    
     `;
-    
+
 
 export {
-    FAIRYRING_CONTRACT_ADDRESS,
-    ERC20ABI,
-    T1_ADDRESS,
-    DEFAULT_COLLATERAL,
-    T2_ADDRESS,
-    T3_ADDRESS,
-    T1_FAUCET,
-    T2_FAUCET,
-    T3_FAUCET,
-    ARBITRUM_SEPOLIA,
-    COLORS,
-    FONT_FAMILY,
-    globalBgCss,
-    sectionWrap,
-    sectionHeading,
-    sectionSub,
-    formGrid,
-    formGridMobile,
-    labelNew,
-    inputNew,
-    inputFocusGlow,
-    applyFocusGlow,
-    removeFocusGlow,
-    walletBtnBase,
-    // NavBar
-    topBarStyle,
-    navLink,
-    logoStyle,
-    
-    // Hero
-    heroHeading,
-    heroSub,
-    ctaRow,
-    primaryBtnWide,
-    
+  FAIRYRING_CONTRACT_ADDRESS,
+  ERC20ABI,
+  T1_ADDRESS,
+  DEFAULT_COLLATERAL,
+  T2_ADDRESS,
+  T3_ADDRESS,
+  T1_FAUCET,
+  T2_FAUCET,
+  T3_FAUCET,
+  ARBITRUM_SEPOLIA,
+  COLORS,
+  FONT_FAMILY,
+  globalBgCss,
+  sectionWrap,
+  sectionHeading,
+  sectionSub,
+  formGrid,
+  formGridMobile,
+  labelNew,
+  inputNew,
+  inputFocusGlow,
+  applyFocusGlow,
+  removeFocusGlow,
+  walletBtnBase,
+  topBarStyle,
+  navLink,
+  logoStyle,
 
-    
-    // Re-usable inline styles
-    buttonStyleBid,
-    buttonStyleAuction,
-    
-    // Auction page styles
-    auctionPageOuterStyle,
-    auctionTitleStyle,
-    threeColumnGridStyle,
-    proSectionCardStyle,
-    responsiveCss,
-    mobileCss
+  heroHeading,
+  heroSub,
+  ctaRow,
+  primaryBtnWide,
+
+
+
+  buttonStyleBid,
+  buttonStyleAuction,
+
+  auctionPageOuterStyle,
+  auctionTitleStyle,
+  threeColumnGridStyle,
+  proSectionCardStyle,
+  responsiveCss,
+  mobileCss
 }
