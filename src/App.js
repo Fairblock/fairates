@@ -29,7 +29,7 @@ import FairyringArtifact from "./FairyringContract.json";
 
 /* ─── Constants (unchanged) ───────────────────────────────────────────── */
 const FAIRYRING_CONTRACT_ADDRESS =
-  "0xcBD4E181561fF26e9Cf20C4B1250fA7D0049BA95";
+  "0x1bdCDE229FE055D91C306987DB6f74737e13065f";
 const ERC20ABI = [
   "function approve(address spender, uint256 amount) public returns (bool)",
 ];
@@ -661,7 +661,8 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
     const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
     const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
     setAuctionIdNumber(auctionIdNum);
-    const ID = `fairy1m9l358xunhhwds0568za49mzhvuxx9uxdra8sq/${userAddr}/${auctionIdNum}`;
+    const ID = await fairyringContract.fids(userAddr, auctionIdNum);
+    console.log("Generated ID:", ID);
     return ID;
   }
 
@@ -1439,7 +1440,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
   }
 
   useEffect(() => {
-    fetch("https://0.0.0.0:9092/contracts")
+    fetch("https://auction-db.fairblock.network/contracts")
       .then((response) => response.json())
       .then((data) => {
         if (data.auctions && data.auctions.length > 0) {
@@ -1464,7 +1465,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
     const allEmpty = deployedAuctions.length === 0;
     if (allEmpty) return;
 
-    fetch("https://0.0.0.0:9092/contracts", {
+    fetch("https://auction-db.fairblock.network/contracts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(contractData)
