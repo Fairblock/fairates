@@ -26,207 +26,41 @@ import LendingVaultArtifact from "./LendingVault.json";
 import BidManagerArtifact from "./BidManager.json";
 import OfferManagerArtifact from "./OfferManager.json";
 import FairyringArtifact from "./FairyringContract.json";
+import {
+  FAIRYRING_CONTRACT_ADDRESS,
+  ERC20ABI,
+  T1_ADDRESS,
+  DEFAULT_COLLATERAL,
+  T2_ADDRESS,
+  T3_ADDRESS,
+  T1_FAUCET,
+  T2_FAUCET,
+  T3_FAUCET,
+  ARBITRUM_SEPOLIA,
+  COLORS,
+  FONT_FAMILY,
+  globalBgCss,
 
-/* ─── Constants (unchanged) ───────────────────────────────────────────── */
-const FAIRYRING_CONTRACT_ADDRESS =
-  "0x1bdCDE229FE055D91C306987DB6f74737e13065f";
-const ERC20ABI = [
-  "function approve(address spender, uint256 amount) public returns (bool)",
-];
-const T1_ADDRESS = "0xDB1E18f9eb609FD8027DF1fCcc06315f019C0dA0";
-const DEFAULT_COLLATERAL =
-  "0x2367dDf156601b411479A3745B20f0618055270E";
+  mobileCss,
+  responsiveCss,
+  // NavBar
+  topBarStyle,
+  navLink,
+  logoStyle,
 
-const T2_ADDRESS =
-  "0x2367dDf156601b411479A3745B20f0618055270E";
-const T3_ADDRESS =
-  "0xf59D050BeA595f6F3A47e0a28e85B23BFB56DD81";
-
-const T1_FAUCET =
-  "0x23F62098dE48391AcdEFA14D9C0fCa5f30EEb5a8";
-const T2_FAUCET =
-  "0xb7D6e143417E0e097365296408f0c8B41b60493B";
-const T3_FAUCET =
-  "0x2369F3ed583DE7cA80c46977d323119d24674824";
-/* ─── Brand palette & type ───────────────────────────────────────────── */
-const COLORS = {
-  bgDark: "#080808",
-  textPrimary: "#FFFFFF",
-  textMuted: "#BDBDBD",
-  accent: "#9B3DFF",
-  accentHover: "#B570FF",
-  buttonBorder: "rgba(255,255,255,0.15)",
-};
-const FONT_FAMILY = `"Montserrat", sans-serif`;
-
-/* ─── Figma-matching field / section styles (shared) ──────────── */
-const sectionWrap = {
-  marginBottom: "54px",
-};
-
-const sectionHeading = {
-  fontSize: "28px",
-  fontWeight: 400,
-  color: COLORS.accent,
-  marginBottom: "8px",
-};
-
-const sectionSub = {
-  fontSize: "18px",
-  lineHeight: 1.55,
-  color: COLORS.textMuted,
-  marginBottom: "32px",
-  maxWidth: 640,
-};
-
-const formGrid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "32px",
-};
-const formGridMobile = "@media(max-width: 860px){grid-template-columns:1fr!important;}";
-
-const labelNew = {
-  fontSize: "16px",
-  fontWeight: 600,
-  color: "#FFFFFF",
-  marginBottom: "8px",
-};
-
-const inputNew = {
-  width: "100%",
-  padding: "18px 20px",
-  borderRadius: "12px",
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.25)",
-  color: COLORS.textPrimary,
-  fontSize: "18px",
-  outline: "none",
-  transition: "box-shadow .18s,border .18s",
-};
-const inputFocusGlow =
-  "box-shadow:0 0 0 3px rgba(155,61,255,0.45);border-color:#9B3DFF";
+  // Hero
+  heroHeading,
+  heroSub,
 
 
+  // Force-network constants
 
-/* helper to apply focus style */
-function applyFocusGlow(e) {
-  e.currentTarget.style.boxShadow = inputFocusGlow;
-  e.currentTarget.style.borderColor = COLORS.accent;
-}
-function removeFocusGlow(e) {
-  e.currentTarget.style.boxShadow = "";
-  e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-}
-
-/* NAV BAR */
-export const topBarStyle = {
-  display: "flex",
-  alignItems: "center",
-  padding: "0 64px",
-  height: "112px",
-  backdropFilter: "blur(6px)",
-  background: "rgba(8,8,8,0.72)",
-  borderBottom: "1px solid rgba(255,255,255,0.06)",
-  flexWrap: "wrap", 
-};
-export const navLink = {
-  fontSize: "18px",
-  fontWeight: 400,
-  marginLeft: "64px",
-  color: COLORS.textPrimary,
-};
-export const logoStyle = { height: 100 };
-
-export const walletBtnBase = {
-  height: "56px",
-  display: "flex",
-  alignItems: "center",
-  padding: "0 20px",
-  borderRadius: "9999px",
-  border: `1px solid ${COLORS.buttonBorder}`,
-  background: "transparent",
-  color: COLORS.textPrimary,
-  fontWeight: 500,
-  fontFamily: FONT_FAMILY,
-  cursor: "pointer",
-  transition: "background .18s",
-};
-
-/* HERO */
-
-export const heroHeading = {
-  fontFamily: "'Montserrat', sans-serif",
-  fontSize: "65px",
-  fontWeight: 200,       // ← ultra-light
-  lineHeight: 1.2,       // a little more breathing room between lines
-  letterSpacing: "-0.02em", // tighten it up slightly
-  marginBottom: "40px",
-  color: "#fff",         // assuming you’re on a dark bg
-};
-
-export const heroSub = {
-  fontSize: "26px",
-  lineHeight: 1.55,
-  maxWidth: "760px",
-  margin: "0 auto 72px",
-  color: COLORS.textMuted,
-};
-export const ctaRow = {
-  display: "flex",
-  gap: "32px",
-  justifyContent: "center",
-  flexWrap: "wrap",
-};
-export const primaryBtn = {
-  background: COLORS.accent,
-  color: "#FFF",
-  border: "none",
-  padding: "24px 56px",
-  borderRadius: "16px",
-  fontSize: "22px",
-  fontWeight: 400,
-  cursor: "pointer",
-  transition: "background .18s",
-};
-const primaryBtnWide = {
-  ...primaryBtn,
-  width: 260,
-};
-export const secondaryBtn = {
-  ...primaryBtn,
-  background: "#FFF",
-  color: COLORS.bgDark,
-};
+  walletBtnBase,
+  // Re-usable inline styles
+ 
+} from "./styles.js";
 
 
-/* ── Force-network constants ─────────────────────────────── */
-const ARBITRUM_SEPOLIA = {
-  chainId: "0x66eee",             // 421614 dec
-  chainName: "Arbitrum Sepolia Testnet",
-  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
-  blockExplorerUrls: ["https://sepolia.arbiscan.io"],
-};
-
-
-/* ─── Global CSS (background uses your PNG) ──────────────────────────── */
-const globalBgCss = `
-  html,body{margin:0;padding:0;min-height:100vh}
-  body{
-    background-color:${COLORS.bgDark};
-    background-image:url("/home-bg.png");
-    background-position:center bottom;
-    background-repeat:no-repeat;
-    background-size:cover;
-    color:${COLORS.textPrimary};
-    font-family:${FONT_FAMILY};
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:${COLORS.textPrimary};text-decoration:none}
-`;
-
-/* ─── Utility : hex→Uint8Array (unchanged) ───────────────────────────── */
 function hexToUint8Array(hex) {
   if (hex.startsWith("0x")) hex = hex.slice(2);
   const arr = [];
@@ -235,123 +69,6 @@ function hexToUint8Array(hex) {
   }
   return arr;
 }
-
-/* ─── Re-usable inline styles from your original file (kept intact) ─── */
-const buttonStyle = {
-  backgroundColor: "#444",
-  color: "#fff",
-  border: "none",
-  padding: "0.7rem 1.2rem",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontWeight: 500,
-  transition: "background-color 0.2s ease-in-out",
-  fontFamily: "EB Garabond",
-  whiteSpace: "nowrap",
-};
-const buttonStyleBid = {
-  ...buttonStyle,
-  width: "25%",
-};
-const buttonStyleAuction = {
-  ...buttonStyle,
-  width: "40%",
-};
-const inputStyle = {
-  width: "40%",
-  marginBottom: "0.7rem",
-  padding: "0.7rem 1.2rem",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-  fontSize: "1rem",
-  color: "#333",
-  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.05)",
-  transition: "border-color 0.2s ease-in-out",
-  fontFamily: "EB Garabond",
-  marginRight: "0.7rem",
-};
-const inputStyleCollat = {
-  ...inputStyle,
-  width: "100%",
-};
-const cardStyle = {
-  backgroundColor: "#fff",
-  color: "#333",
-  padding: "1.5rem",
-  marginTop: "1.5rem",
-  borderRadius: "8px",
-  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-  fontFamily: "EB Garabond",
-};
-
-const auctionPageOuterStyle = {
-  backgroundColor: "#f7f7f7",
-  padding: "2rem",
-  borderRadius: "10px",
-  maxWidth: "1200px",
-  margin: "2rem auto",
-  display: "grid",
-  gridTemplateRows: "auto auto auto",
-  rowGap: "2rem",
-};
-const auctionTitleStyle = {
-  textAlign: "center",
-  color: "#555",
-  fontSize: "1.8rem",
-  marginBottom: "1.5rem",
-  fontWeight: "bold",
-};
-const threeColumnGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: "2rem",
-};
-const proSectionCardStyle = {
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.1)",
-  padding: "1.5rem",
-  display: "flex",
-  flexDirection: "column",
-};
-const labelStyle = {
-  display: "block",
-  marginBottom: "0.3rem",
-  marginTop: "0.8rem",
-  fontWeight: 600,
-  color: "#666",
-  fontSize: "0.95rem",
-};
-const tableStyle = {
-  width: "100%",
-  borderSpacing: 0,
-  borderCollapse: "collapse",
-  marginBottom: "0.7rem",
-  wordBreak: "break-word",
-  overflowWrap: "anywhere",
-};
-const tdStyle = {
-  padding: "0.5rem",
-  borderBottom: "1px solid #e0e0e0",
-  wordBreak: "break-word",
-  overflowWrap: "anywhere",
-};
-const selectStyle = {
-  width: "20%",
-  padding: "0.5rem",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-  fontSize: "1rem",
-  color: "#333",
-  fontFamily: "EB Garabond",
-  marginTop: "1rem",
-  marginRight: "0.5rem",
-};
-const selectStyleWallet = {
-  ...selectStyle,
-  width: "70%",
-};
-
 // --------------------------------------------------------
 // App Context & Provider 
 // --------------------------------------------------------
@@ -366,7 +83,7 @@ function AppProvider({ children }) {
     const { chainId } = ARBITRUM_SEPOLIA;
     const eth = window.ethereum;
     if (!eth) return;
-  
+
     try {
       // try to switch
       await eth.request({
@@ -390,14 +107,14 @@ function AppProvider({ children }) {
       }
     }
   }
-  
+
   const [deployedAuctions, setDeployedAuctions] = useState(() => {
     const saved = localStorage.getItem("deployedAuctions");
     return saved ? JSON.parse(saved) : [];
   });
   const [myAuctions, setMyAuctions] = useState([]);
 
-  
+
   const [collateralManagerAddress, setCollateralManagerAddress] = useState(
     () => localStorage.getItem("collateralManagerAddress") || ""
   );
@@ -414,10 +131,10 @@ function AppProvider({ children }) {
     () => localStorage.getItem("offerManagerAddress") || ""
   );
 
- 
+
   const [currentAuction, setCurrentAuction] = useState(null);
 
-  
+
   const [availableCollaterals, setAvailableCollaterals] = useState([]);
   const [newCollateralAddress, setNewCollateralAddress] = useState("");
   const [newCollateralRatio, setNewCollateralRatio] = useState("");
@@ -440,8 +157,8 @@ function AppProvider({ children }) {
 
 
   const [redemptionAmount, setRedemptionAmount] = useState("");
-const [extraCollateralSelections, setExtraCollateralSelections] = useState([]);
-const [removeCollateralSelections, setRemoveCollateralSelections] = useState([]);
+  const [extraCollateralSelections, setExtraCollateralSelections] = useState([]);
+  const [removeCollateralSelections, setRemoveCollateralSelections] = useState([]);
 
   const [customPriceOracle, setCustomPriceOracle] = useState("");
   const [customBidDuration, setCustomBidDuration] = useState("");
@@ -535,7 +252,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
   useEffect(() => {
     if (window.ethereum) {
       /* …existing accountsChanged listener… */
-    
+
       window.ethereum.on("chainChanged", async () => {
         try {
           await ensureArbitrumSepolia();
@@ -544,9 +261,9 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
         }
       });
     }
-    
+
     if (window.ethereum) {
-      
+
       window.ethereum.on("accountsChanged", async (accounts) => {
         if (accounts.length > 0) {
           setAvailableAccounts(accounts);
@@ -572,13 +289,13 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
     try {
       /* 1.  Make sure we’re on Arbitrum Sepolia */
       await ensureArbitrumSepolia();
-  
+
       /* 2.  Request accounts */
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       setAvailableAccounts(accounts);
-  
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const newSigner = provider.getSigner();
       setSigner(newSigner);
@@ -588,7 +305,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
       alert("Failed to connect wallet: " + error.message);
     }
   }
-  
+
 
   function disconnectWallet() {
     setSigner(null);
@@ -754,8 +471,8 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
         BidManagerArtifact.bytecode,
         signer
       );
-      const maxBid  = ethers.utils.parseUnits("15000", 18);
-      const minBid  = ethers.utils.parseUnits("10", 18); 
+      const maxBid = ethers.utils.parseUnits("15000", 18);
+      const minBid = ethers.utils.parseUnits("10", 18);
       const bmContract = await BidManagerFactory.deploy(
         cmContract.address,
         aeContract.address,
@@ -775,8 +492,8 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
         OfferManagerArtifact.bytecode,
         signer
       );
-      const maxOffer  = ethers.utils.parseUnits("10000", 18);
-      const minOffer  = ethers.utils.parseUnits("10", 18); 
+      const maxOffer = ethers.utils.parseUnits("10000", 18);
+      const minOffer = ethers.utils.parseUnits("10", 18);
       const omContract = await OfferManagerFactory.deploy(
         lvContract.address,
         aeContract.address,
@@ -947,7 +664,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
         aeContract.address,
         maxOffer,
         minOffer,
-        maxNumOffers                                                                 
+        maxNumOffers
       );
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
@@ -1085,7 +802,7 @@ const [removeCollateralSelections, setRemoveCollateralSelections] = useState([])
       for (let i = 0; i < tokensArray.length; i++) {
         await approveToken(tokensArray[i], collateralManagerAddress);
       }
-    
+
       const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, T1_ADDRESS);
       await tx.wait();
       alert("Bid placed successfully.");
@@ -1644,284 +1361,284 @@ function TokenDisplay({ address }) {
 /* ─────────────────────────────────────────────────────────────
    F A U C E T   P A G E  –  unified styling
    ─────────────────────────────────────────────────────────── */
-   function FaucetPage() {
-    const { signer } = useAppContext();
-  
-    /* – internal helper – */
-    const handleWithdraw = async (tokenName, faucetAddress) => {
-      if (!signer) {
-        alert("Please connect your wallet first.");
-        return;
-      }
-      try {
-        const FaucetABI = ["function withdraw() public"];
-        const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
-        const tx = await faucetContract.withdraw();
-        await tx.wait();
-        alert(`${tokenName} withdrawal successful.`);
-      } catch (error) {
-        console.error(error);
-        alert(`${tokenName} withdrawal failed: ${error.message}`);
-      }
-    };
-  
-    /* – atoms reused from previous pages – */
-    const card = {
-      maxWidth: 620,
-      margin: "0 auto",
-      padding: 32,
-      borderRadius: 20,
-      border: "1px solid rgba(155,61,255,.45)",
-      background:
-        "linear-gradient(135deg, rgba(155,61,255,.15) 0%, rgba(155,61,255,.05) 100%)",
-      backdropFilter: "blur(4px)",
-      color: "#fff",
-      fontFamily: FONT_FAMILY,
-    };
-  
-    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 32 };
-    const sub = { fontSize: 17, marginBottom: 14, lineHeight: 1.45 };
-  
-    const btn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontWeight: 400,
-      fontSize: 16,
-      padding: "14px 32px",
-      borderRadius: 12,
-      cursor: "pointer",
-      marginTop: 12,
-      width: "100%",
-    };
-  
-    /* – render – */
-    return (
-      <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-        <div className="purple-card" style={card}>
-          <h2 style={heading}>Faucet</h2>
-  
-          {/* T1 */}
-          <div style={{ marginBottom: 28 }}>
-            <p style={sub}>
-              <strong>T1 token</strong>
-              <br />
-               Address:&nbsp;<span className="wrap-addr">
-   <TokenDisplay address={T1_ADDRESS}/>
- </span>
-            </p>
-            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
-              Request&nbsp;T1
-            </button>
-          </div>
-  
-          {/* T2 */}
-          <div style={{ marginBottom: 28 }}>
-            <p style={sub}>
-              <strong>T2 token</strong>
-              <br />
-              Address:&nbsp;<span className="wrap-addr">
-   <TokenDisplay address={T2_ADDRESS}/>
- </span>
-            </p>
-            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
-              Request&nbsp;T2
-            </button>
-          </div>
-  
-          {/* T3 */}
-          <div>
-            <p style={sub}>
-              <strong>T3 token</strong>
-              <br />
-              Address:&nbsp;<span className="wrap-addr">
-   <TokenDisplay address={T3_ADDRESS}/>
- </span>
-            </p>
-            <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
-              Request&nbsp;T3
-            </button>
-          </div>
+function FaucetPage() {
+  const { signer } = useAppContext();
+
+  /* – internal helper – */
+  const handleWithdraw = async (tokenName, faucetAddress) => {
+    if (!signer) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+    try {
+      const FaucetABI = ["function withdraw() public"];
+      const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
+      const tx = await faucetContract.withdraw();
+      await tx.wait();
+      alert(`${tokenName} withdrawal successful.`);
+    } catch (error) {
+      console.error(error);
+      alert(`${tokenName} withdrawal failed: ${error.message}`);
+    }
+  };
+
+  /* – atoms reused from previous pages – */
+  const card = {
+    maxWidth: 620,
+    margin: "0 auto",
+    padding: 32,
+    borderRadius: 20,
+    border: "1px solid rgba(155,61,255,.45)",
+    background:
+      "linear-gradient(135deg, rgba(155,61,255,.15) 0%, rgba(155,61,255,.05) 100%)",
+    backdropFilter: "blur(4px)",
+    color: "#fff",
+    fontFamily: FONT_FAMILY,
+  };
+
+  const heading = { fontSize: 28, fontWeight: 400, marginBottom: 32 };
+  const sub = { fontSize: 17, marginBottom: 14, lineHeight: 1.45 };
+
+  const btn = {
+    background: COLORS.accent,
+    border: "none",
+    color: "#fff",
+    fontWeight: 400,
+    fontSize: 16,
+    padding: "14px 32px",
+    borderRadius: 12,
+    cursor: "pointer",
+    marginTop: 12,
+    width: "100%",
+  };
+
+  /* – render – */
+  return (
+    <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+      <div className="purple-card" style={card}>
+        <h2 style={heading}>Faucet</h2>
+
+        {/* T1 */}
+        <div style={{ marginBottom: 28 }}>
+          <p style={sub}>
+            <strong>T1 token</strong>
+            <br />
+            Address:&nbsp;<span className="wrap-addr">
+              <TokenDisplay address={T1_ADDRESS} />
+            </span>
+          </p>
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
+            Request&nbsp;T1
+          </button>
+        </div>
+
+        {/* T2 */}
+        <div style={{ marginBottom: 28 }}>
+          <p style={sub}>
+            <strong>T2 token</strong>
+            <br />
+            Address:&nbsp;<span className="wrap-addr">
+              <TokenDisplay address={T2_ADDRESS} />
+            </span>
+          </p>
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
+            Request&nbsp;T2
+          </button>
+        </div>
+
+        {/* T3 */}
+        <div>
+          <p style={sub}>
+            <strong>T3 token</strong>
+            <br />
+            Address:&nbsp;<span className="wrap-addr">
+              <TokenDisplay address={T3_ADDRESS} />
+            </span>
+          </p>
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
+            Request&nbsp;T3
+          </button>
         </div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+}
+
 
 /* ──────────────────────────────────────────────────────────────
    WALLET-CONNECT 
    ──────────────────────────────────────────────────────────── */
 
-   function WalletConnect() {
-    const {
-      signer,
-      walletAddress,
-      connectWallet,
-      disconnectWallet,
-      availableAccounts,
-      switchAccount,
-    } = useAppContext();
-  
-    const [open, setOpen] = React.useState(false);
-  
-    /* pill */
-    const pill = walletBtnBase;
-  
-    /* dark select */
-    const selectDark = {
-      ...pill,
-      width: 260,
-      background: "rgba(255,255,255,0.05)",
-      color: COLORS.textPrimary,
-      appearance: "none",
-      paddingRight: 42,
-      backgroundImage:
-        'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "calc(100% - 16px) center",
-    };
-    const optionDark = { background: "#121212", color: "#fff" };
-  
-    /* modal */
-    const overlay = {
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.60)",
-      backdropFilter: "blur(4px)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 1000,
-    };
-    const card = {
-      width: 420,
-      padding: "48px 56px 56px",
-      background: "#fff",
-      borderRadius: 20,
-      boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
-      textAlign: "center",
-      fontFamily: FONT_FAMILY,
-    };
-    const fox = { width: 140, marginBottom: 32 };
-    const connectBtn = {
-      background: COLORS.accent,
-      border: "none",
-      width: "100%",
-      padding: "20px 0",
-      borderRadius: 12,
-      color: "#fff",
-      fontSize: 20,
-      fontWeight: 400,
-      cursor: "pointer",
-      marginTop: 40,
-    };
-  
-    /* ESC closes modal */
-    React.useEffect(() => {
-      if (!open) return;
-      const onKey = (e) => e.key === "Escape" && setOpen(false);
-      window.addEventListener("keydown", onKey);
-      return () => window.removeEventListener("keydown", onKey);
-    }, [open]);
-  
-    /* helper to render the modal via portal */
-    const modal = (
-      <div style={overlay} onClick={() => setOpen(false)}>
-        <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
-          <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
-          <p style={{ color: "#000", fontSize: 22, fontWeight: 600 }}>
-            To get started, connect your<br />MetaMask wallet.
-          </p>
-          <button
+function WalletConnect() {
+  const {
+    signer,
+    walletAddress,
+    connectWallet,
+    disconnectWallet,
+    availableAccounts,
+    switchAccount,
+  } = useAppContext();
+
+  const [open, setOpen] = React.useState(false);
+
+  /* pill */
+  const pill = walletBtnBase;
+
+  /* dark select */
+  const selectDark = {
+    ...pill,
+    width: 260,
+    background: "rgba(255,255,255,0.05)",
+    color: COLORS.textPrimary,
+    appearance: "none",
+    paddingRight: 42,
+    backgroundImage:
+      'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "calc(100% - 16px) center",
+  };
+  const optionDark = { background: "#121212", color: "#fff" };
+
+  /* modal */
+  const overlay = {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.60)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  };
+  const card = {
+    width: 420,
+    padding: "48px 56px 56px",
+    background: "#fff",
+    borderRadius: 20,
+    boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+    textAlign: "center",
+    fontFamily: FONT_FAMILY,
+  };
+  const fox = { width: 140, marginBottom: 32 };
+  const connectBtn = {
+    background: COLORS.accent,
+    border: "none",
+    width: "100%",
+    padding: "20px 0",
+    borderRadius: 12,
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: 400,
+    cursor: "pointer",
+    marginTop: 40,
+  };
+
+  /* ESC closes modal */
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  /* helper to render the modal via portal */
+  const modal = (
+    <div style={overlay} onClick={() => setOpen(false)}>
+      <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
+        <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
+        <p style={{ color: "#000", fontSize: 22, fontWeight: 600 }}>
+          To get started, connect your<br />MetaMask wallet.
+        </p>
+        <button
           className="wallet-pill"
-            style={connectBtn}
-            onClick={async () => {
-              await connectWallet();
-              setOpen(false);
-            }}
-          >
-            Connect
-          </button>
-        </div>
+          style={connectBtn}
+          onClick={async () => {
+            await connectWallet();
+            setOpen(false);
+          }}
+        >
+          Connect
+        </button>
       </div>
-    );
-  
-    return (
-      <>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-          {signer ? (
-            <>
-              <select
-                value={walletAddress}
-                style={selectDark}
-                onChange={(e) => switchAccount(e.target.value)}
-              >
-                {availableAccounts.map((acc) => (
-                  <option key={acc} value={acc} style={optionDark}>
-                    {acc.slice(0, 6)}…{acc.slice(-4)}
-                  </option>
-                ))}
-              </select>
-  
-              <button
-              className="wallet-pill"
-                style={pill}
-                onClick={disconnectWallet}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background =
-                    "rgba(255,255,255,0.08)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-              >
-                Disconnect
-              </button>
-            </>
-          ) : (
+    </div>
+  );
+
+  return (
+    <>
+      <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+        {signer ? (
+          <>
+            <select
+              value={walletAddress}
+              style={selectDark}
+              onChange={(e) => switchAccount(e.target.value)}
+            >
+              {availableAccounts.map((acc) => (
+                <option key={acc} value={acc} style={optionDark}>
+                  {acc.slice(0, 6)}…{acc.slice(-4)}
+                </option>
+              ))}
+            </select>
+
             <button
-            className="wallet-pill"
+              className="wallet-pill"
               style={pill}
-              onClick={() => setOpen(true)}
+              onClick={disconnectWallet}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.background =
-                  "rgba(255,255,255,0.08)")
+              (e.currentTarget.style.background =
+                "rgba(255,255,255,0.08)")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.background = "transparent")
               }
             >
-              Connect Wallet
+              Disconnect
             </button>
-          )}
-        </div>
-  
-        {/* render modal into <body> so nav backdrop-filter doesn’t trap it */}
-        {open && ReactDOM.createPortal(modal, document.body)}
-      </>
-    );
-  }
-  
+          </>
+        ) : (
+          <button
+            className="wallet-pill"
+            style={pill}
+            onClick={() => setOpen(true)}
+            onMouseEnter={(e) =>
+            (e.currentTarget.style.background =
+              "rgba(255,255,255,0.08)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
+          >
+            Connect Wallet
+          </button>
+        )}
+      </div>
+
+      {/* render modal into <body> so nav backdrop-filter doesn’t trap it */}
+      {open && ReactDOM.createPortal(modal, document.body)}
+    </>
+  );
+}
+
 
 /* ───────────────────────────────────────────────────────────────────────
    TOP BAR (logo + links)
    ───────────────────────────────────────────────────────────────────── */
 
-   function TopBar({ sectionLinks = [] }) {
-    return (
-      <nav style={topBarStyle}>
-        <img src="/fairates-logo.png" alt="Fairates" style={logoStyle} />
-  
-        {sectionLinks.map(({ to, label }) => (
-          <Link key={label} to={to} style={navLink} className="nav-link">
-            {label}
-          </Link>
-        ))}
-  
-        <WalletConnect />
-      </nav>
-    );
-  }
+function TopBar({ sectionLinks = [] }) {
+  return (
+    <nav style={topBarStyle}>
+      <img src="/fairates-logo.png" alt="Fairates" style={logoStyle} />
+
+      {sectionLinks.map(({ to, label }) => (
+        <Link key={label} to={to} style={navLink} className="nav-link">
+          {label}
+        </Link>
+      ))}
+
+      <WalletConnect />
+    </nav>
+  );
+}
 
 /* ───────────────────────────────────────────────────────────────────────
    LANDING PAGE  – now uses background image, plus top nav
@@ -1940,7 +1657,7 @@ function LandingPage() {
     maxWidth: "1120px",
     margin: "0 auto",
     padding: "50px 20px 160px",
-    textAlign: "center",
+    textAlign: "center",         // centers your header
   };
   const heading = {
     fontSize: "64px",
@@ -1961,6 +1678,14 @@ function LandingPage() {
     justifyContent: "center",
     flexWrap: "wrap",
   };
+  const heroSubContainer = {
+    maxWidth: "650px",
+    margin: "0 auto 72px",       // keeps the block centered
+    textAlign: "justify",         // justify every line
+   
+    WebkitTextAlignLast: "justify"// (for WebKit browsers)
+  };
+  
   const primaryBtn = {
     background: COLORS.accent,
     color: "#FFF",
@@ -1980,7 +1705,7 @@ function LandingPage() {
   };
 
   return (
-    
+
     <div style={{ minHeight: "100vh" }}>
       {/* top navigation */}
       <TopBar sectionLinks={links} />
@@ -1991,29 +1716,37 @@ function LandingPage() {
     not fixed games.
   </h1>
 
-  <p className="hero-sub" style={heroSub}>
-  One rate: Fixed-rate for all lenders and borrowers through sealed-bid auctions. 
-  <p></p>
-  Zero game: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing
-  </p>
-  <div style={ctaRow}>
-    <button
-    className="btn-primary"
-      style={primaryBtn}
-      onClick={() => navigate("/user")}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.background = COLORS.accentHover)
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.background = COLORS.accent)
-      }
-    >
-      Bid or Supply
-    </button>
-
-   
+  <div style={heroSubContainer}>
+    <p style={heroSub}>
+    <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
+    </p>
+    <p style={heroSub}>
+    <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
+    </p>
   </div>
-</div>
+
+  <div style={ctaRow}>
+
+
+
+
+          <button
+            className="btn-primary"
+            style={primaryBtn}
+            onClick={() => navigate("/user")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = COLORS.accentHover)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = COLORS.accent)
+            }
+          >
+            Bid or Supply
+          </button>
+
+
+        </div>
+      </div>
     </div>
   );
 }
@@ -2070,482 +1803,325 @@ function UserWrapper() {
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────────
-   Mobile overrides (your original block)
-   ───────────────────────────────────────────────────────────────────── */
-const mobileCss = `
-  @media (max-width: 768px) {
-    .auction-page-outer {
-      padding: 1rem !important;
-      margin: 1rem auto !important;
-    }
-    .three-column-grid {
-      grid-template-columns: 1fr !important;
-      gap: 1rem !important;
-    }
-    .responsive-input,
-    .responsive-select,
-    .responsive-button {
-      width: 100% !important;
-    }
-  }
-`;
-/* ─────────────────────────────────────────────────────────────
-   G L O B A L   R E S P O N S I V E   C S S
-   (nothing here changes desktop; it only overrides ≤ 860 px)
-   ─────────────────────────────────────────────────────────── */
-   const responsiveCss = `
-    @media (max-width: 768px) {
-   .auction-page-outer { … }
-   .three-column-grid  { … }
-   .responsive-input,
-   .responsive-select,
-   .responsive-button { … }
 
- }
-@media (max-width: 768x) {
-  /* tighten up the nav container */
-  nav {
-    padding: 0 8px !important;
-  }
-
-  /* really small links */
-  .nav-link {
-    font-size: 6px !important;
-    margin-left: 6px  !important;
-  }
-
-  /* shrink the wallet-connect select & button */
-  nav > div select,
-  .wallet-pill {
-    font-size: 12px !important;
-    padding:    4px 6px !important;
-  }
-}
-
-@media (max-width: 540px) {
-  /* shrink the logo height */
-  nav > img {
-    height: 65px !important;
-    width: auto    !important;
-  }
-}
-
-   @media (max-width: 540px) {
-  .hero-sub {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
-    max-width: 90%   !important;
-    margin: 0 auto 32px !important;
-  }
-}
-
-.wrap-addr { word-break: break-all; overflow-wrap: anywhere; }
-   /*  Deploy-page layout : stack on narrow screens  */
-@media (max-width: 860px){
-  .deploy-flex{
-    flex-direction:column!important;
-    gap:48px!important;
-    align-items:center;         /* keeps the card centred          */
-  }
-  .deploy-flex .purple-card{
-    width:90%!important;        /* card fills width nicely          */
-    margin:0 auto!important;
-  }
-}
-
-   /* 1 — fluid body font-size … 320 → 1440 px */
-   html{font-size:clamp(14px,1.2vw + .5rem,18px);}
-   
-   /* 2 — ‘purple-card’ (the frosted rectangles) go edge-to-edge */
-   @media(max-width:640px){
-     .purple-card{width:90%!important;padding:24px!important;}
-   }
-   
-   /* 3 — 2-column grids collapse */
-   @media(max-width:860px){
-     .grid-2{grid-template-columns:1fr!important;}
-   }
-   
-   /* 4 — big CTA buttons fill the width */
-   @media(max-width:540px){
-     .btn-primary{width:100%!important;padding:16px 0!important;}
-   }
-   
-   /* 5 — headings down-scale just a bit */
-   @media(max-width:540px){
-     h1{font-size:2rem!important;}
-     h2{font-size:1.4rem!important;}
-     h3{font-size:1.2rem!important;}
-   }
-
-   /*  nav bar  -------------------------------------------------- */
-@media(max-width:640px){
-  nav{padding:0 20px !important;}        /* narrower side-gutter           */
-  .nav-link{                            /* we’ll add this class below     */
-    font-size:10px!important;           /* smaller text                   */
-    margin-left:24px!important;         /* tighter spacing                */
-  }
-
- 
-}
-@media (max-width: 540px) {
-  /* super-compact wallet button */
-  .wallet-pill {
-    font-size: 9px      !important;
-    padding:    2px 6px !important;
-    height:     auto     !important;
-    line-height: 1      !important;
-  }
-}
-/* responsiveCss */
-@media (max-width: 540px) {
-  /* tighten nav container */
-  nav {
-    padding: 0 8px !important;
-  }
-  /* shrink logo */
-  nav > img {
-    height: 48px !important;
-    width: auto   !important;
-  }
-  /* extra-small links */
-  .nav-link {
-    font-size: 16px !important;
-    margin-left: 6px  !important;
-  }
-  /* super-compact wallet select & pill */
-  nav select,
-  .wallet-pill {
-    font-size:   9px      !important;
-    padding:     3px 7px  !important;
-    height:      auto     !important;
-    line-height: 1        !important;
-  }
-}
-
-
-  
-   `;
-   
 
 
 
 /* ─────────────────────────────────────────────────────────────
    M A N A G E   M Y   A U C T I O N S   (developer)
    ─────────────────────────────────────────────────────────── */
-   function ManageAuctionsPage() {
-    const { myAuctions, selectAuction } = useAppContext();
-    const navigate = useNavigate();
-  
-    /* atoms */
-    const wrap = { display: "flex", justifyContent: "center", padding: 48 };
-  
-    const card = {
-      width: 420,
-      padding: 32,
-      borderRadius: 20,
-      border: "1px solid rgba(155,61,255,.45)",
-      background:
-        "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
-      backdropFilter: "blur(4px)",
-      color: "#fff",
-      fontFamily: FONT_FAMILY,
-      textAlign: "center",
-    };
-  
-    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
-    const selectBox = {
-      width: "100%",
-      padding: "16px 20px",
-      fontSize: 17,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.05)",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.25)",
-      outline: "none",
-    };
-    const btn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontWeight: 400,
-      fontSize: 16,
-      padding: "16px",
-      borderRadius: 12,
-      cursor: "pointer",
-      width: "100%",
-      marginTop: 28,
-    };
-  
-    return (
-      <div style={wrap}>
-        <div className="purple-card" style={card}>
-          <h2 style={heading}>Manage my auctions</h2>
-  
-          {myAuctions.length === 0 ? (
-            <p style={{ fontSize: 16, lineHeight: 1.5 }}>
-              No auctions deployed yet by this wallet.
-            </p>
-          ) : (
-            <>
-              <select
-                style={selectBox}
-                defaultValue=""
-                onChange={(e) => {
-                  const addr = e.target.value;
-                  if (!addr) return;
-                  const found = myAuctions.find(
-                    (a) => a.auctionEngineAddress === addr
-                  );
-                  if (found) selectAuction(found);
-                  navigate(`/developer/auction/${addr}`);
-                }}
-              >
-                <option value="" disabled>
-                  – Select an auction –
+function ManageAuctionsPage() {
+  const { myAuctions, selectAuction } = useAppContext();
+  const navigate = useNavigate();
+
+  /* atoms */
+  const wrap = { display: "flex", justifyContent: "center", padding: 48 };
+
+  const card = {
+    width: 420,
+    padding: 32,
+    borderRadius: 20,
+    border: "1px solid rgba(155,61,255,.45)",
+    background:
+      "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+    backdropFilter: "blur(4px)",
+    color: "#fff",
+    fontFamily: FONT_FAMILY,
+    textAlign: "center",
+  };
+
+  const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
+  const selectBox = {
+    width: "100%",
+    padding: "16px 20px",
+    fontSize: 17,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+    border: "1px solid rgba(255,255,255,0.25)",
+    outline: "none",
+  };
+  const btn = {
+    background: COLORS.accent,
+    border: "none",
+    color: "#fff",
+    fontWeight: 400,
+    fontSize: 16,
+    padding: "16px",
+    borderRadius: 12,
+    cursor: "pointer",
+    width: "100%",
+    marginTop: 28,
+  };
+
+  return (
+    <div style={wrap}>
+      <div className="purple-card" style={card}>
+        <h2 style={heading}>Manage my auctions</h2>
+
+        {myAuctions.length === 0 ? (
+          <p style={{ fontSize: 16, lineHeight: 1.5 }}>
+            No auctions deployed yet by this wallet.
+          </p>
+        ) : (
+          <>
+            <select
+              style={selectBox}
+              defaultValue=""
+              onChange={(e) => {
+                const addr = e.target.value;
+                if (!addr) return;
+                const found = myAuctions.find(
+                  (a) => a.auctionEngineAddress === addr
+                );
+                if (found) selectAuction(found);
+                navigate(`/developer/auction/${addr}`);
+              }}
+            >
+              <option value="" disabled>
+                – Select an auction –
+              </option>
+              {myAuctions.map((a) => (
+                <option key={a.auctionEngineAddress} value={a.auctionEngineAddress} style={{ background: "#231726", color: "#fff" }}  >
+                  {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
                 </option>
-                {myAuctions.map((a) => (
-                  <option      key={a.auctionEngineAddress}    value={a.auctionEngineAddress}  style={{ background: "#231726", color: "#fff" }}  >
-                    {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
-                  </option>
-                ))}
-              </select>
-  
-              <button
+              ))}
+            </select>
+
+            <button
               className="btn-primary"
-                style={btn}
-                onClick={() => {
-                  const sel = document.querySelector("select").value;
-                  if (!sel) return alert("Please select an auction first.");
-                  navigate(`/developer/auction/${sel}`);
-                }}
-              >
-                Open dashboard
-              </button>
-            </>
-          )}
-        </div>
+              style={btn}
+              onClick={() => {
+                const sel = document.querySelector("select").value;
+                if (!sel) return alert("Please select an auction first.");
+                navigate(`/developer/auction/${sel}`);
+              }}
+            >
+              Open dashboard
+            </button>
+          </>
+        )}
       </div>
-    );
-  }
-  
+    </div>
+  );
+}
+
 // --------------------------------------------------------
 // AuctionManagementPage
 // --------------------------------------------------------
 /* ─────────────────────────────────────────────────────────────
    A U C T I O N   M A N A G E M E N T  (developer view)
    ─────────────────────────────────────────────────────────── */
-   function AuctionManagementPage() {
-    const { aeAddress } = useParams();
-    const {
-      currentAuction,
-      deployedAuctions,
-      selectAuction,
-      setAuctionEngineAddress,
-      signer,
-      auctionEngineAddress,
-  
-      /* actions + state used on this screen */
-      finalizeAuction,
-      isDecrypting,
-      registerNewCollateral,
-      newCollateralAddress,
-      setNewCollateralAddress,
-      newCollateralRatio,
-      setNewCollateralRatio,
-      registeredCollaterals,
-      cancelReason,
-      setCancelReason,
-      cancelAuction,
-    } = useAppContext();
-  
-    const [clearingRate, setClearingRate] = React.useState("");
-  
-    /* sync selection from URL */
-    React.useEffect(() => {
-      if (aeAddress && (!currentAuction || currentAuction.auctionEngineAddress !== aeAddress)) {
-        const found = deployedAuctions.find(
-          (a) => a.auctionEngineAddress === aeAddress
-        );
-        if (found) selectAuction(found);
-        else setAuctionEngineAddress(aeAddress);
-      }
-    }, [aeAddress, currentAuction, deployedAuctions, selectAuction, setAuctionEngineAddress]);
-  
-    /* fetch clearing rate */
-    async function checkClearingRate() {
-      if (!signer || !auctionEngineAddress) {
-        alert("AuctionEngine not set or wallet not connected.");
-        return;
-      }
-      try {
-        const ae = new ethers.Contract(
-          auctionEngineAddress,
-          AuctionEngineArtifact.abi,
-          signer
-        );
-        const r = await ae.auctionClearingRate();
-        const rate = r / 1e18;
-        setClearingRate(rate.toString());
-        alert(`Clearing Rate: ${rate}`);
-      } catch (err) {
-        console.error(err);
-        alert("Failed to fetch clearing rate: " + err.message);
-      }
+function AuctionManagementPage() {
+  const { aeAddress } = useParams();
+  const {
+    currentAuction,
+    deployedAuctions,
+    selectAuction,
+    setAuctionEngineAddress,
+    signer,
+    auctionEngineAddress,
+
+    /* actions + state used on this screen */
+    finalizeAuction,
+    isDecrypting,
+    registerNewCollateral,
+    newCollateralAddress,
+    setNewCollateralAddress,
+    newCollateralRatio,
+    setNewCollateralRatio,
+    registeredCollaterals,
+    cancelReason,
+    setCancelReason,
+    cancelAuction,
+  } = useAppContext();
+
+  const [clearingRate, setClearingRate] = React.useState("");
+
+  /* sync selection from URL */
+  React.useEffect(() => {
+    if (aeAddress && (!currentAuction || currentAuction.auctionEngineAddress !== aeAddress)) {
+      const found = deployedAuctions.find(
+        (a) => a.auctionEngineAddress === aeAddress
+      );
+      if (found) selectAuction(found);
+      else setAuctionEngineAddress(aeAddress);
     }
-  
-    /* ── atoms (borrowed from Deploy/Faucet) ─────────────────── */
-    const wrapper = { display: "flex", justifyContent: "center", padding: 48 };
-  
-    const card = {
-      width: 520,
-      padding: 40,
-      borderRadius: 20,
-      border: "1px solid rgba(155,61,255,.45)",
-      background:
-        "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
-      backdropFilter: "blur(4px)",
-      color: "#fff",
-      fontFamily: FONT_FAMILY,
-    };
-  
-    const h2 = {
-      fontSize: 28,
-      fontWeight: 400,
-      marginBottom: 32,
-    };
-    const sectionH3 = {
-      fontSize: 22,
-      fontWeight: 400,
-      color: COLORS.accent,
-      marginBottom: 16,
-    };
-  
-    const label = {
-      fontSize: 15,
-      fontWeight: 600,
-      color: "#fff",
-      marginBottom: 6,
-      display: "block",
-    };
-    const input = {
-      width: "80%",
-      padding: "14px 18px",
-      fontSize: 16,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.05)",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.25)",
-      outline: "none",
-      marginBottom: 18,
-    };
-    const focusOn = (e) => {
-      e.currentTarget.style.border = "1px solid #9B3DFF";
-      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,.45)";
-    };
-    const focusOff = (e) => {
-      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.25)";
-      e.currentTarget.style.boxShadow = "none";
-    };
-  
-    const btn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontWeight: 400,
-      fontSize: 16,
-      padding: "14px 32px",
-      borderRadius: 12,
-      cursor: "pointer",
-      marginTop: 8,
-    };
-  
-    /* ── render ─────────────────────────────────────────────── */
-    return (
-      <div style={wrapper}>
-        <div className="purple-card" style={card}>
-          <h2 style={h2}>Auction&nbsp;management</h2>
-  
-          {/* Finalize + Clearing rate */}
-          <div style={{ marginBottom: 40 }}>
-            <h3 style={sectionH3}>Finalize auction</h3>
-            <button className="btn-primary" style={btn} onClick={finalizeAuction}>
-              Finalize
-            </button>
-            {isDecrypting && (
-              <p style={{ marginTop: 10 }}>Decryption in progress…</p>
-            )}
-  
-            <h3 style={{ ...sectionH3, marginTop: 32 }}>Check clearing rate</h3>
-            <button className="btn-primary" style={btn} onClick={checkClearingRate}>
-              Get rate
-            </button>
-            {clearingRate && (
-              <p style={{ marginTop: 10, fontSize: 16 }}>
-                Current clearing rate:&nbsp;<strong>{clearingRate}</strong>
-              </p>
-            )}
-          </div>
-  
-          {/* Register collateral */}
-          <div style={{ marginBottom: 40 }}>
-            <h3 style={sectionH3}>Add collateral</h3>
-            <label style={label}>Token address</label>
-            <input
-              style={input}
-              value={newCollateralAddress}
-              onChange={(e) => setNewCollateralAddress(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
-              placeholder="0x…"
-            />
-            <label style={label}>Maintenance ratio</label>
-            <input
-              style={input}
-              value={newCollateralRatio}
-              onChange={(e) => setNewCollateralRatio(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
-              placeholder="1"
-            />
-            <button className="btn-primary" style={btn} onClick={registerNewCollateral}>
-              Register
-            </button>
-  
-            {registeredCollaterals.length > 0 && (
-              <ul style={{ marginTop: 18, fontSize: 15, lineHeight: 1.45 }}>
-                {registeredCollaterals.map((c) => (
-                  <li key={c.address}>
-                    {c.address.slice(0, 6)}…{c.address.slice(-4)}
-                    &nbsp;(ratio&nbsp;{c.ratio})
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-  
-          {/* Cancel auction */}
-          <div>
-            <h3 style={sectionH3}>Cancel auction</h3>
-            <label style={label}>Reason</label>
-            <input
-              style={input}
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              onFocus={focusOn}
-              onBlur={focusOff}
-              placeholder="e.g. testing"
-            />
-            <button className="btn-primary" style={btn} onClick={cancelAuction}>
-              Cancel auction
-            </button>
-          </div>
+  }, [aeAddress, currentAuction, deployedAuctions, selectAuction, setAuctionEngineAddress]);
+
+  /* fetch clearing rate */
+  async function checkClearingRate() {
+    if (!signer || !auctionEngineAddress) {
+      alert("AuctionEngine not set or wallet not connected.");
+      return;
+    }
+    try {
+      const ae = new ethers.Contract(
+        auctionEngineAddress,
+        AuctionEngineArtifact.abi,
+        signer
+      );
+      const r = await ae.auctionClearingRate();
+      const rate = r / 1e18;
+      setClearingRate(rate.toString());
+      alert(`Clearing Rate: ${rate}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch clearing rate: " + err.message);
+    }
+  }
+
+  /* ── atoms (borrowed from Deploy/Faucet) ─────────────────── */
+  const wrapper = { display: "flex", justifyContent: "center", padding: 48 };
+
+  const card = {
+    width: 520,
+    padding: 40,
+    borderRadius: 20,
+    border: "1px solid rgba(155,61,255,.45)",
+    background:
+      "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+    backdropFilter: "blur(4px)",
+    color: "#fff",
+    fontFamily: FONT_FAMILY,
+  };
+
+  const h2 = {
+    fontSize: 28,
+    fontWeight: 400,
+    marginBottom: 32,
+  };
+  const sectionH3 = {
+    fontSize: 22,
+    fontWeight: 400,
+    color: COLORS.accent,
+    marginBottom: 16,
+  };
+
+  const label = {
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#fff",
+    marginBottom: 6,
+    display: "block",
+  };
+  const input = {
+    width: "80%",
+    padding: "14px 18px",
+    fontSize: 16,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+    border: "1px solid rgba(255,255,255,0.25)",
+    outline: "none",
+    marginBottom: 18,
+  };
+  const focusOn = (e) => {
+    e.currentTarget.style.border = "1px solid #9B3DFF";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,.45)";
+  };
+  const focusOff = (e) => {
+    e.currentTarget.style.border = "1px solid rgba(255,255,255,0.25)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
+  const btn = {
+    background: COLORS.accent,
+    border: "none",
+    color: "#fff",
+    fontWeight: 400,
+    fontSize: 16,
+    padding: "14px 32px",
+    borderRadius: 12,
+    cursor: "pointer",
+    marginTop: 8,
+  };
+
+  /* ── render ─────────────────────────────────────────────── */
+  return (
+    <div style={wrapper}>
+      <div className="purple-card" style={card}>
+        <h2 style={h2}>Auction&nbsp;management</h2>
+
+        {/* Finalize + Clearing rate */}
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={sectionH3}>Finalize auction</h3>
+          <button className="btn-primary" style={btn} onClick={finalizeAuction}>
+            Finalize
+          </button>
+          {isDecrypting && (
+            <p style={{ marginTop: 10 }}>Decryption in progress…</p>
+          )}
+
+          <h3 style={{ ...sectionH3, marginTop: 32 }}>Check clearing rate</h3>
+          <button className="btn-primary" style={btn} onClick={checkClearingRate}>
+            Get rate
+          </button>
+          {clearingRate && (
+            <p style={{ marginTop: 10, fontSize: 16 }}>
+              Current clearing rate:&nbsp;<strong>{clearingRate}</strong>
+            </p>
+          )}
+        </div>
+
+        {/* Register collateral */}
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={sectionH3}>Add collateral</h3>
+          <label style={label}>Token address</label>
+          <input
+            style={input}
+            value={newCollateralAddress}
+            onChange={(e) => setNewCollateralAddress(e.target.value)}
+            onFocus={focusOn}
+            onBlur={focusOff}
+            placeholder="0x…"
+          />
+          <label style={label}>Maintenance ratio</label>
+          <input
+            style={input}
+            value={newCollateralRatio}
+            onChange={(e) => setNewCollateralRatio(e.target.value)}
+            onFocus={focusOn}
+            onBlur={focusOff}
+            placeholder="1"
+          />
+          <button className="btn-primary" style={btn} onClick={registerNewCollateral}>
+            Register
+          </button>
+
+          {registeredCollaterals.length > 0 && (
+            <ul style={{ marginTop: 18, fontSize: 15, lineHeight: 1.45 }}>
+              {registeredCollaterals.map((c) => (
+                <li key={c.address}>
+                  {c.address.slice(0, 6)}…{c.address.slice(-4)}
+                  &nbsp;(ratio&nbsp;{c.ratio})
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Cancel auction */}
+        <div>
+          <h3 style={sectionH3}>Cancel auction</h3>
+          <label style={label}>Reason</label>
+          <input
+            style={input}
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            onFocus={focusOn}
+            onBlur={focusOff}
+            placeholder="e.g. testing"
+          />
+          <button className="btn-primary" style={btn} onClick={cancelAuction}>
+            Cancel auction
+          </button>
         </div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+}
+
 // --------------------------------------------------------
 // DeveloperWrapper
 // --------------------------------------------------------
@@ -2557,23 +2133,23 @@ function useIsMobile(breakpoint = 768) {
     }
     return false;
   });
-  
+
   useEffect(() => {
     const mediaQuery = window.matchMedia(`(max-width: ${breakpoint}px)`);
     const handleChange = (event) => setIsMobile(event.matches);
 
-  
+
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener("change", handleChange);
     } else {
-     
+
       mediaQuery.addListener(handleChange);
     }
 
-   
+
     setIsMobile(mediaQuery.matches);
 
-    
+
     return () => {
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener("change", handleChange);
@@ -2590,464 +2166,464 @@ function useIsMobile(breakpoint = 768) {
 /* ──────────────────────────────────────────────────────────────
    D E P L O Y  P A G E   (replace whole function)
    ──────────────────────────────────────────────────────────── */
-   /* ─────────────────────────────────────────────────────────────
-   D E P L O Y   P A G E   (Figma-exact)
-   ─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+D E P L O Y   P A G E   (Figma-exact)
+─────────────────────────────────────────────────────────── */
 /* ─────────────────────────────────────────────────────────────
    D E P L O Y  P A G E  – no overlap, flex layout
    ─────────────────────────────────────────────────────────── */
-   function DeployPage() {
-    const {
-      deployContracts,
-      deployContractsCustom,
-      customPriceOracle,
-      setCustomPriceOracle,
-      customBidDuration,
-      setCustomBidDuration,
-      customRevealDuration,
-      setCustomRevealDuration,
-      customRepaymentDuration,
-      setCustomRepaymentDuration,
-      customFee,
-      setCustomFee,
-      setCustomLiquidationFee,
-      customLiquidationFee,
-      setCustomProtocolLiquidationFee,
-      customProtocolLiquidationFee,
-      customAuctionTokenAmount,
-      setCustomAuctionTokenAmount,
-      customPurchaseToken,
-      setCustomPurchaseToken,
-      customMaxBid,
-      setCustomMaxBid,
-      customMaxOffer,
-      setCustomMaxOffer,
-      setCustomMinBid,
-      customMinOffer,
-      setCustomMinOffer,
-      customMinBid,
-      setCustomMaxNumBids,
-      setCustomMaxNumOffers,
-      customMaxNumBids,
-      customMaxNumOffers,
-      customCollateralToken,
-      setCustomCollateralToken,
-      customCollateralRatio,
-      setCustomCollateralRatio,
-    } = useAppContext();
-  
-    /* —— atoms (same sizes as earlier) ——————————————— */
-    const page = {
-      maxWidth: 1200,
-      margin: "0 auto",
-      padding: "0px 32px 120px",
-      display: "flex",
-      gap: 64,
-    };
-    const columnStyle = { flex: "1 1 0%" };
-  
-    const cardBreak =
-      "@media(max-width: 1020px){flex-direction:column;gap:48px;}";
-  
-    const h1 = { fontSize: 40, fontWeight: 400, marginBottom: 56 };
-    const h2 = {
-      fontSize: 26,
-      fontWeight: 400,
-      color: COLORS.accent,
-      marginBottom: 6,
-    };
-    const subP = {
-      fontSize: 18,
-      lineHeight: 1.55,
-      color: COLORS.textMuted,
-      marginBottom: 20,
-      maxWidth: 640,
-    };
-  
-    const grid = {
-      display: "grid",
-      gridTemplateColumns: "repeat(2,1fr)",
-      gap: 24,
-    };
-    const gridMobile =
-      "@media(max-width:860px){grid-template-columns:1fr !important;}";
-  
-    const label = {
-      fontSize: 20,
-      fontWeight: 400,
-      color: "#fff",
-      marginBottom: 8,
-      display: "block",
-      textAlign: "left",
-      marginTop: 12,
-    };
-    const inp = {
-      width: "90%",
-      padding: "16px 20px",
-      fontSize: 17,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.04)",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.22)",
-      outline: "none",
-      transition: "border .18s,box-shadow .18s",
-    };
-    const onF = (e) => {
-      e.currentTarget.style.border = "1px solid #9B3DFF";
-      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,.45)";
-    };
-    const onB = (e) => {
-      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.22)";
-      e.currentTarget.style.boxShadow = "none";
-    };
-  
-    const btn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontSize: 18,
-      fontWeight: 400,
-      padding: "18px 60px",
-      borderRadius: 14,
-      cursor: "pointer",
-      marginTop: 48,
-    };
-  
-    /* —— CARD ——————————————————————————————— */
-    const card = (
-      <div
+function DeployPage() {
+  const {
+    deployContracts,
+    deployContractsCustom,
+    customPriceOracle,
+    setCustomPriceOracle,
+    customBidDuration,
+    setCustomBidDuration,
+    customRevealDuration,
+    setCustomRevealDuration,
+    customRepaymentDuration,
+    setCustomRepaymentDuration,
+    customFee,
+    setCustomFee,
+    setCustomLiquidationFee,
+    customLiquidationFee,
+    setCustomProtocolLiquidationFee,
+    customProtocolLiquidationFee,
+    customAuctionTokenAmount,
+    setCustomAuctionTokenAmount,
+    customPurchaseToken,
+    setCustomPurchaseToken,
+    customMaxBid,
+    setCustomMaxBid,
+    customMaxOffer,
+    setCustomMaxOffer,
+    setCustomMinBid,
+    customMinOffer,
+    setCustomMinOffer,
+    customMinBid,
+    setCustomMaxNumBids,
+    setCustomMaxNumOffers,
+    customMaxNumBids,
+    customMaxNumOffers,
+    customCollateralToken,
+    setCustomCollateralToken,
+    customCollateralRatio,
+    setCustomCollateralRatio,
+  } = useAppContext();
+
+  /* —— atoms (same sizes as earlier) ——————————————— */
+  const page = {
+    maxWidth: 1200,
+    margin: "0 auto",
+    padding: "0px 32px 120px",
+    display: "flex",
+    gap: 64,
+  };
+  const columnStyle = { flex: "1 1 0%" };
+
+  const cardBreak =
+    "@media(max-width: 1020px){flex-direction:column;gap:48px;}";
+
+  const h1 = { fontSize: 40, fontWeight: 400, marginBottom: 56 };
+  const h2 = {
+    fontSize: 26,
+    fontWeight: 400,
+    color: COLORS.accent,
+    marginBottom: 6,
+  };
+  const subP = {
+    fontSize: 18,
+    lineHeight: 1.55,
+    color: COLORS.textMuted,
+    marginBottom: 20,
+    maxWidth: 640,
+  };
+
+  const grid = {
+    display: "grid",
+    gridTemplateColumns: "repeat(2,1fr)",
+    gap: 24,
+  };
+  const gridMobile =
+    "@media(max-width:860px){grid-template-columns:1fr !important;}";
+
+  const label = {
+    fontSize: 20,
+    fontWeight: 400,
+    color: "#fff",
+    marginBottom: 8,
+    display: "block",
+    textAlign: "left",
+    marginTop: 12,
+  };
+  const inp = {
+    width: "90%",
+    padding: "16px 20px",
+    fontSize: 17,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.04)",
+    color: "#fff",
+    border: "1px solid rgba(255,255,255,0.22)",
+    outline: "none",
+    transition: "border .18s,box-shadow .18s",
+  };
+  const onF = (e) => {
+    e.currentTarget.style.border = "1px solid #9B3DFF";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,.45)";
+  };
+  const onB = (e) => {
+    e.currentTarget.style.border = "1px solid rgba(255,255,255,0.22)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
+  const btn = {
+    background: COLORS.accent,
+    border: "none",
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: 400,
+    padding: "18px 60px",
+    borderRadius: 14,
+    cursor: "pointer",
+    marginTop: 48,
+  };
+
+  /* —— CARD ——————————————————————————————— */
+  const card = (
+    <div
+      style={{
+        width: 320,
+        padding: 28,
+        borderRadius: 20,
+        border: "1px solid rgba(155,61,255,.45)",
+        background:
+          "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+        backdropFilter: "blur(4px)",
+        flexShrink: 0,
+        height: "20%",
+      }}
+    >
+      <h3
         style={{
-          width: 320,
-          padding: 28,
-          borderRadius: 20,
-          border: "1px solid rgba(155,61,255,.45)",
-          background:
-            "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
-          backdropFilter: "blur(4px)",
-          flexShrink: 0,
-          height: "20%",
+          fontSize: 22,
+          fontWeight: 400,
+          marginBottom: 18,
+          color: "#fff",
         }}
       >
-        <h3
-          style={{
-            fontSize: 22,
-            fontWeight: 400,
-            marginBottom: 18,
-            color: "#fff",
-          }}
-        >
-          Test Deployment
-        </h3>
-        <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 20 }}>
-          Deploy all contracts for testing. This option automatically sets the
-          auction characteristics and disables some checks for easier testing.
+        Test Deployment
+      </h3>
+      <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 20 }}>
+        Deploy all contracts for testing. This option automatically sets the
+        auction characteristics and disables some checks for easier testing.
+      </p>
+      <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 32 }}>
+        In the generated auction, T1 is set as purchase token and T2 is the
+        collateral by default.
+      </p>
+      <button className="btn-primary" style={btn} onClick={deployContracts}>
+        Deploy&nbsp;(Test)
+      </button>
+    </div>
+  );
+
+  /* —— RENDER ——————————————————————————————— */
+  return (
+    <div className="deploy-flex" style={{ ...page, [cardBreak]: {} }}>
+      {/* LEFT COLUMN (form) */}
+      <div style={columnStyle}>
+        <h1 style={h1}>Deploy contracts</h1>
+
+        <h2 style={h2}>Custom Deployment</h2>
+        <p style={subP}>
+          Deploy all contracts with custom parameters. Decrypter is always set
+          to our fixed address.
         </p>
-        <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 32 }}>
-          In the generated auction, T1 is set as purchase token and T2 is the
-          collateral by default.
-        </p>
-        <button className="btn-primary" style={btn} onClick={deployContracts}>
-          Deploy&nbsp;(Test)
+
+        <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
+          {/* column A */}
+          <div>
+            <label style={label}>Price Oracle Address</label>
+            <input
+              style={inp}
+              value={customPriceOracle}
+              onChange={(e) => setCustomPriceOracle(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0x…"
+            />
+
+            <label style={label}>Bid duration (secs)</label>
+            <input
+              style={inp}
+              value={customBidDuration}
+              onChange={(e) => setCustomBidDuration(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="86400"
+            />
+
+            <label style={label}>Repayment duration (secs)</label>
+            <input
+              style={inp}
+              value={customRepaymentDuration}
+              onChange={(e) => setCustomRepaymentDuration(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="172800"
+            />
+
+            <label style={label}>Fee</label>
+            <input
+              style={inp}
+              value={customFee}
+              onChange={(e) => setCustomFee(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0"
+            />
+            <label style={label}>Liquidation Fee</label>
+            <input
+              style={inp}
+              value={customLiquidationFee}
+              onChange={(e) => setCustomLiquidationFee(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0"
+            />
+            <label style={label}>Protocol Liquidation Fee</label>
+            <input
+              style={inp}
+              value={customProtocolLiquidationFee}
+              onChange={(e) => setCustomProtocolLiquidationFee(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0"
+            />
+
+            <label style={label}>Purchase token address</label>
+            <input
+              style={inp}
+              value={customPurchaseToken}
+              onChange={(e) => setCustomPurchaseToken(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0x…"
+            />
+            <label style={label}>Reveal duration (secs)</label>
+            <input
+              style={inp}
+              value={customRevealDuration}
+              onChange={(e) => setCustomRevealDuration(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="86400"
+            />
+            <label style={label}>Initial collateral ratio</label>
+            <input
+              style={inp}
+              value={customCollateralRatio}
+              onChange={(e) => setCustomCollateralRatio(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="1"
+            />
+          </div>
+
+          {/* column B */}
+          <div>
+
+
+            <label style={label}>Auction token ratio</label>
+            <input
+              style={inp}
+              value={customAuctionTokenAmount}
+              onChange={(e) => setCustomAuctionTokenAmount(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="1"
+            />
+
+            <label style={label}>Max bid value</label>
+            <input
+              style={inp}
+              value={customMaxBid}
+              onChange={(e) => setCustomMaxBid(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="15000"
+            />
+
+            <label style={label}>Min bid value</label>
+            <input
+              style={inp}
+              value={customMinBid}
+              onChange={(e) => setCustomMinBid(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="10"
+            />
+            <label style={label}>Max number of bids</label>
+            <input
+              style={inp}
+              value={customMaxNumBids}
+              onChange={(e) => setCustomMaxNumBids(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="50"
+            />
+            <label style={label}>Max offer value</label>
+            <input
+              style={inp}
+              value={customMaxOffer}
+              onChange={(e) => setCustomMaxOffer(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="10000"
+            />
+
+            <label style={label}>Min offer value</label>
+            <input
+              style={inp}
+              value={customMinOffer}
+              onChange={(e) => setCustomMinOffer(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="10"
+            />
+            <label style={label}>Max number of offers</label>
+            <input
+              style={inp}
+              value={customMaxNumOffers}
+              onChange={(e) => setCustomMaxNumOffers(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="50"
+            />
+            <label style={label}>Initial collateral token address</label>
+            <input
+              style={inp}
+              value={customCollateralToken}
+              onChange={(e) => setCustomCollateralToken(e.target.value)}
+              onFocus={onF}
+              onBlur={onB}
+              placeholder="0x…"
+            />
+
+
+
+          </div>
+
+        </div>
+        <button className="btn-primary" style={btn} onClick={deployContractsCustom}>
+          Deploy
         </button>
       </div>
-    );
-  
-    /* —— RENDER ——————————————————————————————— */
-    return (
-      <div className="deploy-flex" style={{ ...page, [cardBreak]: {} }}>
-        {/* LEFT COLUMN (form) */}
-        <div style={columnStyle}>
-          <h1 style={h1}>Deploy contracts</h1>
-  
-          <h2 style={h2}>Custom Deployment</h2>
-          <p style={subP}>
-            Deploy all contracts with custom parameters. Decrypter is always set
-            to our fixed address.
-          </p>
-  
-          <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
-            {/* column A */}
-            <div>
-              <label style={label}>Price Oracle Address</label>
-              <input
-                style={inp}
-                value={customPriceOracle}
-                onChange={(e) => setCustomPriceOracle(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0x…"
-              />
-  
-              <label style={label}>Bid duration (secs)</label>
-              <input
-                style={inp}
-                value={customBidDuration}
-                onChange={(e) => setCustomBidDuration(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="86400"
-              />
-  
-              <label style={label}>Repayment duration (secs)</label>
-              <input
-                style={inp}
-                value={customRepaymentDuration}
-                onChange={(e) => setCustomRepaymentDuration(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="172800"
-              />
-  
-              <label style={label}>Fee</label>
-              <input
-                style={inp}
-                value={customFee}
-                onChange={(e) => setCustomFee(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0"
-              />
-              <label style={label}>Liquidation Fee</label>
-              <input
-                style={inp}
-                value={customLiquidationFee}
-                onChange={(e) => setCustomLiquidationFee(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0"
-              />
-              <label style={label}>Protocol Liquidation Fee</label>
-              <input
-                style={inp}
-                value={customProtocolLiquidationFee}
-                onChange={(e) => setCustomProtocolLiquidationFee(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0"
-              />
-  
-              <label style={label}>Purchase token address</label>
-              <input
-                style={inp}
-                value={customPurchaseToken}
-                onChange={(e) => setCustomPurchaseToken(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0x…"
-              />
-                 <label style={label}>Reveal duration (secs)</label>
-              <input
-                style={inp}
-                value={customRevealDuration}
-                onChange={(e) => setCustomRevealDuration(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="86400"
-              />
-                  <label style={label}>Initial collateral ratio</label>
-              <input
-                style={inp}
-                value={customCollateralRatio}
-                onChange={(e) => setCustomCollateralRatio(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="1"
-              />
-            </div>
-  
-            {/* column B */}
-            <div>
-           
-  
-              <label style={label}>Auction token ratio</label>
-              <input
-                style={inp}
-                value={customAuctionTokenAmount}
-                onChange={(e) => setCustomAuctionTokenAmount(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="1"
-              />
-  
-              <label style={label}>Max bid value</label>
-              <input
-                style={inp}
-                value={customMaxBid}
-                onChange={(e) => setCustomMaxBid(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="15000"
-              />
 
-              <label style={label}>Min bid value</label>
-              <input
-                style={inp}
-                value={customMinBid}
-                onChange={(e) => setCustomMinBid(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="10"
-              />
-              <label style={label}>Max number of bids</label>
-              <input
-                style={inp}
-                value={customMaxNumBids}
-                onChange={(e) => setCustomMaxNumBids(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="50"
-              />
-              <label style={label}>Max offer value</label>
-              <input
-                style={inp}
-                value={customMaxOffer}
-                onChange={(e) => setCustomMaxOffer(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="10000"
-              />
+      {/* RIGHT COLUMN (card) */}
+      {card}
+    </div>
+  );
+}
 
-              <label style={label}>Min offer value</label>
-              <input
-                style={inp}
-                value={customMinOffer}
-                onChange={(e) => setCustomMinOffer(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="10"
-              />
-                <label style={label}>Max number of offers</label>
-              <input
-                style={inp}
-                value={customMaxNumOffers}
-                onChange={(e) => setCustomMaxNumOffers(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="50"
-              />
-              <label style={label}>Initial collateral token address</label>
-              <input
-                style={inp}
-                value={customCollateralToken}
-                onChange={(e) => setCustomCollateralToken(e.target.value)}
-                onFocus={onF}
-                onBlur={onB}
-                placeholder="0x…"
-              />
-  
-           
-              
-            </div>
-            
-          </div>
-          <button className="btn-primary" style={btn} onClick={deployContractsCustom}>
-            Deploy
-          </button>
-        </div>
-  
-        {/* RIGHT COLUMN (card) */}
-        {card}
-      </div>
-    );
-  }
-  
 
 
 /* ─────────────────────────────────────────────────────────────
    U S E R   D A S H B O A R D  (available auctions)
    ─────────────────────────────────────────────────────────── */
-   function UserDashboard() {
-    const { deployedAuctions, selectAuction } = useAppContext();
-    const navigate = useNavigate();
-    const [selected, setSelected] = React.useState("");
-  
-    /* atoms (same as Manage) */
-    const wrap = { display: "flex", justifyContent: "center", padding: 48 };
-  
-    const card = {
-      width: 420,
-      padding: 32,
-      borderRadius: 20,
-      border: "1px solid rgba(155,61,255,.45)",
-      background:
-        "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
-      backdropFilter: "blur(4px)",
-      color: "#fff",
-      fontFamily: FONT_FAMILY,
-      textAlign: "center",
-    };
-  
-    const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
-    const selectBox = {
-      width: "100%",
-      padding: "16px 20px",
-      fontSize: 17,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.05)",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.25)",
-      outline: "none",
-    };
-    const btn = {
-      background: COLORS.accent,
-      border: "none",
-      color: "#fff",
-      fontWeight: 400,
-      fontSize: 16,
-      padding: "16px",
-      borderRadius: 12,
-      cursor: "pointer",
-      width: "100%",
-      marginTop: 28,
-    };
-  
-    return (
-      <div style={wrap}>
-        <div className="purple-card" style={card}>
-          <h2 style={heading}>Available auctions</h2>
-  
-          {deployedAuctions.length === 0 ? (
-            <p style={{ fontSize: 16, lineHeight: 1.5 }}>
-              No auctions deployed yet.
-            </p>
-          ) : (
-            <>
-              <select
-                style={selectBox}
-                value={selected}
-                onChange={(e) => setSelected(e.target.value)}
-              >
-                <option value="">– Select an auction –</option>
-                {deployedAuctions.map((a) => (
-                
-                     <option      key={a.auctionEngineAddress}    value={a.auctionEngineAddress}  style={{ background: "#231726", color: "#fff" }}  >
-                    {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
-                  </option>
-                ))}
-              </select>
-  
-              <button
+function UserDashboard() {
+  const { deployedAuctions, selectAuction } = useAppContext();
+  const navigate = useNavigate();
+  const [selected, setSelected] = React.useState("");
+
+  /* atoms (same as Manage) */
+  const wrap = { display: "flex", justifyContent: "center", padding: 48 };
+
+  const card = {
+    width: 420,
+    padding: 32,
+    borderRadius: 20,
+    border: "1px solid rgba(155,61,255,.45)",
+    background:
+      "linear-gradient(135deg, rgba(155,61,255,.15), rgba(155,61,255,.05))",
+    backdropFilter: "blur(4px)",
+    color: "#fff",
+    fontFamily: FONT_FAMILY,
+    textAlign: "center",
+  };
+
+  const heading = { fontSize: 28, fontWeight: 400, marginBottom: 24 };
+  const selectBox = {
+    width: "100%",
+    padding: "16px 20px",
+    fontSize: 17,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+    border: "1px solid rgba(255,255,255,0.25)",
+    outline: "none",
+  };
+  const btn = {
+    background: COLORS.accent,
+    border: "none",
+    color: "#fff",
+    fontWeight: 400,
+    fontSize: 16,
+    padding: "16px",
+    borderRadius: 12,
+    cursor: "pointer",
+    width: "100%",
+    marginTop: 28,
+  };
+
+  return (
+    <div style={wrap}>
+      <div className="purple-card" style={card}>
+        <h2 style={heading}>Available auctions</h2>
+
+        {deployedAuctions.length === 0 ? (
+          <p style={{ fontSize: 16, lineHeight: 1.5 }}>
+            No auctions deployed yet.
+          </p>
+        ) : (
+          <>
+            <select
+              style={selectBox}
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">– Select an auction –</option>
+              {deployedAuctions.map((a) => (
+
+                <option key={a.auctionEngineAddress} value={a.auctionEngineAddress} style={{ background: "#231726", color: "#fff" }}  >
+                  {a.auctionEngineAddress.slice(0, 6)}…{a.auctionEngineAddress.slice(-4)}
+                </option>
+              ))}
+            </select>
+
+            <button
               className="btn-primary"
-                style={btn}
-                onClick={() => {
-                  if (!selected)
-                    return alert("Please select an auction first.");
-                  const found = deployedAuctions.find(
-                    (a) => a.auctionEngineAddress === selected
-                  );
-                  if (found) selectAuction(found);
-                  navigate(`/user/auction/${selected}`);
-                }}
-              >
-                View &amp; participate
-              </button>
-            </>
-          )}
-        </div>
+              style={btn}
+              onClick={() => {
+                if (!selected)
+                  return alert("Please select an auction first.");
+                const found = deployedAuctions.find(
+                  (a) => a.auctionEngineAddress === selected
+                );
+                if (found) selectAuction(found);
+                navigate(`/user/auction/${selected}`);
+              }}
+            >
+              Participate
+            </button>
+          </>
+        )}
       </div>
-    );
-  }
-  
+    </div>
+  );
+}
+
 
 // --------------------------------------------------------
 // UserAuctionPage
@@ -3056,197 +2632,197 @@ function useIsMobile(breakpoint = 768) {
    U S E R   A U C T I O N   P A G E
    fully styled to match the Figma spec (node 810-3211)
    ─────────────────────────────────────────────────────────── */
-   function UserAuctionPage() {
-    const {
-      auctionEngineAddress,
-  
-      // ── Original auction actions & state ─────────────────────
-      bidAmount,
-      setBidAmount,
-      bidRate,
-      setBidRate,
-      placeBid,
-  
-      offerAmount,
-      setOfferAmount,
-      offerRate,
-      setOfferRate,
-      placeOffer,
-  
-      repayAmount,
-      setRepayAmount,
-      repay,
-      owedAmount,
-      checkOwed,
-  
-      liquidationBorrower,
-      setLiquidationBorrower,
-      liquidationCollateralSelections,
-      setLiquidationCollateralSelections,
-      liquidate,
-  
-      redemptionAmount,
-      setRedemptionAmount,
-      redeemToken,
-  
-      bidCollateralSelections,
-      setBidCollateralSelections,
-  
-      // ── NEW collateral-management state & actions ────────────
-      extraCollateralSelections,
-      setExtraCollateralSelections,
-      removeCollateralSelections,
-      setRemoveCollateralSelections,
-      externalLockCollateral,
-      externalUnlockCollateral,
-  
-      // ── NEW bid/offer removal actions ────────────────────────
-      removeBid,
-      removeOffer,
-    } = useAppContext();
-    useEffect(() => {
-      if (bidCollateralSelections.length > 0) {
-        const rows = bidCollateralSelections.map((c) => ({
-          address: c.address,
-          amount: "",    // start blank
-        }));
-        setExtraCollateralSelections(rows);
-        setRemoveCollateralSelections(rows);
-      }
-    }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
-  
-    // ── style helpers ─────────────────────────────────────────
-    const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
-    const section = { marginBottom: 64 };
-    const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
-    const grid2 = { display: "grid", gap: 40, gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))" };
-    const label = { fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8, display: "block", textAlign: "left", marginTop: 12 };
-    const input = { width: "90%", padding: "18px 20px", fontSize: 18, borderRadius: 12, background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", outline: "none", transition: "box-shadow .18s,border .18s" };
-    const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,0.45)"; e.currentTarget.style.borderColor = COLORS.accent; };
-    const focusOff = e => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; };
-    const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28 };
-    const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
-    const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
-  
-    // ── helpers to update collateral arrays ────────────────────
-    const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
-    const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
-    const updateExtraCollat = (i, v) => setExtraCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
-    const updateRemoveCollat = (i, v) => setRemoveCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
-  
-    return (
-      <div style={wrapper}>
-        <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
-          Participate in auction{" "}
-          <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
-            ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
-          </span>
-        </h1>
-  
-        {/* 1. BID + OFFER */}
-        <div style={{ ...grid2, ...section }}>
-          {/* BID */}
-          <div>
-            <h2 style={h2}>Place a Bid</h2>
-            <label style={label}>Bid amount</label>
-            <input
-              style={input}
-              value={bidAmount}
-              onChange={e => setBidAmount(e.target.value)}
-              onFocus={focusOn} onBlur={focusOff}
-              placeholder="0"
-            />
-            <label style={label}>Bid rate</label>
-            <input
-              style={input}
-              value={bidRate}
-              onChange={e => setBidRate(e.target.value)}
-              onFocus={focusOn} onBlur={focusOff}
-              placeholder="0"
-            />
-            <table style={table}>
-              <thead>
-                <tr>
-                  <th style={td}>Collateral token</th>
-                  <th style={td}>Amount</th>
+function UserAuctionPage() {
+  const {
+    auctionEngineAddress,
+
+    // ── Original auction actions & state ─────────────────────
+    bidAmount,
+    setBidAmount,
+    bidRate,
+    setBidRate,
+    placeBid,
+
+    offerAmount,
+    setOfferAmount,
+    offerRate,
+    setOfferRate,
+    placeOffer,
+
+    repayAmount,
+    setRepayAmount,
+    repay,
+    owedAmount,
+    checkOwed,
+
+    liquidationBorrower,
+    setLiquidationBorrower,
+    liquidationCollateralSelections,
+    setLiquidationCollateralSelections,
+    liquidate,
+
+    redemptionAmount,
+    setRedemptionAmount,
+    redeemToken,
+
+    bidCollateralSelections,
+    setBidCollateralSelections,
+
+    // ── NEW collateral-management state & actions ────────────
+    extraCollateralSelections,
+    setExtraCollateralSelections,
+    removeCollateralSelections,
+    setRemoveCollateralSelections,
+    externalLockCollateral,
+    externalUnlockCollateral,
+
+    // ── NEW bid/offer removal actions ────────────────────────
+    removeBid,
+    removeOffer,
+  } = useAppContext();
+  useEffect(() => {
+    if (bidCollateralSelections.length > 0) {
+      const rows = bidCollateralSelections.map((c) => ({
+        address: c.address,
+        amount: "",    // start blank
+      }));
+      setExtraCollateralSelections(rows);
+      setRemoveCollateralSelections(rows);
+    }
+  }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
+
+  // ── style helpers ─────────────────────────────────────────
+  const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
+  const section = { marginBottom: 64 };
+  const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
+  const grid2 = { display: "grid", gap: 40, gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))" };
+  const label = { fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8, display: "block", textAlign: "left", marginTop: 12 };
+  const input = { width: "90%", padding: "18px 20px", fontSize: 18, borderRadius: 12, background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", outline: "none", transition: "box-shadow .18s,border .18s" };
+  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,0.45)"; e.currentTarget.style.borderColor = COLORS.accent; };
+  const focusOff = e => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; };
+  const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28 };
+  const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
+  const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
+
+  // ── helpers to update collateral arrays ────────────────────
+  const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+  const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+  const updateExtraCollat = (i, v) => setExtraCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+  const updateRemoveCollat = (i, v) => setRemoveCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+
+  return (
+    <div style={wrapper}>
+      <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
+        Participate in auction{" "}
+        <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
+          ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
+        </span>
+      </h1>
+
+      {/* 1. BID + OFFER */}
+      <div style={{ ...grid2, ...section }}>
+        {/* BID */}
+        <div>
+          <h2 style={h2}>Place a Bid</h2>
+          <label style={label}>Bid amount</label>
+          <input
+            style={input}
+            value={bidAmount}
+            onChange={e => setBidAmount(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
+            placeholder="0"
+          />
+          <label style={label}>Bid rate</label>
+          <input
+            style={input}
+            value={bidRate}
+            onChange={e => setBidRate(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
+            placeholder="0"
+          />
+          <table style={table}>
+            <thead>
+              <tr>
+                <th style={td}>Collateral token</th>
+                <th style={td}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bidCollateralSelections.map((c, i) => (
+                <tr key={c.address}>
+                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
+                  <td style={td}>
+                    <input
+                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
+                      value={c.amount}
+                      onChange={e => updateBidCollat(i, e.target.value)}
+                      onFocus={focusOn} onBlur={focusOff}
+                      placeholder="0"
+                    />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {bidCollateralSelections.map((c, i) => (
-                  <tr key={c.address}>
-                    <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
-                    <td style={td}>
-                      <input
-                        style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
-                        value={c.amount}
-                        onChange={e => updateBidCollat(i, e.target.value)}
-                        onFocus={focusOn} onBlur={focusOff}
-                        placeholder="0"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ display: "flex", gap: "8px" }}>
-  <button
-    className="btn-primary"
-    style={{ ...purpleBtn, flex: 1 }}
-    onClick={placeBid}
-  >
-    Submit Bid
-  </button>
-  <button
-    className="btn-primary"
-    style={{ ...purpleBtn, flex: 1 }}
-    onClick={removeBid}
-  >
-    Remove My Bid
-  </button>
-</div>
-          </div>
-  
-          {/* OFFER */}
-          <div>
-            <h2 style={h2}>Place an Offer</h2>
-            <label style={label}>Offer amount</label>
-            <input
-              style={input}
-              value={offerAmount}
-              onChange={e => setOfferAmount(e.target.value)}
-              onFocus={focusOn} onBlur={focusOff}
-              placeholder="0"
-            />
-            <label style={label}>Offer rate</label>
-            <input
-              style={input}
-              value={offerRate}
-              onChange={e => setOfferRate(e.target.value)}
-              onFocus={focusOn} onBlur={focusOff}
-              placeholder="0"
-            />
-<div style={{ display: "flex", gap: "8px" }}>
-  <button
-    className="btn-primary"
-    style={{ ...purpleBtn, flex: 1 }}
-    onClick={placeOffer}
-  >
-    Submit offer
-  </button>
-  <button
-    className="btn-primary"
-    style={{ ...purpleBtn, flex: 1 }}
-    onClick={removeOffer}
-  >
-    Remove My Offer
-  </button>
-</div>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              className="btn-primary"
+              style={{ ...purpleBtn, flex: 1 }}
+              onClick={placeBid}
+            >
+              Submit Bid
+            </button>
+            <button
+              className="btn-primary"
+              style={{ ...purpleBtn, flex: 1 }}
+              onClick={removeBid}
+            >
+              Remove My Bid
+            </button>
           </div>
         </div>
-        <div style={{ ...grid2, ...section }}>
+
+        {/* OFFER */}
+        <div>
+          <h2 style={h2}>Place an Offer</h2>
+          <label style={label}>Offer amount</label>
+          <input
+            style={input}
+            value={offerAmount}
+            onChange={e => setOfferAmount(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
+            placeholder="0"
+          />
+          <label style={label}>Offer rate</label>
+          <input
+            style={input}
+            value={offerRate}
+            onChange={e => setOfferRate(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
+            placeholder="0"
+          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              className="btn-primary"
+              style={{ ...purpleBtn, flex: 1 }}
+              onClick={placeOffer}
+            >
+              Submit Offer
+            </button>
+            <button
+              className="btn-primary"
+              style={{ ...purpleBtn, flex: 1 }}
+              onClick={removeOffer}
+            >
+              Remove My Offer
+            </button>
+          </div>
+        </div>
+      </div>
+      <div style={{ ...grid2, ...section }}>
         {/* 5. ADD EXTRA COLLATERAL */}
         <div style={section}>
-          <h2 style={h2}>Add or remove Collateral</h2>
+          <h2 style={h2}>Add or Remove Collateral</h2>
           <table style={table}>
             <thead>
               <tr>
@@ -3272,66 +2848,66 @@ function useIsMobile(breakpoint = 768) {
             </tbody>
           </table>
           <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            className="btn-primary"
-            style={purpleBtn}
-            onClick={() =>
-              externalLockCollateral(
-                extraCollateralSelections.map(c => c.address),
-                extraCollateralSelections.map(c => c.amount)
-              )
-            }
-          >
-            Lock Collateral
-          </button>
-          <button
-            className="btn-primary"
-            style={purpleBtn}
-            onClick={() =>
-              externalUnlockCollateral(
-                extraCollateralSelections.map(c => c.address),
-                extraCollateralSelections.map(c => c.amount)
-              )
-            }
-          >
-            Unlock Collateral
-          </button>
-        </div>
-  </div>
-       </div>
- 
-        {/* 2. REPAY + OWED */}
-        <div style={{ ...grid2, ...section }}>
-          <div>
-            <h2 style={h2}>Repay loan</h2>
-            <label style={label}>Repay amount</label>
-            <input
-              style={input}
-              value={repayAmount}
-              onChange={e => setRepayAmount(e.target.value)}
-              onFocus={focusOn} onBlur={focusOff}
-              placeholder="0"
-            />
-            <button className="btn-primary" style={purpleBtn} onClick={repay}>
-              Repay
+            <button
+              className="btn-primary"
+              style={purpleBtn}
+              onClick={() =>
+                externalLockCollateral(
+                  extraCollateralSelections.map(c => c.address),
+                  extraCollateralSelections.map(c => c.amount)
+                )
+              }
+            >
+              Lock Collateral
+            </button>
+            <button
+              className="btn-primary"
+              style={purpleBtn}
+              onClick={() =>
+                externalUnlockCollateral(
+                  extraCollateralSelections.map(c => c.address),
+                  extraCollateralSelections.map(c => c.amount)
+                )
+              }
+            >
+              Unlock Collateral
             </button>
           </div>
-          <div>
-            <h2 style={h2}>Check owed</h2>
-            <button className="btn-primary" style={purpleBtn} onClick={checkOwed}>
-              Check
-            </button>
-            {owedAmount && (
-              <p style={{ marginTop: 18, fontSize: 20 }}>
-                You owe: <strong>{owedAmount}</strong>
-              </p>
-            )}
-          </div>
         </div>
-        <div style={{ ...grid2, ...section }}>
+      </div>
+
+      {/* 2. REPAY + OWED */}
+      <div style={{ ...grid2, ...section }}>
+        <div>
+          <h2 style={h2}>Repay Loan</h2>
+          <label style={label}>Repay amount</label>
+          <input
+            style={input}
+            value={repayAmount}
+            onChange={e => setRepayAmount(e.target.value)}
+            onFocus={focusOn} onBlur={focusOff}
+            placeholder="0"
+          />
+          <button className="btn-primary" style={purpleBtn} onClick={repay}>
+            Repay
+          </button>
+        </div>
+        <div>
+          <h2 style={h2}>Check Owed</h2>
+          <button className="btn-primary" style={purpleBtn} onClick={checkOwed}>
+            Check
+          </button>
+          {owedAmount && (
+            <p style={{ marginTop: 18, fontSize: 20 }}>
+              You owe: <strong>{owedAmount}</strong>
+            </p>
+          )}
+        </div>
+      </div>
+      <div style={{ ...grid2, ...section }}>
         {/* 3. LIQUIDATE */}
         <div style={section}>
-          <h2 style={h2}>Liquidate borrower</h2>
+          <h2 style={h2}>Liquidate Borrower</h2>
           <label style={label}>Borrower address</label>
           <input
             style={input}
@@ -3368,10 +2944,10 @@ function useIsMobile(breakpoint = 768) {
             Liquidate
           </button>
         </div>
-  
+
         {/* 4. REDEEM */}
         <div style={section}>
-          <h2 style={h2}>Redeem auction tokens</h2>
+          <h2 style={h2}>Redeem Auction Tokens</h2>
           <label style={label}>Redemption amount</label>
           <input
             style={input}
@@ -3385,12 +2961,12 @@ function useIsMobile(breakpoint = 768) {
           </button>
         </div>
       </div>
-      </div>
-    );
-  }
-  
+    </div>
+  );
+}
 
-  /* ─── Background toggler ------------------------------------ */
+
+/* ─── Background toggler ------------------------------------ */
 function BackgroundManager() {
   const location = useLocation();
 
