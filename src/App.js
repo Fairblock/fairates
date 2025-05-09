@@ -2530,6 +2530,7 @@ function UserDashboard() {
     cursor: "pointer",
     width: "100%",
     marginTop: 28,
+    fontFamily: FONT_FAMILY
   };
 
   return (
