@@ -2721,7 +2721,7 @@ function UserAuctionPage() {
               style={{ ...purpleBtn, flex: 1 }}
               onClick={removeBid}
             >
-              Remove My Bid
+              Remove Bid
             </button>
           </div>
         </div>
@@ -2758,7 +2758,7 @@ function UserAuctionPage() {
               style={{ ...purpleBtn, flex: 1 }}
               onClick={removeOffer}
             >
-              Remove My Offer
+              Remove Offer
             </button>
           </div>
         </div>
