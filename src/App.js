@@ -990,10 +990,11 @@ function AppProvider({ children }) {
         FairyringArtifact.abi,
         signer
       );
-      if (!auctionIdNumber) {
-        alert("Auction ID not available. Deploy or generate an ID first.");
-        return;
-      }
+      const id = await ae.auctionID();
+      const parts = id.split('/');
+      const num  = parts.pop();
+      const auctionIdNumber = parseInt(num, 10);
+
       const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
       await requestTx.wait();
       setIsDecrypting(true);
@@ -2530,7 +2531,6 @@ function UserDashboard() {
     cursor: "pointer",
     width: "100%",
     marginTop: 28,
-    fontFamily: FONT_FAMILY
   };
 
   return (
@@ -2721,7 +2721,7 @@ function UserAuctionPage() {
               style={{ ...purpleBtn, flex: 1 }}
               onClick={removeBid}
             >
-              Remove Bid
+              Remove My Bid
             </button>
           </div>
         </div>
@@ -2758,7 +2758,7 @@ function UserAuctionPage() {
               style={{ ...purpleBtn, flex: 1 }}
               onClick={removeOffer}
             >
-              Remove Offer
+              Remove My Offer
             </button>
           </div>
         </div>
