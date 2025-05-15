@@ -151,7 +151,7 @@ function AppProvider({ children }) {
   const [liquidationCollateralSelections, setLiquidationCollateralSelections] = useState([]);
   const [cancelReason, setCancelReason] = useState("test");
   const [unlockCollateralSelections, setUnlockCollateralSelections] = useState([]);
-  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [decryptingAuctionAddress, setDecryptingAuctionAddress] = useState(null);
   const [auctionIdNumber, setAuctionIdNumber] = useState(null);
 
 
@@ -997,14 +997,14 @@ function AppProvider({ children }) {
 
       const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
       await requestTx.wait();
-      setIsDecrypting(true);
+      setDecryptingAuctionAddress(auctionEngineAddress);
 
       let decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
       while (decryptionKey === "0x" || decryptionKey === "0x0") {
         await new Promise((resolve) => setTimeout(resolve, 4000));
         decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
       }
-      setIsDecrypting(false);
+      setDecryptingAuctionAddress(null);
 
       const keyArray = hexToUint8Array(decryptionKey);
       let tx = await ae.decryptBidsBatch(3, keyArray);
@@ -1015,7 +1015,7 @@ function AppProvider({ children }) {
       alert("Decryption finalized.");
     } catch (error) {
       console.error("Decryption failed:", error);
-      setIsDecrypting(false);
+      setDecryptingAuctionAddress(null);
       alert("Decryption finalization failed: " + error.message);
       return;
     }
@@ -1272,7 +1272,7 @@ function AppProvider({ children }) {
     setOfferRate,
     secretKey,
     setSecretKey,
-    isDecrypting,
+    decryptingAuctionAddress,
     auctionIdNumber,
     repayAmount,
     setRepayAmount,
@@ -1903,7 +1903,7 @@ function AuctionManagementPage() {
     auctionEngineAddress,
 
     finalizeAuction,
-    isDecrypting,
+    decryptingAuctionAddress,
     registerNewCollateral,
     newCollateralAddress,
     setNewCollateralAddress,
@@ -2024,7 +2024,7 @@ function AuctionManagementPage() {
           <button className="btn-primary" style={btn} onClick={finalizeAuction}>
             Finalize
           </button>
-          {isDecrypting && (
+          {decryptingAuctionAddress === auctionEngineAddress && (
             <p style={{ marginTop: 10 }}>Decryption in progress…</p>
           )}
 
