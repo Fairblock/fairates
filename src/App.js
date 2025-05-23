@@ -1083,11 +1083,15 @@ async function generateAuctionID(signer, userAddr) {
 
       // const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
       // await requestTx.wait();
-      const requestTx = await sendTx(fairyringContract, "requestGeneralDecryptionKey", [auctionIdNumber]);
+     
       setDecryptingAuctionAddress(auctionEngineAddress);
-
+      let first = true;
       let decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
       while (decryptionKey === "0x" || decryptionKey === "0x0") {
+        if (first) {
+          const requestTx = await sendTx(fairyringContract, "requestGeneralDecryptionKey", [auctionIdNumber]);
+          first = false;
+        }
         await new Promise((resolve) => setTimeout(resolve, 4000));
         decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
       }
@@ -1096,10 +1100,10 @@ async function generateAuctionID(signer, userAddr) {
       const keyArray = hexToUint8Array(decryptionKey);
       // let tx = await ae.decryptBidsBatch(3, keyArray);
       // await tx.wait();
-      const tx = await ae.decryptBidsBatch(3, keyArray);
+      const tx = await sendTx(ae, "decryptBidsBatch", [3, keyArray]);
       // tx = await ae.decryptOffersBatch(3, keyArray);
       // await tx.wait();
-      const tx2 = await ae.decryptOffersBatch(3, keyArray);
+      const tx2 = await sendTx(ae, "decryptOffersBatch", [3, keyArray]);
 
       alert("Decryption finalized.");
     } catch (error) {
