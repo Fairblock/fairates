@@ -60,6 +60,7 @@ export async function safeSendTx(contract, fnName, args = [], ignoreReasons = []
   try {
     return await sendTx(contract, fnName, args);
   } catch (err) {
+    console.error("Transaction failed", err);
     // find the deepest message / reason text we can
     const reason =
       err?.error?.error?.message ||
