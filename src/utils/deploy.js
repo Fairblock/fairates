@@ -56,7 +56,7 @@ export async function deployWithGas(factory, ctorArgs = []) {
   return contract;
 }
 
-// deploy.js  ── add / replace safeSendTx
+
 export async function safeSendTx(
   contract,
   fnName,
@@ -65,41 +65,49 @@ export async function safeSendTx(
 ) {
   const signer = contract.runner ?? contract.signer;
 
-  // helper that tests a message against the ignore list
-  const shouldIgnore = (msg = "") =>
+  const wantsSkip = (msg = "") =>
     ignoreReasons.some((r) => msg.includes(r));
 
-  // 1️⃣ try a manual gas estimate first — because sendTx() will do the same
+  // helper: unwrap revert reason out of an UNPREDICTABLE_GAS_LIMIT error
+  const extractReason = (e) => {
+    // ethers v5
+    if (typeof e?.error?.data === "string") {
+      try {
+        // first 4 bytes = selector, rest is ABI‑encoded revert string
+        const reasonHex = "0x" + e.error.data.slice(10);
+        return utils.toUtf8String(reasonHex);
+      } catch (_) {}
+    }
+    return (
+      e?.error?.error?.message ||
+      e?.error?.message ||
+      e?.reason ||
+      e?.message ||
+      ""
+    );
+  };
+
+  // 1️⃣ manual estimate – may throw UNPREDICTABLE_GAS_LIMIT
   try {
     await contract.estimateGas[fnName](...args);
   } catch (estErr) {
-    const msg =
-      estErr?.error?.error?.message ||
-      estErr?.error?.message ||
-      estErr?.reason ||
-      estErr?.message ||
-      "";
+    const code   = estErr.code ?? "";
+    const reason = extractReason(estErr);
 
-    // “All bids decrypted” usually shows up here
-    if (shouldIgnore(msg)) {
-      console.log(`⤵  Skipping call ${fnName}: ${msg}`);
+    if (code === "UNPREDICTABLE_GAS_LIMIT" && wantsSkip(reason)) {
+      console.log(`⤵  Skipping ${fnName}: ${reason}`);
       return null;
     }
-    throw estErr; // other errors bubble up
+    throw estErr;
   }
 
-  // 2️⃣ run the normal send path (may still revert inside the tx)
+  // 2️⃣ real send
   try {
     return await sendTx(contract, fnName, args);
   } catch (err) {
-    const msg =
-      err?.error?.error?.message ||
-      err?.error?.message ||
-      err?.reason ||
-      err?.message ||
-      "";
-    if (shouldIgnore(msg)) {
-      console.log(`⤵  Ignoring revert in ${fnName}: ${msg}`);
+    const reason = extractReason(err);
+    if (wantsSkip(reason)) {
+      console.log(`⤵  Ignoring revert in ${fnName}: ${reason}`);
       return null;
     }
     throw err;
