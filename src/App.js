@@ -17,6 +17,7 @@ import {
 import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
+import { sendTx, deployWithGas } from "./utils/deploy.js";
 
 import CollateralManagerArtifact from "./CollateralManager.json";
 import AuctionTokenArtifact from "./AuctionToken.json";
@@ -329,8 +330,9 @@ function AppProvider({ children }) {
     }
     try {
       const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
-      const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
-      await tx.wait();
+      // const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
+      // await tx.wait();
+     await sendTx(tokenContract, "approve", [spenderAddress, ethers.constants.MaxUint256]);
     } catch (error) {
       console.error("Approval failed:", error);
       throw new Error("Approval failed: " + error.message);
@@ -376,8 +378,9 @@ async function generateAuctionID(signer, userAddr) {
   );
 
   // 1) ask for a new ID
-  const tx = await fairyringContract.requestGeneralID();
-  await tx.wait();
+  // const tx = await fairyringContract.requestGeneralID();
+  // await tx.wait();
+  const tx = await sendTx(fairyringContract, "requestGeneralID");
   console.log("Requested new ID:", tx.hash);
   // 2) pull back the index just assigned
   const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
@@ -427,15 +430,16 @@ async function generateAuctionID(signer, userAddr) {
         CollateralManagerArtifact.bytecode,
         signer
       );
-      const cmContract = await CollateralManagerFactory.deploy(priceOracle);
+      const cmContract = await deployWithGas(CollateralManagerFactory, [priceOracle]);
       await cmContract.deployed();
       setCollateralManagerAddress(cmContract.address);
 
-      let tx = await cmContract.addAcceptedCollateralToken(DEFAULT_COLLATERAL, 1);
-      await tx.wait();
-      tx = await cmContract.setMaintenanceRatio(DEFAULT_COLLATERAL, 1);
-      await tx.wait();
-
+      // let tx = await cmContract.addAcceptedCollateralToken(DEFAULT_COLLATERAL, 1);
+      // await tx.wait();
+      let tx = await sendTx(cmContract, "addAcceptedCollateralToken", [DEFAULT_COLLATERAL, 1]);
+      // tx = await cmContract.setMaintenanceRatio(DEFAULT_COLLATERAL, 1);
+      // await tx.wait();
+      tx = await sendTx(cmContract, "setMaintenanceRatio", [DEFAULT_COLLATERAL, 1]);
       
 
       const AuctionTokenFactory = new ethers.ContractFactory(
@@ -445,7 +449,7 @@ async function generateAuctionID(signer, userAddr) {
       );
       const tokenName = `${ID}-TOKEN`;
       const tokenSymbol = `${ID}-TOKEN`;
-      const atContract = await AuctionTokenFactory.deploy(tokenName, tokenSymbol);
+      const atContract = await deployWithGas(AuctionTokenFactory, [tokenName, tokenSymbol]);
       await atContract.deployed();
       const auctionTokenAddress = atContract.address;
 
@@ -460,8 +464,7 @@ async function generateAuctionID(signer, userAddr) {
         AuctionEngineArtifact.bytecode,
         signer
       );
-      const aeContract = await AuctionEngineFactory.deploy(
-        DECRYPTER,
+      const aeContract = await deployWithGas(AuctionEngineFactory, [DECRYPTER,
         BID_DURATION,
         REVEAL_DURATION,
         LOAN_DURATION,
@@ -471,20 +474,33 @@ async function generateAuctionID(signer, userAddr) {
         FEE,
         FEE,
         auctionTokenAddress,
-        AUCTION_TOKEN_AMOUNT
-      );
+        AUCTION_TOKEN_AMOUNT]);
+      // const aeContract = await AuctionEngineFactory.deploy(
+      //   DECRYPTER,
+      //   BID_DURATION,
+      //   REVEAL_DURATION,
+      //   LOAN_DURATION,
+      //   ID,
+      //   T1_ADDRESS,
+      //   FEE,
+      //   FEE,
+      //   FEE,
+      //   auctionTokenAddress,
+      //   AUCTION_TOKEN_AMOUNT
+      // );
       await aeContract.deployed();
       setAuctionEngineAddress(aeContract.address);
 
-      tx = await atContract.setAuctionContract(aeContract.address);
-      await tx.wait();
-
+      // tx = await atContract.setAuctionContract(aeContract.address);
+      // await tx.wait();
+      tx = await sendTx(atContract, "setAuctionContract", [aeContract.address]);
       const LendingVaultFactory = new ethers.ContractFactory(
         LendingVaultArtifact.abi,
         LendingVaultArtifact.bytecode,
         signer
       );
-      const lvContract = await LendingVaultFactory.deploy(T1_ADDRESS);
+      // const lvContract = await LendingVaultFactory.deploy(T1_ADDRESS);
+      const lvContract = await deployWithGas(LendingVaultFactory, [T1_ADDRESS]);
       await lvContract.deployed();
       setLendingVaultAddress(lvContract.address);
 
@@ -495,20 +511,26 @@ async function generateAuctionID(signer, userAddr) {
       );
       const maxBid = ethers.utils.parseUnits("15000", 18);
       const minBid = ethers.utils.parseUnits("10", 18);
-      const bmContract = await BidManagerFactory.deploy(
-        cmContract.address,
+      // const bmContract = await BidManagerFactory.deploy(
+      //   cmContract.address,
+      //   aeContract.address,
+      //   maxBid,
+      //   T1_ADDRESS,
+      //   minBid,
+      //   50
+      // );
+      const bmContract = await deployWithGas(BidManagerFactory, [ cmContract.address,
         aeContract.address,
         maxBid,
         T1_ADDRESS,
         minBid,
-        50
-      );
+        50]);
       await bmContract.deployed();
       setBidManagerAddress(bmContract.address);
 
-      tx = await cmContract.setManager(bmContract.address);
-      await tx.wait();
-
+      // tx = await cmContract.setManager(bmContract.address);
+      // await tx.wait();
+      tx = await sendTx(cmContract, "setManager", [bmContract.address]);
       const OfferManagerFactory = new ethers.ContractFactory(
         OfferManagerArtifact.abi,
         OfferManagerArtifact.bytecode,
@@ -516,21 +538,23 @@ async function generateAuctionID(signer, userAddr) {
       );
       const maxOffer = ethers.utils.parseUnits("10000", 18);
       const minOffer = ethers.utils.parseUnits("10", 18);
-      const omContract = await OfferManagerFactory.deploy(
-        lvContract.address,
-        aeContract.address,
-        maxOffer,
-        minOffer,
-        50
-      );
+      // const omContract = await OfferManagerFactory.deploy(
+      //   lvContract.address,
+      //   aeContract.address,
+      //   maxOffer,
+      //   minOffer,
+      //   50
+      // );
+      const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address,aeContract.address,maxOffer,minOffer,50]);
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
 
-      tx = await aeContract.setManagers(bmContract.address, omContract.address);
-      await tx.wait();
-      tx = await lvContract.setManager(omContract.address);
-      await tx.wait();
-
+      // tx = await aeContract.setManagers(bmContract.address, omContract.address);
+      // await tx.wait();
+      tx = await sendTx(aeContract, "setManagers", [bmContract.address, omContract.address]);
+      // tx = await lvContract.setManager(omContract.address);
+      // await tx.wait();
+      tx = await sendTx(lvContract, "setManager", [omContract.address]);
       const auctionContracts = {
         collateralManagerAddress: cmContract.address,
         auctionTokenAddress: auctionTokenAddress,
@@ -600,14 +624,17 @@ async function generateAuctionID(signer, userAddr) {
         CollateralManagerArtifact.bytecode,
         signer
       );
-      const cmContract = await CollateralManagerFactory.deploy(priceOracle);
+      //const cmContract = await CollateralManagerFactory.deploy(priceOracle);
+      const cmContract = await deployWithGas(CollateralManagerFactory, [priceOracle]);
       await cmContract.deployed();
       setCollateralManagerAddress(cmContract.address);
 
-      let tx = await cmContract.addAcceptedCollateralToken(customCollateralToken, Number(customCollateralRatio));
-      await tx.wait();
-      tx = await cmContract.setMaintenanceRatio(customCollateralToken, Number(customCollateralRatio));
-      await tx.wait();
+      // let tx = await cmContract.addAcceptedCollateralToken(customCollateralToken, Number(customCollateralRatio));
+      // await tx.wait();
+      let tx = await sendTx(cmContract, "addAcceptedCollateralToken", [customCollateralToken, Number(customCollateralRatio)]);
+      // tx = await cmContract.setMaintenanceRatio(customCollateralToken, Number(customCollateralRatio));
+      // await tx.wait();
+      tx = await sendTx(cmContract, "setMaintenanceRatio", [customCollateralToken, Number(customCollateralRatio)]);
 
       const userAddr = await signer.getAddress();
       const ID = await generateAuctionID(signer, userAddr);
@@ -619,7 +646,8 @@ async function generateAuctionID(signer, userAddr) {
       );
       const tokenName = `${ID}-TOKEN`;
       const tokenSymbol = `${ID}-TOKEN`;
-      const atContract = await AuctionTokenFactory.deploy(tokenName, tokenSymbol);
+      // const atContract = await AuctionTokenFactory.deploy(tokenName, tokenSymbol);
+      const atContract = await deployWithGas(AuctionTokenFactory, [tokenName, tokenSymbol]);
       await atContract.deployed();
       const auctionTokenAddress = atContract.address;
 
@@ -628,8 +656,20 @@ async function generateAuctionID(signer, userAddr) {
         AuctionEngineArtifact.bytecode,
         signer
       );
-      const aeContract = await AuctionEngineFactory.deploy(
-        DECRYPTER,
+      // const aeContract = await AuctionEngineFactory.deploy(
+      //   DECRYPTER,
+      //   BID_DURATION,
+      //   REVEAL_DURATION,
+      //   REPAYMENT_DURATION,
+      //   ID,
+      //   purchaseToken,
+      //   FEE,
+      //   LIQUIDATION_FEE,
+      //   PROTOCOL_LIQUIDATION_FEE,
+      //   auctionTokenAddress,
+      //   AUCTION_TOKEN_AMOUNT
+      // );
+      const aeContract = await deployWithGas(AuctionEngineFactory, [DECRYPTER,
         BID_DURATION,
         REVEAL_DURATION,
         REPAYMENT_DURATION,
@@ -639,20 +679,20 @@ async function generateAuctionID(signer, userAddr) {
         LIQUIDATION_FEE,
         PROTOCOL_LIQUIDATION_FEE,
         auctionTokenAddress,
-        AUCTION_TOKEN_AMOUNT
-      );
+        AUCTION_TOKEN_AMOUNT]);
       await aeContract.deployed();
       setAuctionEngineAddress(aeContract.address);
 
-      tx = await atContract.setAuctionContract(aeContract.address);
-      await tx.wait();
-
+      // tx = await atContract.setAuctionContract(aeContract.address);
+      // await tx.wait();
+      tx = await sendTx(atContract, "setAuctionContract", [aeContract.address]);
       const LendingVaultFactory = new ethers.ContractFactory(
         LendingVaultArtifact.abi,
         LendingVaultArtifact.bytecode,
         signer
       );
-      const lvContract = await LendingVaultFactory.deploy(purchaseToken);
+      //const lvContract = await LendingVaultFactory.deploy(purchaseToken);
+      const lvContract = await deployWithGas(LendingVaultFactory, [purchaseToken]);
       await lvContract.deployed();
       setLendingVaultAddress(lvContract.address);
 
@@ -662,40 +702,52 @@ async function generateAuctionID(signer, userAddr) {
         signer
       );
 
-      const bmContract = await BidManagerFactory.deploy(
-        cmContract.address,
+      // const bmContract = await BidManagerFactory.deploy(
+      //   cmContract.address,
+      //   aeContract.address,
+      //   maxBid,
+      //   purchaseToken,
+      //   minBid,
+      //   maxNumBids
+      // );
+      const bmContract = await deployWithGas(BidManagerFactory, [cmContract.address,
         aeContract.address,
         maxBid,
         purchaseToken,
         minBid,
-        maxNumBids
-      );
+        maxNumBids]);
       await bmContract.deployed();
       setBidManagerAddress(bmContract.address);
 
-      tx = await cmContract.setManager(bmContract.address);
-      await tx.wait();
-
+      // tx = await cmContract.setManager(bmContract.address);
+      // await tx.wait();
+      tx = await sendTx(cmContract, "setManager", [bmContract.address]);
       const OfferManagerFactory = new ethers.ContractFactory(
         OfferManagerArtifact.abi,
         OfferManagerArtifact.bytecode,
         signer
       );
-      const omContract = await OfferManagerFactory.deploy(
-        lvContract.address,
+      // const omContract = await OfferManagerFactory.deploy(
+      //   lvContract.address,
+      //   aeContract.address,
+      //   maxOffer,
+      //   minOffer,
+      //   maxNumOffers
+      // );
+      const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address,
         aeContract.address,
         maxOffer,
         minOffer,
-        maxNumOffers
-      );
+        maxNumOffers]);
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
 
-      tx = await aeContract.setManagers(bmContract.address, omContract.address);
-      await tx.wait();
-      tx = await lvContract.setManager(omContract.address);
-      await tx.wait();
-
+      // tx = await aeContract.setManagers(bmContract.address, omContract.address);
+      // await tx.wait();
+      tx = await sendTx(aeContract, "setManagers", [bmContract.address, omContract.address]);
+      // tx = await lvContract.setManager(omContract.address);
+      // await tx.wait();
+      tx = await sendTx(lvContract, "setManager", [omContract.address]);
       const auctionContracts = {
         collateralManagerAddress: cmContract.address,
         auctionTokenAddress: auctionTokenAddress,
@@ -751,10 +803,12 @@ async function generateAuctionID(signer, userAddr) {
     }
     try {
       const ratioBN = ethers.BigNumber.from(newCollateralRatio);
-      let tx = await cm.addAcceptedCollateralToken(newCollateralAddress, 1);
-      await tx.wait();
-      tx = await cm.setMaintenanceRatio(newCollateralAddress, ratioBN);
-      await tx.wait();
+      // let tx = await cm.addAcceptedCollateralToken(newCollateralAddress, 1);
+      // await tx.wait();
+      let tx = await sendTx(cm, "addAcceptedCollateralToken", [newCollateralAddress, 1]);
+      // tx = await cm.setMaintenanceRatio(newCollateralAddress, ratioBN);
+      // await tx.wait();
+      tx = await sendTx(cm, "setMaintenanceRatio", [newCollateralAddress, ratioBN]);
 
       setRegisteredCollaterals((prev) => [
         ...prev,
@@ -846,8 +900,9 @@ async function generateAuctionID(signer, userAddr) {
         await approveToken(tokensArray[i], collateralManagerAddress);
       }
       console.log("amountsArray:", amountsArray);
-      const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken);
-      await tx.wait();
+      // const tx = await bm.submitBid(quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken);
+      // await tx.wait();
+      const tx = await sendTx(bm, "submitBid", [quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken]);
       alert("Bid placed successfully.");
       setBidAmount("");
       setBidRate("");
@@ -879,8 +934,9 @@ async function generateAuctionID(signer, userAddr) {
         await approveToken(token, collateralManagerAddress);
       }
   
-      const tx = await bm.externalLockCollateral(tokens, amountsInSmallestUnit);
-      await tx.wait();
+      // const tx = await bm.externalLockCollateral(tokens, amountsInSmallestUnit);
+      // await tx.wait();
+      const tx = await sendTx(bm, "externalLockCollateral", [tokens, amountsInSmallestUnit]);
       alert("Extra collateral locked successfully.");
       setExtraCollateralSelections(
         extraCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
@@ -909,8 +965,9 @@ async function generateAuctionID(signer, userAddr) {
         amountsInSmallestUnit.push(amountInSmallestUnit);
       }
   
-      const tx = await bm.externalUnlockCollateral(tokens, amountsInSmallestUnit);
-      await tx.wait();
+      // const tx = await bm.externalUnlockCollateral(tokens, amountsInSmallestUnit);
+      // await tx.wait();
+      const tx = await sendTx(bm, "externalUnlockCollateral", [tokens, amountsInSmallestUnit]);
       alert("Excessive collateral unlocked successfully.");
       setRemoveCollateralSelections(
         removeCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
@@ -928,8 +985,9 @@ async function generateAuctionID(signer, userAddr) {
       return;
     }
     try {
-      const tx = await bm.removeBid();
-      await tx.wait();
+      // const tx = await bm.removeBid();
+      // await tx.wait();
+      const tx = await sendTx(bm, "removeBid");
       alert("Your bid was removed and collateral unlocked.");
       setBidAmount("");
       setBidRate("");
@@ -949,8 +1007,9 @@ async function generateAuctionID(signer, userAddr) {
       return;
     }
     try {
-      const tx = await om.removeOffer();
-      await tx.wait();
+      // const tx = await om.removeOffer();
+      // await tx.wait();
+      const tx = await sendTx(om, "removeOffer");
       alert("Your offer was removed and funds unlocked.");
       setOfferAmount("");
       setOfferRate("");
@@ -992,8 +1051,9 @@ async function generateAuctionID(signer, userAddr) {
       const tokenDecimals = await getTokenDecimals(purchaseToken); 
       const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
       await approveToken(purchaseToken, lendingVaultAddress);
-      const tx = await om.submitOffer(quantity, encryptedOffer);
-      await tx.wait();
+      // const tx = await om.submitOffer(quantity, encryptedOffer);
+      // await tx.wait();
+      const tx = await sendTx(om, "submitOffer", [quantity, encryptedOffer]);
       alert("Offer placed successfully.");
       setOfferAmount("");
       setOfferRate("");
@@ -1021,8 +1081,9 @@ async function generateAuctionID(signer, userAddr) {
       const num  = parts.pop();
       const auctionIdNumber = parseInt(num, 10);
 
-      const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
-      await requestTx.wait();
+      // const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
+      // await requestTx.wait();
+      const requestTx = await sendTx(fairyringContract, "requestGeneralDecryptionKey", [auctionIdNumber]);
       setDecryptingAuctionAddress(auctionEngineAddress);
 
       let decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
@@ -1033,10 +1094,12 @@ async function generateAuctionID(signer, userAddr) {
       setDecryptingAuctionAddress(null);
 
       const keyArray = hexToUint8Array(decryptionKey);
-      let tx = await ae.decryptBidsBatch(3, keyArray);
-      await tx.wait();
-      tx = await ae.decryptOffersBatch(3, keyArray);
-      await tx.wait();
+      // let tx = await ae.decryptBidsBatch(3, keyArray);
+      // await tx.wait();
+      const tx = await ae.decryptBidsBatch(3, keyArray);
+      // tx = await ae.decryptOffersBatch(3, keyArray);
+      // await tx.wait();
+      const tx2 = await ae.decryptOffersBatch(3, keyArray);
 
       alert("Decryption finalized.");
     } catch (error) {
@@ -1047,8 +1110,9 @@ async function generateAuctionID(signer, userAddr) {
     }
 
     try {
-      const tx = await ae.finalizeAuction();
-      await tx.wait();
+      // const tx = await ae.finalizeAuction();
+      // await tx.wait();
+      const tx = await sendTx(ae, "finalizeAuction");
       alert("Auction finalized.");
     } catch (error) {
       console.error("Finalize auction failed:", error);
@@ -1072,8 +1136,9 @@ async function generateAuctionID(signer, userAddr) {
       const tokenDecimals = await getTokenDecimals(purchaseToken); 
       const amountBN = ethers.utils.parseUnits(repayAmount, tokenDecimals);
       await approveToken(purchaseToken, auctionEngineAddress);
-      const tx = await ae.repay(amountBN);
-      await tx.wait();
+      // const tx = await ae.repay(amountBN);
+      // await tx.wait();
+      const tx = await sendTx(ae, "repay", [amountBN]);
       alert("Repayment successful.");
       setRepayAmount("");
     } catch (error) {
@@ -1147,12 +1212,18 @@ async function generateAuctionID(signer, userAddr) {
       await approveToken(purchaseToken, auctionEngineAddress);
   
       let tx;
+      // if (currentTime < threshold.toNumber()) {
+      //   tx = await ae.batchEarlyLiquidation(liquidationBorrower, tokensArray, coverageArray);
+      // } else {
+      //   tx = await ae.batchLateLiquidation(liquidationBorrower, tokensArray, coverageArray);
+      // }
+      // await tx.wait();
       if (currentTime < threshold.toNumber()) {
-        tx = await ae.batchEarlyLiquidation(liquidationBorrower, tokensArray, coverageArray);
+        tx = await sendTx(ae, "batchEarlyLiquidation", [liquidationBorrower, tokensArray, coverageArray]);
       } else {
-        tx = await ae.batchLateLiquidation(liquidationBorrower, tokensArray, coverageArray);
+        tx = await sendTx(ae, "batchLateLiquidation", [liquidationBorrower, tokensArray, coverageArray]);
       }
-      await tx.wait();
+      
       alert("Liquidation executed.");
       setLiquidationBorrower("");
       setLiquidationCollateralSelections(liquidationCollateralSelections.map(c => ({ address: c.address, amount: "" })));
@@ -1170,8 +1241,9 @@ async function generateAuctionID(signer, userAddr) {
       return;
     }
     try {
-      const tx = await ae.cancelAuction(cancelReason);
-      await tx.wait();
+      // const tx = await ae.cancelAuction(cancelReason);
+      // await tx.wait();
+      const tx = await sendTx(ae, "cancelAuction", [cancelReason]);
       alert("Auction canceled.");
       setCancelReason("");
     } catch (error) {
@@ -1209,8 +1281,9 @@ async function generateAuctionID(signer, userAddr) {
       const purchaseToken = await am.repaymentToken();
       const tokenDecimals = await getTokenDecimals(purchaseToken);
       const amount = ethers.utils.parseUnits(redemptionAmount, tokenDecimals);
-      const tx = await atContract.redeemToken(amount);
-      await tx.wait();
+      // const tx = await atContract.redeemToken(amount);
+      // await tx.wait();
+      const tx = await sendTx(atContract, "redeemToken", [amount]);
       alert("Token redemption successful.");
       setRedemptionAmount("");
     } catch (error) {
@@ -1423,8 +1496,9 @@ function FaucetPage() {
     try {
       const FaucetABI = ["function withdraw() public"];
       const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
-      const tx = await faucetContract.withdraw();
-      await tx.wait();
+      // const tx = await faucetContract.withdraw();
+      // await tx.wait();
+      const tx = await sendTx(faucetContract, "withdraw");
       alert(`${tokenName} withdrawal successful.`);
     } catch (error) {
       console.error(error);
