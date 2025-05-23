@@ -173,6 +173,38 @@ const ARBITRUM_SEPOLIA = {
   rpcUrls: ["https://arb-sepolia.g.alchemy.com/v2/dGQpXrSNg3TUJ9Mm6ztTUQ2mtSeoMYcZ"],
   blockExplorerUrls: ["https://sepolia.arbiscan.io"],
 };
+// auctionInfoStyles.js
+export const infoStyles = {
+  wrap:   {
+    display:       'flex',
+    flexWrap:      'wrap',
+    gap:           '12px',
+    marginBottom:  '48px',
+  },
+  pill:   {
+    flex:         '1 0 auto',      // grow, but never shrink below minWidth
+    minWidth:     '160px',
+    padding:      '14px 18px',
+    borderRadius: '14px',
+    background:   'rgba(255,255,255,0.04)',
+    border:       '1px solid rgba(255,255,255,0.08)',
+    backdropFilter:'blur(4px)',
+  },
+  label:  {
+    fontSize:     '11px',
+    letterSpacing:'.06em',
+    color:        '#C9C9D4',
+    textTransform:'uppercase',
+    marginBottom: '2px',
+    display:      'block',
+  },
+  value:  {
+    fontSize:     '15px',
+    fontWeight:   500,
+    color:        '#FFFFFF',
+    wordBreak:    'break-word',
+  },
+};
 
 
 const globalBgCss = `

@@ -18,7 +18,7 @@ import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
 import { sendTx, deployWithGas, safeSendTx } from "./utils/deploy.js";
-
+import {infoStyles as S} from "./styles.js";
 import CollateralManagerArtifact from "./CollateralManager.json";
 import AuctionTokenArtifact from "./AuctionToken.json";
 import AuctionEngineArtifact from "./AuctionEngine.json";
@@ -2744,10 +2744,27 @@ function UserAuctionPage() {
     setRemoveCollateralSelections,
     externalLockCollateral,
     externalUnlockCollateral,
-
+   bidManagerAddress,
+    offerManagerAddress,
+    signer,
     removeBid,
     removeOffer,
   } = useAppContext();
+  const [auctionMeta, setAuctionMeta] = React.useState({
+      phase:        "-",
+      status:       "-",
+      decBids:      0,
+      decOffers:    0,
+      biddingEnd:   0,
+      revealEnd:    0,
+      repaymentDue: 0,
+      bids:         0,
+      offers:       0,
+      minBid:       "-",
+      maxBid:       "-",
+      minOffer:     "-",
+      maxOffer:     "-"
+    });
   useEffect(() => {
     if (bidCollateralSelections.length > 0) {
       const rows = bidCollateralSelections.map((c) => ({
@@ -2758,7 +2775,100 @@ function UserAuctionPage() {
       setRemoveCollateralSelections(rows);
     }
   }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
+  // load auction details every time a dependency changes
+  React.useEffect(() => {
+    async function loadDetails() {
+      if (!signer ||
+          !auctionEngineAddress ||
+          !bidManagerAddress ||
+          !offerManagerAddress) return;
+  
+      try {
+        const ae = new ethers.Contract(
+          auctionEngineAddress,
+          AuctionEngineArtifact.abi,
+          signer
+        );
+        const bm = new ethers.Contract(
+          bidManagerAddress,
+          BidManagerArtifact.abi,
+          signer
+        );
+        const om = new ethers.Contract(
+          offerManagerAddress,
+          OfferManagerArtifact.abi,
+          signer
+        );
+  
+        // phase ↦ human string
+        const phaseTxt = ["Bidding", "Reveal", "Loan‑Window",
+                          "Repayment", "Redemption"]
+                         [await ae.getAuctionPhase()];
+  
+        const [
+          biddingEnd,
+          revealEnd,
+          repaymentDue,
+          bidsArr,
+          offersArr,
+          cancelled,
+          finalized,
+          maxBid,
+          minBid,
+          maxOffer,
+          minOffer,
+          bidsDec,
+          offersDec
+        ] = await Promise.all([
+          ae.biddingEnd(),
+          ae.revealEnd(),
+          ae.repaymentDue(),
+          bm.getBids(),
+          om.getOffers(),
+          ae.auctionCancelled(),
+          ae.isFinalized(),
+          bm.maxBidAmount(),
+          bm.minimumBidAmount(),
+          om.maxOfferAmount(),
+          om.minimumOfferAmount(),
+          ae.bidsDecrypted(),          // uint256 public
+          ae.offersDecrypted() 
+        ]);
+  
+              const statusTxt = cancelled
+          ? "❌ Cancelled"
+          : finalized
+            ? "✅ Finalized"
+            : `🟢 ${phaseTxt}`;
 
+      setAuctionMeta({
+        status:       statusTxt,
+          phase:        phaseTxt,
+          biddingEnd:   biddingEnd.toNumber(),
+          revealEnd:    revealEnd.toNumber(),
+          repaymentDue: repaymentDue.toNumber(),
+          bids:         bidsArr.length,
+          offers:       offersArr.length,
+          maxBid:       ethers.utils.formatUnits(maxBid, 18),
+          minBid:       ethers.utils.formatUnits(minBid, 18),
+          maxOffer:     ethers.utils.formatUnits(maxOffer, 18),
+          minOffer:     ethers.utils.formatUnits(minOffer, 18),
+          decBids:      finalized ? Number(bidsDec)    : 0,
+          decOffers:    finalized ? Number(offersDec)  : 0
+        });
+      } catch (err) {
+        console.error("loadDetails:", err);
+      }
+    }
+  
+    loadDetails();
+  }, [
+    signer,
+    auctionEngineAddress,
+    bidManagerAddress,
+    offerManagerAddress
+  ]);
+  
   const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
   const section = { marginBottom: 64 };
   const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
@@ -2775,7 +2885,23 @@ function UserAuctionPage() {
   const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateExtraCollat = (i, v) => setExtraCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateRemoveCollat = (i, v) => setRemoveCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
+  const ts = s => !s ? '–' : new Date(s*1000).toLocaleString();
+const base = [
+  ['Status', auctionMeta.status],
+  ['Bid limit', `${auctionMeta.minBid} – ${auctionMeta.maxBid}`],
+  ['Offer limit', `${auctionMeta.minOffer} – ${auctionMeta.maxOffer}`],
+  ['Bidding ends', ts(auctionMeta.biddingEnd)],
+  ['Reveal ends',  ts(auctionMeta.revealEnd)],
+  ['Repayment due', ts(auctionMeta.repaymentDue)],
+];
 
+const live   = [['Bids', auctionMeta.bids], ['Offers', auctionMeta.offers]];
+const final  = [['Decrypted bids', auctionMeta.decBids],
+                ['Decrypted offers', auctionMeta.decOffers]];
+
+const pills  = auctionMeta.status.startsWith('✅')
+              ? [...base, ...final]
+              : [...base, ...live];
   return (
     <div style={wrapper}>
       <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
@@ -2784,7 +2910,15 @@ function UserAuctionPage() {
           ({auctionEngineAddress.slice(0, 6)}…{auctionEngineAddress.slice(-4)})
         </span>
       </h1>
-
+        {/* ───────── auction info card ───────── */}
+        <div style={S.wrap}>
+  {pills.map(([label, val]) => (
+    <div key={label} style={S.pill}>
+      <span style={S.label}>{label}</span>
+      <span style={S.value}>{val}</span>
+    </div>
+  ))}
+</div>
       { }
       <div style={{ ...grid2, ...section }}>
         { }
