@@ -631,10 +631,10 @@ useEffect(() => {
       const AUCTION_TOKEN_AMOUNT = Number(customAuctionTokenAmount);
       const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
       const purchaseToken = customPurchaseToken;
-      const maxBid = Number(customMaxBid);
-      const maxOffer = Number(customMaxOffer);
-      const minBid = Number(customMinBid);
-      const minOffer = Number(customMinOffer);
+      const maxBid = ethers.utils.parseUnits(customMaxBid, 18);
+      const maxOffer = ethers.utils.parseUnits(customMaxOffer, 18);
+      const minBid = ethers.utils.parseUnits(customMinBid, 18);
+      const minOffer = ethers.utils.parseUnits(customMinOffer, 18);
       const maxNumBids = Number(customMaxNumBids);
       const maxNumOffers = Number(customMaxNumOffers);
 
