@@ -108,29 +108,67 @@ function AppProvider({ children }) {
     const decimals = await tokenContract.decimals();
     return decimals;
   }
-  const [deployedAuctions, setDeployedAuctions] = useState(() => {
-    const saved = localStorage.getItem("deployedAuctions");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // const [deployedAuctions, setDeployedAuctions] = useState(() => {
+  //   const saved = localStorage.getItem("deployedAuctions");
+  //   return saved ? JSON.parse(saved) : [];
+  // });
   const [myAuctions, setMyAuctions] = useState([]);
-
-
-  const [collateralManagerAddress, setCollateralManagerAddress] = useState(
-    () => localStorage.getItem("collateralManagerAddress") || ""
+  const [deployedAuctions, setDeployedAuctions] = useState([]);
+  const [collateralManagerAddress, setCollateralManagerAddress] = useState("");
+  const [auctionEngineAddress, setAuctionEngineAddress] = useState("");
+  const [lendingVaultAddress, setLendingVaultAddress] = useState("");
+  const [bidManagerAddress, setBidManagerAddress] = useState("");
+  const [offerManagerAddress, setOfferManagerAddress] = useState("");
+  // const [collateralManagerAddress, setCollateralManagerAddress] = useState(
+  //   () => localStorage.getItem("collateralManagerAddress") || ""
+  // );
+  // const [auctionEngineAddress, setAuctionEngineAddress] = useState(
+  //   () => localStorage.getItem("auctionEngineAddress") || ""
+  // );
+  // const [lendingVaultAddress, setLendingVaultAddress] = useState(
+  //   () => localStorage.getItem("lendingVaultAddress") || ""
+  // );
+  // const [bidManagerAddress, setBidManagerAddress] = useState(
+  //   () => localStorage.getItem("bidManagerAddress") || ""
+  // );
+  // const [offerManagerAddress, setOfferManagerAddress] = useState(
+  //   () => localStorage.getItem("offerManagerAddress") || ""
+  // );
+  const refreshAuctions = React.useCallback(
+    async (addr = walletAddress) => {
+      try {
+        const res = await fetch("https://auction-db.fairblock.network/contracts");
+        const { auctions = [] } = await res.json();
+  
+        setDeployedAuctions(auctions);
+  
+        if (!addr) { setMyAuctions([]); return; }
+  
+        const provider = signer?.provider ??
+                         ethers.getDefaultProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
+        const iface    = new ethers.utils.Interface(["function owner() view returns (address)"]);
+  
+        const mine = await Promise.all(
+          auctions.map(async a => {
+            try {
+              const data   = await provider.call({
+                to:   a.auctionEngineAddress,
+                data: iface.encodeFunctionData("owner"),
+              });
+              const [owner] = iface.decodeFunctionResult("owner", data);
+              return owner.toLowerCase() === addr.toLowerCase() ? a : null;
+            } catch { return null; }
+          })
+        );
+  
+        setMyAuctions(mine.filter(Boolean));
+      } catch (err) {
+        console.error("refreshAuctions:", err);
+      }
+    },
+    [signer]             // ⚠️  NO walletAddress here
   );
-  const [auctionEngineAddress, setAuctionEngineAddress] = useState(
-    () => localStorage.getItem("auctionEngineAddress") || ""
-  );
-  const [lendingVaultAddress, setLendingVaultAddress] = useState(
-    () => localStorage.getItem("lendingVaultAddress") || ""
-  );
-  const [bidManagerAddress, setBidManagerAddress] = useState(
-    () => localStorage.getItem("bidManagerAddress") || ""
-  );
-  const [offerManagerAddress, setOfferManagerAddress] = useState(
-    () => localStorage.getItem("offerManagerAddress") || ""
-  );
-
+  
 
   const [currentAuction, setCurrentAuction] = useState(null);
 
@@ -182,6 +220,16 @@ function AppProvider({ children }) {
   const [customCollateralRatio, setCustomCollateralRatio] = useState("");
 
   const [serverLoaded, setServerLoaded] = useState(false);
+  // run once on mount
+useEffect(() => { refreshAuctions(); }, []);
+
+// run every time the active wallet or signer really changes
+useEffect(() => {
+  if (walletAddress && signer) {
+    refreshAuctions(walletAddress);
+  }
+}, [walletAddress, signer, refreshAuctions]);
+
 
   useEffect(() => {
     async function updateCollateralSelections() {
@@ -216,38 +264,8 @@ function AppProvider({ children }) {
     updateCollateralSelections();
   }, [collateralManagerAddress, signer]);
 
-  useEffect(() => {
-    localStorage.setItem("deployedAuctions", JSON.stringify(deployedAuctions));
-  }, [deployedAuctions]);
-  useEffect(() => {
-    localStorage.setItem("collateralManagerAddress", collateralManagerAddress);
-  }, [collateralManagerAddress]);
-  useEffect(() => {
-    localStorage.setItem("auctionEngineAddress", auctionEngineAddress);
-  }, [auctionEngineAddress]);
-  useEffect(() => {
-    localStorage.setItem("lendingVaultAddress", lendingVaultAddress);
-  }, [lendingVaultAddress]);
-  useEffect(() => {
-    localStorage.setItem("bidManagerAddress", bidManagerAddress);
-  }, [bidManagerAddress]);
-  useEffect(() => {
-    localStorage.setItem("offerManagerAddress", offerManagerAddress);
-  }, [offerManagerAddress]);
 
-  useEffect(() => {
-    if (!walletAddress) {
-      setMyAuctions([]);
-      return;
-    }
-    const key = `myAuctions_${walletAddress.toLowerCase()}`;
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      setMyAuctions(JSON.parse(stored));
-    } else {
-      setMyAuctions([]);
-    }
-  }, [walletAddress]);
+
 
   useEffect(() => {
     if (window.ethereum) {
@@ -268,6 +286,7 @@ function AppProvider({ children }) {
           setAvailableAccounts(accounts);
           const newAddr = accounts[0];
           setWalletAddress(newAddr);
+          refreshAuctions(newAddr);
           const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
           const tempSigner = tempProvider.getSigner(0);
           setSigner(tempSigner);
@@ -276,6 +295,7 @@ function AppProvider({ children }) {
           setSigner(null);
           setAvailableAccounts([]);
         }
+        
       });
     }
   }, []);
@@ -297,6 +317,7 @@ function AppProvider({ children }) {
       const newSigner = provider.getSigner();
       setSigner(newSigner);
       setWalletAddress(accounts[0]);
+      refreshAuctions(accounts[0]);
     } catch (error) {
       console.error(error);
       alert("Failed to connect wallet: " + error.message);
@@ -308,6 +329,7 @@ function AppProvider({ children }) {
     setSigner(null);
     setWalletAddress("");
     setAvailableAccounts([]);
+    refreshAuctions([]);
   }
 
   function switchAccount(account) {
@@ -321,8 +343,10 @@ function AppProvider({ children }) {
     const newSigner = provider.getSigner(index);
     setSigner(newSigner);
     setWalletAddress(account);
+    refreshAuctions(account); 
   }
 
+  
   async function approveToken(tokenAddress, spenderAddress) {
     if (!signer) {
       alert("No signer. Please connect your wallet first.");
@@ -566,17 +590,12 @@ function AppProvider({ children }) {
 
       setDeployedAuctions((prev) => [...prev, auctionContracts]);
 
-      if (userAddr) {
-        const key = `myAuctions_${userAddr.toLowerCase()}`;
-        const stored = localStorage.getItem(key);
-        let arr = stored ? JSON.parse(stored) : [];
-        arr.push(auctionContracts);
-        localStorage.setItem(key, JSON.stringify(arr));
-        setMyAuctions(arr);
-      }
+       if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
+           setMyAuctions(prev => [...prev, auctionContracts]);
+        }
 
       selectAuction(auctionContracts);
-
+      await refreshAuctions();
       alert("All contracts deployed successfully. Auction address: " + auctionContracts.auctionEngineAddress);
     } catch (error) {
       console.error("Deployment failed:", error);
@@ -759,14 +778,9 @@ function AppProvider({ children }) {
 
       setDeployedAuctions((prev) => [...prev, auctionContracts]);
 
-      if (userAddr) {
-        const key = `myAuctions_${userAddr.toLowerCase()}`;
-        const stored = localStorage.getItem(key);
-        let arr = stored ? JSON.parse(stored) : [];
-        arr.push(auctionContracts);
-        localStorage.setItem(key, JSON.stringify(arr));
-        setMyAuctions(arr);
-      }
+       if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
+           setMyAuctions(prev => [...prev, auctionContracts]);
+        }
 
       selectAuction(auctionContracts);
 
@@ -787,7 +801,7 @@ function AppProvider({ children }) {
       setCustomMaxOffer("");
       setCustomCollateralToken("");
       setCustomCollateralRatio("");
-
+      await refreshAuctions();
       alert("All contracts deployed successfully with custom parameters.");
     } catch (error) {
       console.error("Custom deployment failed:", error);
