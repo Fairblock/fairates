@@ -55,3 +55,23 @@ export async function deployWithGas(factory, ctorArgs = []) {
   await contract.deployed();
   return contract;
 }
+
+export async function safeSendTx(contract, fnName, args = [], ignoreReasons = []) {
+  try {
+    return await sendTx(contract, fnName, args);
+  } catch (err) {
+    // find the deepest message / reason text we can
+    const reason =
+      err?.error?.error?.message ||
+      err?.error?.message ||
+      err?.reason ||
+      err?.message ||
+      "";
+
+    if (ignoreReasons.some((r) => reason.includes(r))) {
+      console.log(`⤵  Ignoring revert: ${reason}`);
+      return null;
+    }
+    throw err;           // bubble up everything else
+  }
+}

@@ -17,7 +17,7 @@ import {
 import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
-import { sendTx, deployWithGas } from "./utils/deploy.js";
+import { sendTx, deployWithGas, safeSendTx } from "./utils/deploy.js";
 
 import CollateralManagerArtifact from "./CollateralManager.json";
 import AuctionTokenArtifact from "./AuctionToken.json";
@@ -332,7 +332,7 @@ function AppProvider({ children }) {
       const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
       // const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
       // await tx.wait();
-     await sendTx(tokenContract, "approve", [spenderAddress, ethers.constants.MaxUint256]);
+      await sendTx(tokenContract, "approve", [spenderAddress, ethers.constants.MaxUint256]);
     } catch (error) {
       console.error("Approval failed:", error);
       throw new Error("Approval failed: " + error.message);
@@ -365,45 +365,45 @@ function AppProvider({ children }) {
     return new ethers.Contract(currentAuction.auctionTokenAddress, AuctionTokenArtifact.abi, signer);
   }
 
-// a tiny helper to pause for a bit
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function generateAuctionID(signer, userAddr) {
-  const fairyringContract = new ethers.Contract(
-    FAIRYRING_CONTRACT_ADDRESS,
-    FairyringArtifact.abi,
-    signer
-  );
-
-  // 1) ask for a new ID
-  // const tx = await fairyringContract.requestGeneralID();
-  // await tx.wait();
-  const tx = await sendTx(fairyringContract, "requestGeneralID");
-  console.log("Requested new ID:", tx.hash);
-  // 2) pull back the index just assigned
-  const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
-  const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
-  setAuctionIdNumber(auctionIdNum);
-
-  // 3) keep retrying fids() until it's non-zero
-  let ID;
-  const maxAttempts = 20;   // you can bump or remove this limit
-  const intervalMs  = 1000; // 1 second between tries
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    ID = await fairyringContract.fids(userAddr, auctionIdNum);
-    if (ID != "") {
-      console.log(`Generated ID on attempt ${attempt}:`, ID.toString());
-      return ID;
-    }
-    console.log(`Attempt ${attempt}/${maxAttempts}: fids not ready, retrying in ${intervalMs}ms…`);
-    await sleep(intervalMs);
+  // a tiny helper to pause for a bit
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  throw new Error(`fids(${userAddr}, ${auctionIdNum}) stayed zero after ${maxAttempts} retries`);
-}
+  async function generateAuctionID(signer, userAddr) {
+    const fairyringContract = new ethers.Contract(
+      FAIRYRING_CONTRACT_ADDRESS,
+      FairyringArtifact.abi,
+      signer
+    );
+
+    // 1) ask for a new ID
+    // const tx = await fairyringContract.requestGeneralID();
+    // await tx.wait();
+    const tx = await sendTx(fairyringContract, "requestGeneralID");
+    console.log("Requested new ID:", tx.hash);
+    // 2) pull back the index just assigned
+    const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
+    const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
+    setAuctionIdNumber(auctionIdNum);
+
+    // 3) keep retrying fids() until it's non-zero
+    let ID;
+    const maxAttempts = 20;   // you can bump or remove this limit
+    const intervalMs = 1000; // 1 second between tries
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      ID = await fairyringContract.fids(userAddr, auctionIdNum);
+      if (ID != "") {
+        console.log(`Generated ID on attempt ${attempt}:`, ID.toString());
+        return ID;
+      }
+      console.log(`Attempt ${attempt}/${maxAttempts}: fids not ready, retrying in ${intervalMs}ms…`);
+      await sleep(intervalMs);
+    }
+
+    throw new Error(`fids(${userAddr}, ${auctionIdNum}) stayed zero after ${maxAttempts} retries`);
+  }
 
 
   function selectAuction(auctionObj) {
@@ -440,7 +440,7 @@ async function generateAuctionID(signer, userAddr) {
       // tx = await cmContract.setMaintenanceRatio(DEFAULT_COLLATERAL, 1);
       // await tx.wait();
       tx = await sendTx(cmContract, "setMaintenanceRatio", [DEFAULT_COLLATERAL, 1]);
-      
+
 
       const AuctionTokenFactory = new ethers.ContractFactory(
         AuctionTokenArtifact.abi,
@@ -519,8 +519,8 @@ async function generateAuctionID(signer, userAddr) {
       //   minBid,
       //   50
       // );
-      const bmContract = await deployWithGas(BidManagerFactory, [ cmContract.address,
-        aeContract.address,
+      const bmContract = await deployWithGas(BidManagerFactory, [cmContract.address,
+      aeContract.address,
         maxBid,
         T1_ADDRESS,
         minBid,
@@ -545,7 +545,7 @@ async function generateAuctionID(signer, userAddr) {
       //   minOffer,
       //   50
       // );
-      const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address,aeContract.address,maxOffer,minOffer,50]);
+      const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address, aeContract.address, maxOffer, minOffer, 50]);
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
 
@@ -711,7 +711,7 @@ async function generateAuctionID(signer, userAddr) {
       //   maxNumBids
       // );
       const bmContract = await deployWithGas(BidManagerFactory, [cmContract.address,
-        aeContract.address,
+      aeContract.address,
         maxBid,
         purchaseToken,
         minBid,
@@ -735,7 +735,7 @@ async function generateAuctionID(signer, userAddr) {
       //   maxNumOffers
       // );
       const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address,
-        aeContract.address,
+      aeContract.address,
         maxOffer,
         minOffer,
         maxNumOffers]);
@@ -854,9 +854,9 @@ async function generateAuctionID(signer, userAddr) {
     }
     try {
       const purchaseToken = await am.repaymentToken();
-      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const tokenDecimals = await getTokenDecimals(purchaseToken);
       const quantityBN = ethers.utils.parseUnits(bidAmount, tokenDecimals);
-     
+
       let encryptedBid = "0x";
       const ae = getAuctionEngineContract();
       if (!ae) {
@@ -881,21 +881,21 @@ async function generateAuctionID(signer, userAddr) {
         alert("Enter some collateral amounts > 0.");
         return;
       }
-      
+
       const tokensArray = usedCollaterals.map((c) => c.address);
       const amountsArray = [];
-      
+
       for (let i = 0; i < usedCollaterals.length; i++) {
         const tokenAddress = tokensArray[i];
         const collateralAmount = usedCollaterals[i].amount;
-      
+
         const tokenDecimals = await getTokenDecimals(tokenAddress);
-        
+
         const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
-      
+
         amountsArray.push(amountInSmallestUnit);
       }
-      
+
       for (let i = 0; i < tokensArray.length; i++) {
         await approveToken(tokensArray[i], collateralManagerAddress);
       }
@@ -923,17 +923,17 @@ async function generateAuctionID(signer, userAddr) {
       for (let i = 0; i < tokens.length; i++) {
         const tokenAddress = tokens[i];
         const collateralAmount = amounts[i];
-  
-        const tokenDecimals = await getTokenDecimals(tokenAddress); 
-  
+
+        const tokenDecimals = await getTokenDecimals(tokenAddress);
+
         const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
         amountsInSmallestUnit.push(amountInSmallestUnit);
       }
-  
+
       for (const token of tokens) {
         await approveToken(token, collateralManagerAddress);
       }
-  
+
       // const tx = await bm.externalLockCollateral(tokens, amountsInSmallestUnit);
       // await tx.wait();
       const tx = await sendTx(bm, "externalLockCollateral", [tokens, amountsInSmallestUnit]);
@@ -946,7 +946,7 @@ async function generateAuctionID(signer, userAddr) {
       alert("Lock collateral failed: " + err.message);
     }
   }
-  
+
   async function externalUnlockCollateral(tokens, amounts) {
     const bm = getBidManagerContract();
     if (!bm) {
@@ -958,13 +958,13 @@ async function generateAuctionID(signer, userAddr) {
       for (let i = 0; i < tokens.length; i++) {
         const tokenAddress = tokens[i];
         const collateralAmount = amounts[i];
-  
-        const tokenDecimals = await getTokenDecimals(tokenAddress); 
-  
+
+        const tokenDecimals = await getTokenDecimals(tokenAddress);
+
         const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
         amountsInSmallestUnit.push(amountInSmallestUnit);
       }
-  
+
       // const tx = await bm.externalUnlockCollateral(tokens, amountsInSmallestUnit);
       // await tx.wait();
       const tx = await sendTx(bm, "externalUnlockCollateral", [tokens, amountsInSmallestUnit]);
@@ -977,7 +977,7 @@ async function generateAuctionID(signer, userAddr) {
       alert("Unlock collateral failed: " + err.message);
     }
   }
-  
+
   async function removeBid() {
     const bm = getBidManagerContract();
     if (!bm) {
@@ -1048,7 +1048,7 @@ async function generateAuctionID(signer, userAddr) {
         encryptedOffer = "0x" + encryptedOffer;
       }
       const purchaseToken = await am.repaymentToken();
-      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const tokenDecimals = await getTokenDecimals(purchaseToken);
       const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
       await approveToken(purchaseToken, lendingVaultAddress);
       // const tx = await om.submitOffer(quantity, encryptedOffer);
@@ -1078,12 +1078,12 @@ async function generateAuctionID(signer, userAddr) {
       );
       const id = await ae.auctionID();
       const parts = id.split('/');
-      const num  = parts.pop();
+      const num = parts.pop();
       const auctionIdNumber = parseInt(num, 10);
 
       // const requestTx = await fairyringContract.requestGeneralDecryptionKey(auctionIdNumber);
       // await requestTx.wait();
-     
+
       setDecryptingAuctionAddress(auctionEngineAddress);
       let first = true;
       let decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
@@ -1100,10 +1100,15 @@ async function generateAuctionID(signer, userAddr) {
       const keyArray = hexToUint8Array(decryptionKey);
       // let tx = await ae.decryptBidsBatch(3, keyArray);
       // await tx.wait();
-      const tx = await sendTx(ae, "decryptBidsBatch", [3, keyArray]);
+      const tx = await safeSendTx(
+        ae,
+        "decryptBidsBatch",
+        [3, keyArray],
+        ["All bids decrypted"]
+      );
       // tx = await ae.decryptOffersBatch(3, keyArray);
       // await tx.wait();
-      const tx2 = await sendTx(ae, "decryptOffersBatch", [3, keyArray]);
+      const tx2 = await safeSendTx(ae, "decryptOffersBatch", [3, keyArray], ["All offers decrypted"]);
 
       alert("Decryption finalized.");
     } catch (error) {
@@ -1137,7 +1142,7 @@ async function generateAuctionID(signer, userAddr) {
     }
     try {
       const purchaseToken = await am.repaymentToken();
-      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const tokenDecimals = await getTokenDecimals(purchaseToken);
       const amountBN = ethers.utils.parseUnits(repayAmount, tokenDecimals);
       await approveToken(purchaseToken, auctionEngineAddress);
       // const tx = await ae.repay(amountBN);
@@ -1164,7 +1169,7 @@ async function generateAuctionID(signer, userAddr) {
     }
     try {
       const purchaseToken = await am.repaymentToken();
-      const tokenDecimals = await getTokenDecimals(purchaseToken); 
+      const tokenDecimals = await getTokenDecimals(purchaseToken);
       const owed = await ae.repayments(walletAddress);
       const formattedOwed = ethers.utils.formatUnits(owed, tokenDecimals);
       setOwedAmount(formattedOwed);
@@ -1185,36 +1190,36 @@ async function generateAuctionID(signer, userAddr) {
       alert("Enter borrower address.");
       return;
     }
-  
+
     try {
       const provider = ae.provider;
       const latestBlock = await provider.getBlock("latest");
       const currentTime = latestBlock.timestamp;
-  
+
       const repaymentDue = await ae.repaymentDue();
       const threshold = repaymentDue.add(ethers.BigNumber.from(172800));
-  
+
       const usedCollaterals = liquidationCollateralSelections.filter((c) => c.amount && c.amount !== "0");
       if (usedCollaterals.length === 0) {
         alert("Enter coverage amounts > 0.");
         return;
       }
-  
+
       const tokensArray = usedCollaterals.map((c) => c.address);
       const coverageArray = [];
-  
+
       for (let i = 0; i < usedCollaterals.length; i++) {
         const tokenAddress = tokensArray[i];
         const collateralAmount = usedCollaterals[i].amount;
-  
+
         const tokenDecimals = await getTokenDecimals(tokenAddress);
-  
+
         const amountInSmallestUnit = ethers.utils.parseUnits(collateralAmount, tokenDecimals);
         coverageArray.push(amountInSmallestUnit);
       }
       const purchaseToken = await ae.repaymentToken();
       await approveToken(purchaseToken, auctionEngineAddress);
-  
+
       let tx;
       // if (currentTime < threshold.toNumber()) {
       //   tx = await ae.batchEarlyLiquidation(liquidationBorrower, tokensArray, coverageArray);
@@ -1227,7 +1232,7 @@ async function generateAuctionID(signer, userAddr) {
       } else {
         tx = await sendTx(ae, "batchLateLiquidation", [liquidationBorrower, tokensArray, coverageArray]);
       }
-      
+
       alert("Liquidation executed.");
       setLiquidationBorrower("");
       setLiquidationCollateralSelections(liquidationCollateralSelections.map(c => ({ address: c.address, amount: "" })));
@@ -1236,7 +1241,7 @@ async function generateAuctionID(signer, userAddr) {
       alert("Liquidation failed: " + error.message);
     }
   }
-  
+
 
   async function cancelAuction() {
     const ae = getAuctionEngineContract();
@@ -1401,7 +1406,7 @@ async function generateAuctionID(signer, userAddr) {
     checkOwed,
     liquidate,
     cancelAuction,
-  
+
 
     redemptionAmount,
     setRedemptionAmount,
@@ -2749,7 +2754,7 @@ function UserAuctionPage() {
   const input = { width: "90%", padding: "18px 20px", fontSize: 18, borderRadius: 12, background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", outline: "none", transition: "box-shadow .18s,border .18s" };
   const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,0.45)"; e.currentTarget.style.borderColor = COLORS.accent; };
   const focusOff = e => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; };
-  const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28, fontFamily:FONT_FAMILY };
+  const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28, fontFamily: FONT_FAMILY };
   const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
   const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
 
