@@ -1104,11 +1104,11 @@ function AppProvider({ children }) {
         ae,
         "decryptBidsBatch",
         [3, keyArray],
-        ["All bids decrypted"]
+        ["All bids decrypted","UNPREDICTABLE_GAS_LIMIT"]
       );
       // tx = await ae.decryptOffersBatch(3, keyArray);
       // await tx.wait();
-      const tx2 = await safeSendTx(ae, "decryptOffersBatch", [3, keyArray], ["All offers decrypted"]);
+      const tx2 = await safeSendTx(ae, "decryptOffersBatch", [3, keyArray], ["All offers decrypted", "UNPREDICTABLE_GAS_LIMIT"]);
 
       alert("Decryption finalized.");
     } catch (error) {

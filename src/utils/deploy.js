@@ -56,23 +56,52 @@ export async function deployWithGas(factory, ctorArgs = []) {
   return contract;
 }
 
-export async function safeSendTx(contract, fnName, args = [], ignoreReasons = []) {
+// deploy.js  ── add / replace safeSendTx
+export async function safeSendTx(
+  contract,
+  fnName,
+  args = [],
+  ignoreReasons = []
+) {
+  const signer = contract.runner ?? contract.signer;
+
+  // helper that tests a message against the ignore list
+  const shouldIgnore = (msg = "") =>
+    ignoreReasons.some((r) => msg.includes(r));
+
+  // 1️⃣ try a manual gas estimate first — because sendTx() will do the same
+  try {
+    await contract.estimateGas[fnName](...args);
+  } catch (estErr) {
+    const msg =
+      estErr?.error?.error?.message ||
+      estErr?.error?.message ||
+      estErr?.reason ||
+      estErr?.message ||
+      "";
+
+    // “All bids decrypted” usually shows up here
+    if (shouldIgnore(msg)) {
+      console.log(`⤵  Skipping call ${fnName}: ${msg}`);
+      return null;
+    }
+    throw estErr; // other errors bubble up
+  }
+
+  // 2️⃣ run the normal send path (may still revert inside the tx)
   try {
     return await sendTx(contract, fnName, args);
   } catch (err) {
-    console.error("Transaction failed", err);
-    // find the deepest message / reason text we can
-    const reason =
+    const msg =
       err?.error?.error?.message ||
       err?.error?.message ||
       err?.reason ||
       err?.message ||
       "";
-
-    if (ignoreReasons.some((r) => reason.includes(r))) {
-      console.log(`⤵  Ignoring revert: ${reason}`);
+    if (shouldIgnore(msg)) {
+      console.log(`⤵  Ignoring revert in ${fnName}: ${msg}`);
       return null;
     }
-    throw err;           // bubble up everything else
+    throw err;
   }
 }
