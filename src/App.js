@@ -363,21 +363,45 @@ function AppProvider({ children }) {
     return new ethers.Contract(currentAuction.auctionTokenAddress, AuctionTokenArtifact.abi, signer);
   }
 
-  async function generateAuctionID(signer, userAddr) {
-    const fairyringContract = new ethers.Contract(
-      FAIRYRING_CONTRACT_ADDRESS,
-      FairyringArtifact.abi,
-      signer
-    );
-    const tx = await fairyringContract.requestGeneralID();
-    await tx.wait();
-    const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
-    const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
-    setAuctionIdNumber(auctionIdNum);
-    const ID = await fairyringContract.fids(userAddr, auctionIdNum);
-    console.log("Generated ID:", ID);
-    return ID;
+// a tiny helper to pause for a bit
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function generateAuctionID(signer, userAddr) {
+  const fairyringContract = new ethers.Contract(
+    FAIRYRING_CONTRACT_ADDRESS,
+    FairyringArtifact.abi,
+    signer
+  );
+
+  // 1) ask for a new ID
+  const tx = await fairyringContract.requestGeneralID();
+  await tx.wait();
+
+  // 2) pull back the index just assigned
+  const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
+  const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
+  setAuctionIdNumber(auctionIdNum);
+
+  // 3) keep retrying fids() until it's non-zero
+  let ID;
+  const maxAttempts = 20;   // you can bump or remove this limit
+  const intervalMs  = 1000; // 1 second between tries
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    ID = await fairyringContract.fids(userAddr, auctionIdNum);
+    if (!ID.isZero()) {
+      console.log(`Generated ID on attempt ${attempt}:`, ID.toString());
+      return ID;
+    }
+    console.log(`Attempt ${attempt}/${maxAttempts}: fids not ready, retrying in ${intervalMs}ms…`);
+    await sleep(intervalMs);
   }
+
+  throw new Error(`fids(${userAddr}, ${auctionIdNum}) stayed zero after ${maxAttempts} retries`);
+}
+
 
   function selectAuction(auctionObj) {
     setCurrentAuction(auctionObj);
@@ -394,6 +418,9 @@ function AppProvider({ children }) {
       return;
     }
     try {
+      const userAddr = await signer.getAddress();
+      const ID = await generateAuctionID(signer, userAddr);
+      console.log("Generated ID:", ID);
       const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       const CollateralManagerFactory = new ethers.ContractFactory(
         CollateralManagerArtifact.abi,
@@ -409,8 +436,7 @@ function AppProvider({ children }) {
       tx = await cmContract.setMaintenanceRatio(DEFAULT_COLLATERAL, 1);
       await tx.wait();
 
-      const userAddr = await signer.getAddress();
-      const ID = await generateAuctionID(signer, userAddr);
+      
 
       const AuctionTokenFactory = new ethers.ContractFactory(
         AuctionTokenArtifact.abi,
