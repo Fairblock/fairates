@@ -249,16 +249,16 @@ function AppProvider({ children }) {
   }, [walletAddress]);
 
   useEffect(() => {
-    if (window.ethereum) {
+    // if (window.ethereum) {
 
-      window.ethereum.on("chainChanged", async () => {
-        try {
-          await ensureArbitrumSepolia();
-        } catch (err) {
-          console.error("Network switch failed", err);
-        }
-      });
-    }
+    //   window.ethereum.on("chainChanged", async () => {
+    //     try {
+    //       await ensureArbitrumSepolia();
+    //     } catch (err) {
+    //       console.error("Network switch failed", err);
+    //     }
+    //   });
+    // }
 
     if (window.ethereum) {
 
@@ -285,7 +285,7 @@ function AppProvider({ children }) {
       return;
     }
     try {
-      await ensureArbitrumSepolia();
+     // await ensureArbitrumSepolia();
 
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
@@ -378,7 +378,7 @@ async function generateAuctionID(signer, userAddr) {
   // 1) ask for a new ID
   const tx = await fairyringContract.requestGeneralID();
   await tx.wait();
-
+  console.log("Requested new ID:", tx.hash);
   // 2) pull back the index just assigned
   const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
   const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();
@@ -391,7 +391,7 @@ async function generateAuctionID(signer, userAddr) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     ID = await fairyringContract.fids(userAddr, auctionIdNum);
-    if (!ID.isZero()) {
+    if (ID != "") {
       console.log(`Generated ID on attempt ${attempt}:`, ID.toString());
       return ID;
     }

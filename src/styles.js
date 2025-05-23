@@ -170,7 +170,7 @@ const ARBITRUM_SEPOLIA = {
   chainId: "0x66eee",
   chainName: "Arbitrum Sepolia Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+  rpcUrls: ["https://arb-sepolia.g.alchemy.com/v2/dGQpXrSNg3TUJ9Mm6ztTUQ2mtSeoMYcZ"],
   blockExplorerUrls: ["https://sepolia.arbiscan.io"],
 };
 
