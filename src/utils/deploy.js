@@ -56,30 +56,26 @@ export async function deployWithGas(factory, ctorArgs = []) {
   return contract;
 }
 
-
 export async function safeSendTx(
   contract,
   fnName,
   args = [],
-  ignoreReasons = []
+  ignoreReasons = ["all bids decrypted", "all offers decrypted"],
+  skipOnUnpredictable = true          // ← set false if you want to surface others
 ) {
-  const signer = contract.runner ?? contract.signer;
+  const wantsSkip = (msg = "") => {
+    const lower = msg.toLowerCase();
+    return ignoreReasons.some((r) => lower.includes(r.toLowerCase()));
+  };
 
-  const wantsSkip = (msg = "") =>
-    ignoreReasons.some((r) => msg.includes(r));
-
-  // helper: unwrap revert reason out of an UNPREDICTABLE_GAS_LIMIT error
   const extractReason = (e) => {
-    // ethers v5
-    if (typeof e?.error?.data === "string") {
+    // bytes in error.data → utf‑8 revert string
+    if (typeof e?.error?.data === "string" && e.error.data.length >= 10) {
       try {
-        // first 4 bytes = selector, rest is ABI‑encoded revert string
-        const reasonHex = "0x" + e.error.data.slice(10);
-        return utils.toUtf8String(reasonHex);
+        return utils.toUtf8String("0x" + e.error.data.slice(10));
       } catch (_) {}
     }
     return (
-      e?.error?.error?.message ||
       e?.error?.message ||
       e?.reason ||
       e?.message ||
@@ -87,27 +83,27 @@ export async function safeSendTx(
     );
   };
 
-  // 1️⃣ manual estimate – may throw UNPREDICTABLE_GAS_LIMIT
+  /* ── 1. estimateGas probe ─────────────────────────────────────────── */
   try {
     await contract.estimateGas[fnName](...args);
   } catch (estErr) {
-    const code   = estErr.code ?? "";
-    const reason = extractReason(estErr);
-
-    if (code === "UNPREDICTABLE_GAS_LIMIT" && wantsSkip(reason)) {
-      console.log(`⤵  Skipping ${fnName}: ${reason}`);
+    if (
+      estErr.code === "UNPREDICTABLE_GAS_LIMIT" &&
+      (skipOnUnpredictable || wantsSkip(extractReason(estErr)))
+    ) {
+      console.log(`⤵  Skipping ${fnName}: ${extractReason(estErr)}`);
       return null;
     }
     throw estErr;
   }
 
-  // 2️⃣ real send
+  /* ── 2. real transaction ──────────────────────────────────────────── */
   try {
+    const { sendTx } = await import("./deploy.js"); // avoids circular import
     return await sendTx(contract, fnName, args);
   } catch (err) {
-    const reason = extractReason(err);
-    if (wantsSkip(reason)) {
-      console.log(`⤵  Ignoring revert in ${fnName}: ${reason}`);
+    if (wantsSkip(extractReason(err))) {
+      console.log(`⤵  Ignoring revert in ${fnName}: ${extractReason(err)}`);
       return null;
     }
     throw err;

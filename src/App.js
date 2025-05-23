@@ -1103,12 +1103,11 @@ function AppProvider({ children }) {
       const tx = await safeSendTx(
         ae,
         "decryptBidsBatch",
-        [3, keyArray],
-        ["All bids decrypted"]
+        [3, keyArray]
       );
       // tx = await ae.decryptOffersBatch(3, keyArray);
       // await tx.wait();
-      const tx2 = await safeSendTx(ae, "decryptOffersBatch", [3, keyArray], ["All offers decrypted"]);
+      const tx2 = await safeSendTx(ae, "decryptOffersBatch", [3, keyArray]);
 
       alert("Decryption finalized.");
     } catch (error) {
