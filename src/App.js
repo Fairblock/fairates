@@ -249,16 +249,16 @@ function AppProvider({ children }) {
   }, [walletAddress]);
 
   useEffect(() => {
-    // if (window.ethereum) {
+    if (window.ethereum) {
 
-    //   window.ethereum.on("chainChanged", async () => {
-    //     try {
-    //       await ensureArbitrumSepolia();
-    //     } catch (err) {
-    //       console.error("Network switch failed", err);
-    //     }
-    //   });
-    // }
+      window.ethereum.on("chainChanged", async () => {
+        try {
+          await ensureArbitrumSepolia();
+        } catch (err) {
+          console.error("Network switch failed", err);
+        }
+      });
+    }
 
     if (window.ethereum) {
 
@@ -285,7 +285,7 @@ function AppProvider({ children }) {
       return;
     }
     try {
-     // await ensureArbitrumSepolia();
+      await ensureArbitrumSepolia();
 
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
