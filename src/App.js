@@ -594,8 +594,24 @@ useEffect(() => {
            setMyAuctions(prev => [...prev, auctionContracts]);
         }
 
-      selectAuction(auctionContracts);
-      await refreshAuctions();
+  // 1) locally add it
+const newList = [...deployedAuctions, auctionContracts];
+setDeployedAuctions(newList);
+
+// 2) select it in your UI
+selectAuction(auctionContracts);
+
+// 3) push to the server
+await fetch("https://auction-db.fairblock.network/contracts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ auctions: newList })
+});
+
+// 4) (optional) re-fetch if you want to double-check
+await refreshAuctions();
+
+
       alert("All contracts deployed successfully. Auction address: " + auctionContracts.auctionEngineAddress);
     } catch (error) {
       console.error("Deployment failed:", error);
@@ -781,7 +797,8 @@ useEffect(() => {
        if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
            setMyAuctions(prev => [...prev, auctionContracts]);
         }
-
+        const newList = [...deployedAuctions, auctionContracts];
+        setDeployedAuctions(newList);
       selectAuction(auctionContracts);
 
       setCustomPriceOracle("");
@@ -801,7 +818,20 @@ useEffect(() => {
       setCustomMaxOffer("");
       setCustomCollateralToken("");
       setCustomCollateralRatio("");
-      await refreshAuctions();
+
+
+
+// 3) push to the server
+await fetch("https://auction-db.fairblock.network/contracts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ auctions: newList })
+});
+
+// 4) (optional) re-fetch if you want to double-check
+await refreshAuctions();
+alert("All contracts deployed successfully!");
+
       alert("All contracts deployed successfully with custom parameters.");
     } catch (error) {
       console.error("Custom deployment failed:", error);
@@ -1332,23 +1362,23 @@ useEffect(() => {
       .catch((error) => console.error("Error fetching contracts from server:", error));
   }, []);
 
-  useEffect(() => {
-    if (!serverLoaded) return;
-    const contractData = {
-      auctions: deployedAuctions
-    };
-    const allEmpty = deployedAuctions.length === 0;
-    if (allEmpty) return;
+  // useEffect(() => {
+  //   if (!serverLoaded) return;
+  //   const contractData = {
+  //     auctions: deployedAuctions
+  //   };
+  //   const allEmpty = deployedAuctions.length === 0;
+  //   if (allEmpty) return;
 
-    fetch("https://auction-db.fairblock.network/contracts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(contractData)
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Server updated with contract data:", data))
-      .catch((error) => console.error("Error updating server:", error));
-  }, [serverLoaded, deployedAuctions]);
+  //   fetch("https://auction-db.fairblock.network/contracts", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(contractData)
+  //   })
+  //     .then((response) => response.json())
+  //     .then((data) => console.log("Server updated with contract data:", data))
+  //     .catch((error) => console.error("Error updating server:", error));
+  // }, [serverLoaded, deployedAuctions]);
 
   const contextValue = {
     signer,
