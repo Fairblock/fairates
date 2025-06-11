@@ -137,7 +137,7 @@ function AppProvider({ children }) {
   const refreshAuctions = React.useCallback(
     async (addr = walletAddress) => {
       try {
-        const res = await fetch("https://34.136.22.54:9092/contracts");
+        const res = await fetch("https://auction-db.fairblock.network:9092/contracts");
         const { auctions = [] } = await res.json();
   
         setDeployedAuctions(auctions);
@@ -602,7 +602,7 @@ setDeployedAuctions(newList);
 selectAuction(auctionContracts);
 
 // 3) push to the server
-await fetch("https://34.136.22.54:9092/contracts", {
+await fetch("https://auction-db.fairblock.network:9092/contracts", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ auctions: newList })
@@ -822,7 +822,7 @@ await refreshAuctions();
 
 
 // 3) push to the server
-await fetch("https://34.136.22.54:9092/contracts", {
+await fetch("https://auction-db.fairblock.network:9092/contracts", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ auctions: newList })
@@ -1345,7 +1345,7 @@ alert("All contracts deployed successfully!");
   }
 
   useEffect(() => {
-    fetch("https://34.136.22.54:9092/contracts")
+    fetch("https://auction-db.fairblock.network:9092/contracts")
       .then((response) => response.json())
       .then((data) => {
         if (data.auctions && data.auctions.length > 0) {
@@ -1370,7 +1370,7 @@ alert("All contracts deployed successfully!");
   //   const allEmpty = deployedAuctions.length === 0;
   //   if (allEmpty) return;
 
-  //   fetch("https://34.136.22.54:9092/contracts", {
+  //   fetch("https://auction-db.fairblock.network:9092/contracts", {
   //     method: "POST",
   //     headers: { "Content-Type": "application/json" },
   //     body: JSON.stringify(contractData)
