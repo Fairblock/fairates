@@ -29,13 +29,13 @@ import FairyringArtifact from "./FairyringContract.json";
 import {
   FAIRYRING_CONTRACT_ADDRESS,
   ERC20ABI,
-  T1_ADDRESS,
+  USDC_ADDRESS,
   DEFAULT_COLLATERAL,
-  T2_ADDRESS,
-  T3_ADDRESS,
-  T1_FAUCET,
-  T2_FAUCET,
-  T3_FAUCET,
+  ETH_ADDRESS,
+  BTC_ADDRESS,
+  USDC_FAUCET,
+  ETH_FAUCET,
+  BTC_FAUCET,
   ARBITRUM_SEPOLIA,
   COLORS,
   FONT_FAMILY,
@@ -493,7 +493,7 @@ useEffect(() => {
         REVEAL_DURATION,
         LOAN_DURATION,
         ID,
-        T1_ADDRESS,
+        USDC_ADDRESS,
         FEE,
         FEE,
         FEE,
@@ -505,7 +505,7 @@ useEffect(() => {
       //   REVEAL_DURATION,
       //   LOAN_DURATION,
       //   ID,
-      //   T1_ADDRESS,
+      //   USDC_ADDRESS,
       //   FEE,
       //   FEE,
       //   FEE,
@@ -523,8 +523,8 @@ useEffect(() => {
         LendingVaultArtifact.bytecode,
         signer
       );
-      // const lvContract = await LendingVaultFactory.deploy(T1_ADDRESS);
-      const lvContract = await deployWithGas(LendingVaultFactory, [T1_ADDRESS]);
+      // const lvContract = await LendingVaultFactory.deploy(USDC_ADDRESS);
+      const lvContract = await deployWithGas(LendingVaultFactory, [USDC_ADDRESS]);
       await lvContract.deployed();
       setLendingVaultAddress(lvContract.address);
 
@@ -539,14 +539,14 @@ useEffect(() => {
       //   cmContract.address,
       //   aeContract.address,
       //   maxBid,
-      //   T1_ADDRESS,
+      //   USDC_ADDRESS,
       //   minBid,
       //   50
       // );
       const bmContract = await deployWithGas(BidManagerFactory, [cmContract.address,
       aeContract.address,
         maxBid,
-        T1_ADDRESS,
+        USDC_ADDRESS,
         minBid,
         50]);
       await bmContract.deployed();
@@ -1595,42 +1595,42 @@ function FaucetPage() {
         { }
         <div style={{ marginBottom: 28 }}>
           <p style={sub}>
-            <strong>T1 token</strong>
+            <strong>USDC token</strong>
             <br />
             Address:&nbsp;<span className="wrap-addr">
-              <TokenDisplay address={T1_ADDRESS} />
+              <TokenDisplay address={USDC_ADDRESS} />
             </span>
           </p>
-          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T1", T1_FAUCET)}>
-            Request&nbsp;T1
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("USDC", USDC_FAUCET)}>
+            Request&nbsp;USDC
           </button>
         </div>
 
         { }
         <div style={{ marginBottom: 28 }}>
           <p style={sub}>
-            <strong>T2 token</strong>
+            <strong>ETH token</strong>
             <br />
             Address:&nbsp;<span className="wrap-addr">
-              <TokenDisplay address={T2_ADDRESS} />
+              <TokenDisplay address={ETH_ADDRESS} />
             </span>
           </p>
-          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T2", T2_FAUCET)}>
-            Request&nbsp;T2
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("ETH", ETH_FAUCET)}>
+            Request&nbsp;ETH
           </button>
         </div>
 
         { }
         <div>
           <p style={sub}>
-            <strong>T3 token</strong>
+            <strong>BTC token</strong>
             <br />
             Address:&nbsp;<span className="wrap-addr">
-              <TokenDisplay address={T3_ADDRESS} />
+              <TokenDisplay address={BTC_ADDRESS} />
             </span>
           </p>
-          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("T3", T3_FAUCET)}>
-            Request&nbsp;T3
+          <button className="btn-primary" style={btn} onClick={() => handleWithdraw("BTC", BTC_FAUCET)}>
+            Request&nbsp;BTC
           </button>
         </div>
       </div>
@@ -2432,7 +2432,7 @@ function DeployPage() {
         auction characteristics and disables some checks for easier testing.
       </p>
       <p style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 32 }}>
-        In the generated auction, T1 is set as purchase token and T2 is the
+        In the generated auction, USDC is set as purchase token and ETH is the
         collateral by default.
       </p>
       <button className="btn-primary" style={btn} onClick={deployContracts}>
