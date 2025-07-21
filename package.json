@@ -22,7 +22,7 @@
     "react-router-dom": "^7.4.1",
     "react-scripts": "5.0.1",
     "stream-browserify": "^3.0.0",
-    "ts-ibe": "file:vendor/ts-ibe-1.1.3.tgz",
+    "ts-ibe": "file:./vendor/ts-ibe-1.1.3.tgz",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
