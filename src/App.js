@@ -1883,15 +1883,34 @@ function LandingPage() {
         </div>
 
         <div style={ctaRow}>
-          <button
-            style={primaryBtn}
-            onClick={() => navigate("/user")}
-            onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
-            onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
-          >
-            Bid or Supply
-          </button>
-        </div>
+  <button
+    /* equal but narrower */
+    style={{ ...primaryBtn, flex: "0 0 220px" }}   // 220 px wide; tweak to taste
+    onClick={() => navigate("/user")}
+    onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
+    onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
+  >
+    Bid or Supply
+  </button>
+
+  <button
+    /* equal but narrower */
+    style={{ ...primaryBtn, flex: "0 0 220px" }}   // same width as the first
+    onClick={() =>
+      window.open(
+        "https://docs.fairblock.network/docs/Fairates",
+        "_blank",
+        "noopener,noreferrer",
+      )
+    }
+    onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
+    onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
+  >
+    Deep Dive
+  </button>
+</div>
+
+
       </div>
     </>
   )
