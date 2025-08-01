@@ -17,6 +17,22 @@ import {
   DEFAULT_COLLATERAL,
   ARBITRUM_SEPOLIA,
 } from "../styles.js";
+import {
+  deployContractsCustom as deployContractsCustomUtil,
+  registerNewCollateral as registerNewCollateralUtil,
+  placeBid as placeBidUtil,
+  placeOffer as placeOfferUtil,
+  finalizeAuction as finalizeAuctionUtil,
+  repay as repayUtil,
+  checkOwed as checkOwedUtil,
+  liquidate as liquidateUtil,
+  cancelAuction as cancelAuctionUtil,
+  redeemToken as redeemTokenUtil,
+  externalLockCollateral as externalLockCollateralUtil,
+  externalUnlockCollateral as externalUnlockCollateralUtil,
+  removeBid as removeBidUtil,
+  removeOffer as removeOfferUtil,
+} from "../utils/auctionFunctions.js";
 
 const ERC20_ABI = [
   "function decimals() view returns (uint8)",
@@ -506,61 +522,186 @@ export function AppProvider({ children }) {
     }
   }
 
-  // Add missing functions from auctionFunctions.js
+  // Wrapper functions that call the utility functions with proper context
   async function deployContractsCustom() {
-    // This will be implemented by importing from auctionFunctions.js
+    return deployContractsCustomUtil(
+      signer,
+      customPriceOracle,
+      customBidDuration,
+      customRevealDuration,
+      customRepaymentDuration,
+      customFee,
+      customLiquidationFee,
+      customProtocolLiquidationFee,
+      customAuctionTokenAmount,
+      customPurchaseToken,
+      customMaxBid,
+      customMaxOffer,
+      customMinBid,
+      customMinOffer,
+      customMaxNumBids,
+      customMaxNumOffers,
+      customCollateralToken,
+      customCollateralRatio,
+      walletAddress,
+      deployedAuctions,
+      setDeployedAuctions,
+      setMyAuctions,
+      selectAuction,
+      refreshAuctions
+    );
   }
 
   async function registerNewCollateral() {
-    // This will be implemented by importing from auctionFunctions.js
+    return registerNewCollateralUtil(
+      signer,
+      collateralManagerAddress,
+      newCollateralAddress,
+      newCollateralRatio,
+      setRegisteredCollaterals,
+      setAvailableCollaterals,
+      setBidCollateralSelections,
+      setLiquidationCollateralSelections,
+      setUnlockCollateralSelections,
+      setNewCollateralAddress,
+      setNewCollateralRatio
+    );
   }
 
   async function placeBid() {
-    // This will be implemented by importing from auctionFunctions.js
+    return placeBidUtil(
+      signer,
+      bidManagerAddress,
+      auctionEngineAddress,
+      collateralManagerAddress,
+      bidAmount,
+      bidRate,
+      bidCollateralSelections,
+      setBidAmount,
+      setBidRate,
+      setBidCollateralSelections,
+      getTokenDecimals
+    );
   }
 
   async function placeOffer() {
-    // This will be implemented by importing from auctionFunctions.js
+    return placeOfferUtil(
+      signer,
+      offerManagerAddress,
+      lendingVaultAddress,
+      auctionEngineAddress,
+      offerAmount,
+      offerRate,
+      setOfferAmount,
+      setOfferRate,
+      getTokenDecimals
+    );
   }
 
   async function finalizeAuction() {
-    // This will be implemented by importing from auctionFunctions.js
+    return finalizeAuctionUtil(
+      signer,
+      auctionEngineAddress,
+      walletAddress,
+      setDecryptingAuctionAddress
+    );
   }
 
   async function repay() {
-    // This will be implemented by importing from auctionFunctions.js
+    return repayUtil(
+      signer,
+      auctionEngineAddress,
+      repayAmount,
+      setRepayAmount,
+      getTokenDecimals
+    );
   }
 
   async function checkOwed() {
-    // This will be implemented by importing from auctionFunctions.js
+    return checkOwedUtil(
+      signer,
+      auctionEngineAddress,
+      walletAddress,
+      setOwedAmount,
+      getTokenDecimals
+    );
   }
 
   async function liquidate() {
-    // This will be implemented by importing from auctionFunctions.js
+    return liquidateUtil(
+      signer,
+      auctionEngineAddress,
+      liquidationBorrower,
+      liquidationCollateralSelections,
+      setLiquidationBorrower,
+      setLiquidationCollateralSelections,
+      getTokenDecimals
+    );
   }
 
   async function cancelAuction() {
-    // This will be implemented by importing from auctionFunctions.js
+    return cancelAuctionUtil(
+      signer,
+      auctionEngineAddress,
+      cancelReason,
+      setCancelReason
+    );
   }
 
   async function redeemToken() {
-    // This will be implemented by importing from auctionFunctions.js
+    return redeemTokenUtil(
+      signer,
+      currentAuction,
+      auctionEngineAddress,
+      redemptionAmount,
+      setRedemptionAmount,
+      getTokenDecimals
+    );
   }
 
   async function externalLockCollateral() {
-    // This will be implemented by importing from auctionFunctions.js
+    return externalLockCollateralUtil(
+      signer,
+      bidManagerAddress,
+      collateralManagerAddress,
+      extraCollateralSelections.map(c => c.address),
+      extraCollateralSelections.map(c => c.amount),
+      setExtraCollateralSelections,
+      getTokenDecimals,
+      extraCollateralSelections
+    );
   }
 
   async function externalUnlockCollateral() {
-    // This will be implemented by importing from auctionFunctions.js
+    return externalUnlockCollateralUtil(
+      signer,
+      bidManagerAddress,
+      removeCollateralSelections.map(c => c.address),
+      removeCollateralSelections.map(c => c.amount),
+      setRemoveCollateralSelections,
+      getTokenDecimals,
+      removeCollateralSelections
+    );
   }
 
   async function removeBid() {
-    // This will be implemented by importing from auctionFunctions.js
+    return removeBidUtil(
+      signer,
+      bidManagerAddress,
+      setBidAmount,
+      setBidRate,
+      setBidCollateralSelections,
+      bidCollateralSelections
+    );
   }
 
   async function removeOffer() {
-    // This will be implemented by importing from auctionFunctions.js
+    return removeOfferUtil(
+      signer,
+      offerManagerAddress,
+      setOfferAmount,
+      setOfferRate
+    );
   }
 
   function handleUnlockCollateralToggle(index) {

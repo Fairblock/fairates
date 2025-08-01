@@ -327,7 +327,7 @@ export async function placeBid(
     }
 
     for (let i = 0; i < tokensArray.length; i++) {
-      await approveToken(tokensArray[i], collateralManagerAddress);
+      await approveToken(signer, tokensArray[i], collateralManagerAddress);
     }
     console.log("amountsArray:", amountsArray);
     const tx = await sendTx(bm, "submitBid", [quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken]);
@@ -638,7 +638,8 @@ export async function externalLockCollateral(
   tokens,
   amounts,
   setExtraCollateralSelections,
-  getTokenDecimals
+  getTokenDecimals,
+  extraCollateralSelections
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   if (!bm) {
@@ -658,7 +659,7 @@ export async function externalLockCollateral(
     }
 
     for (const token of tokens) {
-      await approveToken(token, collateralManagerAddress);
+      await approveToken(signer, token, collateralManagerAddress);
     }
 
     const tx = await sendTx(bm, "externalLockCollateral", [tokens, amountsInSmallestUnit]);
@@ -678,7 +679,8 @@ export async function externalUnlockCollateral(
   tokens,
   amounts,
   setRemoveCollateralSelections,
-  getTokenDecimals
+  getTokenDecimals,
+  removeCollateralSelections
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   if (!bm) {
@@ -757,7 +759,7 @@ export async function removeOffer(
   }
 }
 
-async function approveToken(tokenAddress, spenderAddress) {
+async function approveToken(signer, tokenAddress, spenderAddress) {
   const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
   await sendTx(tokenContract, "approve", [spenderAddress, ethers.constants.MaxUint256]);
 }

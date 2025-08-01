@@ -1,7 +1,9 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
 import { COLORS, FONT_FAMILY } from "../styles.js";
+import AuctionEngineArtifact from "../AuctionEngine.json";
 
 export function AuctionManagementPage() {
   const { aeAddress } = useParams();
@@ -26,6 +28,27 @@ export function AuctionManagementPage() {
   } = useAppContext();
 
   const [clearingRate, setClearingRate] = React.useState("");
+
+  async function checkClearingRate() {
+    if (!signer || !auctionEngineAddress) {
+      alert("AuctionEngine not set or wallet not connected.");
+      return;
+    }
+    try {
+      const ae = new ethers.Contract(
+        auctionEngineAddress,
+        AuctionEngineArtifact.abi,
+        signer
+      );
+      const r = await ae.auctionClearingRate();
+      const rate = r / 1e18;
+      setClearingRate(rate.toString());
+      alert(`Clearing Rate: ${rate}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch clearing rate: " + err.message);
+    }
+  }
 
   React.useEffect(() => {
     if (aeAddress && (!currentAuction || currentAuction.auctionEngineAddress !== aeAddress)) {
@@ -114,6 +137,16 @@ export function AuctionManagementPage() {
           </button>
           {decryptingAuctionAddress === auctionEngineAddress && (
             <p style={{ marginTop: 10 }}>Decryption in progress…</p>
+          )}
+
+          <h3 style={{ ...sectionH3, marginTop: 32 }}>Check clearing rate</h3>
+          <button className="btn-primary" style={btn} onClick={checkClearingRate}>
+            Get rate
+          </button>
+          {clearingRate && (
+            <p style={{ marginTop: 10, fontSize: 16 }}>
+              Current clearing rate:&nbsp;<strong>{clearingRate}</strong>
+            </p>
           )}
         </div>
 
