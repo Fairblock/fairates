@@ -1,110 +1,289 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopBar } from "../components/TopBar";
-import { COLORS, FONT_FAMILY } from "../styles.js";
+import { FONT_FAMILY } from "../styles.js";
 
 export function LandingPage() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.body.classList.add("landing-page-active");
+    return () => {
+      document.body.classList.remove("landing-page-active");
+    };
+  }, []);
+
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/developer/deploy", label: "Deploy" },
-    { to: "/developer/manage", label: "Manage" },
-    { to: "/developer/faucet", label: "Faucet" },
+    { to: "/developer/deploy", label: "Deploy Auction" },
+    { to: "https://docs.fairblock.network/docs/Fairates", label: "How it works" },
   ];
 
-  const heroWrap = {
-    maxWidth: "1120px",
-    margin: "0 auto",
-    padding: "50px 20px 100px",
-    textAlign: "center",
+  const pageContainer = {
+    minHeight: "100vh",
+    backgroundColor: "#FFFFFF",
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  const mainContent = {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    flex: 1,
+    minHeight: "calc(100vh - var(--header-height, 80px))",
+    width: "100%",
+    overflow: "hidden",
+  };
+
+  const leftContent = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    padding: "80px 64px",
+    maxWidth: "600px",
+  };
+
+  const rightContent = {
+    position: "relative",
+    overflow: "hidden",
+    width: "100%",
+    height: "100%",
+    minHeight: "calc(100vh - var(--header-height, 80px))",
+  };
+
+  const videoBackground = {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    height: "100%",
+    width: "auto",
+    minWidth: "100%",
+    objectFit: "cover",
+    display: "block",
   };
 
   const heroHeading = {
-    fontSize: "clamp(2rem, 6vw, 3rem)",
-    fontWeight: 400,
-    lineHeight: 1.1,
-    marginBottom: "24px",
-    color: "#fff",
-    fontFamily: FONT_FAMILY,
+    fontSize: "clamp(1.75rem, 3vw, 3rem)",
+    fontWeight: 700,
+    lineHeight: 1.2,
+    marginBottom: "32px",
+    color: "#000000",
+    fontFamily: "'Charter', serif",
+    whiteSpace: "nowrap",
   };
 
   const heroSubContainer = {
-    maxWidth: "650px",
-    margin: "0 auto 56px",
-    textAlign: "left",
+    marginBottom: "40px",
   };
 
   const heroSub = {
-    fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
-    lineHeight: 1.5,
-    margin: "0 0 24px",
-    color: COLORS.textMuted,
-  };
-
-  const ctaRow = {
-    display: "flex",
-    gap: "16px",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    fontSize: "clamp(1.1rem, 2vw, 1.35rem)",
+    lineHeight: 1.6,
+    margin: "0 0 20px",
+    color: "#333333",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontWeight: 274,
   };
 
   const primaryBtn = {
-    background: COLORS.accent,
-    color: "#FFF",
+    background: "#000000",
+    color: "#FFFFFF",
     border: "none",
     padding: "14px 32px",
-    borderRadius: "12px",
+    borderRadius: "8px",
     fontSize: "1rem",
-    fontWeight: 600,
+    fontWeight: 400,
     cursor: "pointer",
-    transition: "background .18s",
-    fontFamily: FONT_FAMILY,
+    transition: "opacity .18s",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    width: "fit-content",
   };
 
   return (
     <>
-      <TopBar sectionLinks={links} />
-
-      <div style={heroWrap}>
-        <h1 style={heroHeading}>
-          Fixed <span style={{ color: COLORS.accent }}>rates</span>,<br />
-          not fixed games.
-        </h1>
-
-        <div style={heroSubContainer}>
-          <p style={heroSub}>
-            <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
-          </p>
-          <p style={heroSub}>
-            <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing.
-          </p>
-        </div>
-
-        <div style={ctaRow}>
-          <button
-            style={{ ...primaryBtn, flex: "0 0 220px" }}
-            onClick={() => navigate("/user")}
-            onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
-            onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
-          >
-            Bid or Supply
-          </button>
-
-          <button
-            style={{ ...primaryBtn, flex: "0 0 220px" }}
-            onClick={() =>
-              window.open(
-                "https://docs.fairblock.network/docs/Fairates",
-                "_blank",
-                "noopener,noreferrer",
-              )
+      <style>
+        {`
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_bold.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_italic.woff2') format('woff2');
+            font-weight: 400;
+            font-style: italic;
+          }
+          
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_bold_italic.woff2') format('woff2');
+            font-weight: 700;
+            font-style: italic;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYREGULAR.OTF') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYMEDIUM.OTF') format('opentype');
+            font-weight: 500;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYBOLD.OTF') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+          }
+          
+          body.landing-page-active {
+            background-color: #FFFFFF !important;
+            background-image: none !important;
+          }
+          
+          .landing-main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            overflow: hidden;
+          }
+          
+          .landing-right-content {
+            width: 100%;
+            height: 100%;
+            min-height: calc(100vh - var(--header-height, 80px));
+            position: relative;
+            overflow: hidden;
+          }
+          
+          @media (max-width: 1024px) {
+            .landing-main-content {
+              min-height: calc(100vh - var(--header-height, 75px)) !important;
             }
-            onMouseEnter={e => (e.currentTarget.style.background = COLORS.accentHover)}
-            onMouseLeave={e => (e.currentTarget.style.background = COLORS.accent)}
-          >
-            Deep Dive
-          </button>
+            
+            .landing-right-content {
+              min-height: calc(100vh - var(--header-height, 75px)) !important;
+            }
+          }
+          
+          @media (max-width: 768px) {
+            .landing-main-content {
+              min-height: calc(100vh - var(--header-height, 70px)) !important;
+            }
+            
+            .landing-right-content {
+              min-height: calc(100vh - var(--header-height, 70px)) !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .landing-main-content {
+              min-height: calc(100vh - var(--header-height, 65px)) !important;
+            }
+            
+            .landing-right-content {
+              min-height: calc(100vh - var(--header-height, 65px)) !important;
+            }
+          }
+          
+          .landing-right-content video {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: auto;
+            min-width: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          
+          @media (max-width: 768px) {
+            .landing-main-content {
+              grid-template-columns: 1fr;
+            }
+            
+            .landing-left-content {
+              padding: 40px 24px !important;
+            }
+            
+            .landing-right-content {
+              min-height: 50vh;
+              width: 100%;
+              height: 50vh;
+            }
+            
+            .landing-right-content video {
+              position: absolute;
+              right: 0;
+              top: 0;
+              height: 100%;
+              width: auto;
+              min-width: 100%;
+              object-fit: cover;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .landing-right-content {
+              min-height: 40vh;
+            }
+          }
+        `}
+      </style>
+      <div style={pageContainer}>
+        <TopBar sectionLinks={links} isLandingPage={true} />
+
+        <div style={mainContent} className="landing-main-content">
+          <div style={leftContent} className="landing-left-content">
+            <h1 style={heroHeading}>
+              Fixed rates, not fixed games.
+            </h1>
+
+            <div style={heroSubContainer}>
+              <p style={heroSub}>
+                <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
+              </p>
+              <p style={heroSub}>
+                <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing
+              </p>
+            </div>
+
+            <button
+              style={primaryBtn}
+              onClick={() => navigate("/user")}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+            >
+              Bid or Supply
+            </button>
+          </div>
+
+          <div style={rightContent} className="landing-right-content">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={videoBackground}
+            >
+              <source src="/bg.mp4" type="video/mp4" />
+            </video>
+          </div>
         </div>
       </div>
     </>

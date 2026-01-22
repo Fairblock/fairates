@@ -17,15 +17,13 @@ export function DeveloperWrapper() {
   return (
     <div style={{ minHeight: "100vh" }}>
       <TopBar sectionLinks={links} />
-      <div style={{ padding: "32px" }}>
-        <Routes>
-          <Route path="deploy" element={<DeployPage />} />
-          <Route path="auction/:aeAddress" element={<AuctionManagementPage />} />
-          <Route path="manage" element={<ManageAuctionsPage />} />
-          <Route path="faucet" element={<FaucetPage />} />
-          <Route path="*" element={<DeployPage />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="deploy" element={<DeployPage />} />
+        <Route path="auction/:aeAddress" element={<AuctionManagementPage />} />
+        <Route path="manage" element={<ManageAuctionsPage />} />
+        <Route path="faucet" element={<FaucetPage />} />
+        <Route path="*" element={<DeployPage />} />
+      </Routes>
     </div>
   );
 } 

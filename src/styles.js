@@ -103,7 +103,7 @@ const navLink = {
   marginLeft: "64px",
   color: COLORS.textPrimary,
 };
-const logoStyle = { height: 100 };
+const logoStyle = { height: 50 };
 
 const walletBtnBase = {
   height: "56px",

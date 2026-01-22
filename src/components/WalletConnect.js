@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
+import { useLocation } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { COLORS, FONT_FAMILY } from "../styles.js";
 
 export function WalletConnect() {
+  const location = useLocation();
+  const isDeveloperPage = location.pathname.includes("/developer");
   const {
     signer,
     walletAddress,
@@ -15,7 +18,18 @@ export function WalletConnect() {
 
   const [open, setOpen] = useState(false);
 
-  const pill = {
+  const pill = isDeveloperPage ? {
+    background: "#000000",
+    border: "none",
+    color: "#FFFFFF",
+    fontWeight: 400,
+    fontSize: 16,
+    padding: "12px 24px",
+    borderRadius: 8,
+    cursor: "pointer",
+    transition: "opacity .18s",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  } : {
     background: "transparent",
     border: "1px solid rgba(255,255,255,0.25)",
     color: COLORS.textPrimary,
@@ -28,7 +42,19 @@ export function WalletConnect() {
     fontFamily: FONT_FAMILY,
   };
 
-  const selectDark = {
+  const selectDark = isDeveloperPage ? {
+    ...pill,
+    width: 260,
+    background: "#F9F9F9",
+    color: "#000000",
+    border: "none",
+    appearance: "none",
+    paddingRight: 42,
+    backgroundImage:
+      'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiMwMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "calc(100% - 16px) center",
+  } : {
     ...pill,
     width: 260,
     background: "rgba(255,255,255,0.05)",
@@ -41,7 +67,9 @@ export function WalletConnect() {
     backgroundPosition: "calc(100% - 16px) center",
   };
   
-  const optionDark = { background: "#121212", color: "#fff" };
+  const optionDark = isDeveloperPage 
+    ? { background: "#FFFFFF", color: "#000000" }
+    : { background: "#121212", color: "#fff" };
 
   const overlay = {
     position: "fixed",
@@ -67,16 +95,17 @@ export function WalletConnect() {
   const fox = { width: 140, marginBottom: 32 };
   
   const connectBtn = {
-    background: COLORS.accent,
+    background: "#000000",
     border: "none",
     width: "100%",
     padding: "20px 0",
     borderRadius: 12,
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 20,
     fontWeight: 400,
     cursor: "pointer",
     marginTop: 40,
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
 
   useEffect(() => {
@@ -129,10 +158,14 @@ export function WalletConnect() {
               style={pill}
               onClick={disconnectWallet}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
+                isDeveloperPage 
+                  ? (e.currentTarget.style.opacity = "0.8")
+                  : (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
               }
               onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
+                isDeveloperPage
+                  ? (e.currentTarget.style.opacity = "1")
+                  : (e.currentTarget.style.background = "transparent")
               }
             >
               Disconnect
@@ -144,10 +177,14 @@ export function WalletConnect() {
             style={pill}
             onClick={() => setOpen(true)}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
+              isDeveloperPage
+                ? (e.currentTarget.style.opacity = "0.8")
+                : (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "transparent")
+              isDeveloperPage
+                ? (e.currentTarget.style.opacity = "1")
+                : (e.currentTarget.style.background = "transparent")
             }
           >
             Connect Wallet

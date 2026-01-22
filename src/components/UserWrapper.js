@@ -15,14 +15,12 @@ export function UserWrapper() {
   return (
     <div style={{ minHeight: "100vh" }}>
       <TopBar sectionLinks={links} />
-      <div style={{ padding: "32px" }}>
-        <Routes>
-          <Route path="/" element={<UserDashboard />} />
-          <Route path="auction/:auctionAddress" element={<UserAuctionPage />} />
-          <Route path="faucet" element={<FaucetPage />} />
-          <Route path="*" element={<UserDashboard />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<UserDashboard />} />
+        <Route path="auction/:auctionAddress" element={<UserAuctionPage />} />
+        <Route path="faucet" element={<FaucetPage />} />
+        <Route path="*" element={<UserDashboard />} />
+      </Routes>
     </div>
   );
 } 
