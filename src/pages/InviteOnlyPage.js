@@ -180,18 +180,19 @@ export function InviteOnlyPage() {
   };
 
   const title = {
-    fontSize: "clamp(1.25rem, 2vw, 1.75rem)",
+    fontSize: "clamp(1.5rem, 2.25vw, 2rem)",
     fontWeight: 700,
     lineHeight: 1.2,
-    marginBottom: "16px",
+    marginBottom: "12px",
     color: "#000000",
-    fontFamily: "'Charter', serif",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
 
   const description = {
     fontSize: "clamp(1rem, 1.5vw, 1.125rem)",
     lineHeight: 1.6,
     marginBottom: "32px",
+    marginTop: "0px",
     color: "#666666",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
     fontWeight: 400,
