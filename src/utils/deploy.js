@@ -1,5 +1,5 @@
 
-import { BigNumber, utils } from "ethers";
+import { utils } from "ethers";
 
 /**
  * Build EIP‑1559 overrides that stay valid for ~2 blocks
