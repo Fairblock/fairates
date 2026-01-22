@@ -8,9 +8,11 @@ import { AuctionManagementPage } from "./pages/AuctionManagementPage";
 import { UserDashboard } from "./pages/UserDashboard";
 import { UserAuctionPage } from "./pages/UserAuctionPage";
 import { FaucetPage } from "./pages/FaucetPage";
+import { InviteOnlyPage } from "./pages/InviteOnlyPage";
 import { DeveloperWrapper } from "./components/DeveloperWrapper";
 import { UserWrapper } from "./components/UserWrapper";
 import { BackgroundManager } from "./components/BackgroundManager";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./App.css";
 
 function App() {
@@ -19,9 +21,31 @@ function App() {
       <Router>
         <BackgroundManager />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/developer/*" element={<DeveloperWrapper />} />
-          <Route path="/user/*" element={<UserWrapper />} />
+          <Route path="/invite" element={<InviteOnlyPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <LandingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/developer/*"
+            element={
+              <ProtectedRoute>
+                <DeveloperWrapper />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/*"
+            element={
+              <ProtectedRoute>
+                <UserWrapper />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </AppProvider>
