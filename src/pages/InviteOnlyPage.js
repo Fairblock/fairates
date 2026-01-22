@@ -8,7 +8,8 @@ export function InviteOnlyPage() {
   const navigate = useNavigate();
   const [inviteCode, setInviteCode] = useState("");
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [inviteError, setInviteError] = useState("");
+  const [waitlistError, setWaitlistError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -31,11 +32,11 @@ export function InviteOnlyPage() {
 
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setInviteError("");
     setLoading(true);
 
     if (!inviteCode.trim()) {
-      setError("Please enter an invite code");
+      setInviteError("Please enter an invite code");
       setLoading(false);
       return;
     }
@@ -45,7 +46,7 @@ export function InviteOnlyPage() {
       const inviteSnap = await getDoc(inviteRef);
 
       if (!inviteSnap.exists()) {
-        setError("Invalid invite code");
+        setInviteError("Invalid invite code");
         setLoading(false);
         return;
       }
@@ -54,7 +55,7 @@ export function InviteOnlyPage() {
 
       // Check if code is already used
       if (inviteData.used) {
-        setError("This invite code has already been used");
+        setInviteError("This invite code has already been used");
         setLoading(false);
         return;
       }
@@ -74,7 +75,7 @@ export function InviteOnlyPage() {
       navigate("/");
     } catch (error) {
       console.error("Error validating invite code:", error);
-      setError("Failed to validate invite code. Please try again.");
+      setInviteError("Failed to validate invite code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,28 +83,28 @@ export function InviteOnlyPage() {
 
   const handleJoinWaitlistClick = () => {
     setShowEmailInput(true);
-    setError("");
+    setWaitlistError("");
   };
 
   const handleWaitlistCancel = () => {
     setShowEmailInput(false);
     setEmail("");
-    setError("");
+    setWaitlistError("");
   };
 
   const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setWaitlistError("");
 
     if (!email.trim()) {
-      setError("Please enter your email address");
+      setWaitlistError("Please enter your email address");
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      setError("Please enter a valid email address");
+      setWaitlistError("Please enter a valid email address");
       return;
     }
 
@@ -122,7 +123,7 @@ export function InviteOnlyPage() {
       setEmail("");
     } catch (error) {
       console.error("Error joining waitlist:", error);
-      setError("Failed to join waitlist. Please try again.");
+      setWaitlistError("Failed to join waitlist. Please try again.");
     } finally {
       setIsJoiningWaitlist(false);
     }
@@ -417,7 +418,7 @@ export function InviteOnlyPage() {
                     value={inviteCode}
                     onChange={(e) => {
                       setInviteCode(e.target.value);
-                      setError("");
+                      setInviteError("");
                     }}
                     style={inputField}
                     disabled={loading}
@@ -432,7 +433,7 @@ export function InviteOnlyPage() {
                     {loading ? "Checking..." : "Next"}
                   </button>
                 </div>
-                {error && <div style={errorText}>{error}</div>}
+                {inviteError && <div style={errorText}>{inviteError}</div>}
               </form>
 
               <div style={separator}>
@@ -458,7 +459,7 @@ export function InviteOnlyPage() {
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
-                      setError("");
+                      setWaitlistError("");
                     }}
                     style={emailInputField}
                     disabled={isJoiningWaitlist}
@@ -484,7 +485,7 @@ export function InviteOnlyPage() {
                       Cancel
                     </button>
                   </div>
-                  {error && <div style={errorText}>{error}</div>}
+                  {waitlistError && <div style={errorText}>{waitlistError}</div>}
                 </form>
               )}
             </div>
