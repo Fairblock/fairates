@@ -191,7 +191,7 @@ export function InviteOnlyPage() {
 
   const videoBackground = {
     position: "absolute",
-    right: 0,
+    left: 0,
     top: 0,
     height: "100%",
     width: "auto",
@@ -385,7 +385,7 @@ export function InviteOnlyPage() {
           
           .invite-left-content video {
             position: absolute;
-            right: 0;
+            left: 0;
             top: 0;
             height: 100%;
             width: auto;
@@ -421,7 +421,7 @@ export function InviteOnlyPage() {
               playsInline
               style={videoBackground}
             >
-              <source src="/bg.mp4" type="video/mp4" />
+              <source src="/bg-invite.mov" type="video/mp4" />
             </video>
           </div>
 
