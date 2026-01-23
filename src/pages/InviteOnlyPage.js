@@ -53,26 +53,38 @@ export function InviteOnlyPage() {
 
       const inviteData = inviteSnap.data();
 
-      // Check if code is already used
-      if (inviteData.used) {
+      // Check if code is an admin code (unlimited usage)
+      const isAdminCode = inviteData.isAdmin === true;
+
+      // For regular codes, check if already used
+      if (!isAdminCode && inviteData.used) {
         setInviteError("This invite code has already been used");
         setLoading(false);
         return;
       }
 
-      // Mark code as used
-      await updateDoc(inviteRef, {
-        used: true,
-        usedAt: new Date().toISOString(),
-        usedBy: localStorage.getItem("userIdentifier") || "anonymous"
-      });
+      // Mark code as used (only for non-admin codes)
+      if (!isAdminCode) {
+        await updateDoc(inviteRef, {
+          used: true,
+          usedAt: new Date().toISOString(),
+          usedBy: localStorage.getItem("userIdentifier") || "anonymous"
+        });
+      } else {
+        // For admin codes, just track usage without marking as used
+        // Optionally, you could add a usage count or log
+        await updateDoc(inviteRef, {
+          lastUsedAt: new Date().toISOString(),
+          lastUsedBy: localStorage.getItem("userIdentifier") || "anonymous"
+        });
+      }
 
       // Store validated invite code in localStorage
       localStorage.setItem("inviteCode", inviteCode.trim().toUpperCase());
       localStorage.setItem("inviteCodeValidated", "true");
 
-      // Navigate to landing page
-      navigate("/");
+      // Force page reload to ensure ProtectedRoute picks up the updated localStorage
+      window.location.href = "/";
     } catch (error) {
       console.error("Error validating invite code:", error);
       setInviteError("Failed to validate invite code. Please try again.");
