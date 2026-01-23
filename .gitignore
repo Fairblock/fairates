@@ -64,4 +64,10 @@ node_modules/
 # dotenv environment variables file
 .env
 
+# Firebase service account keys (NEVER commit these!)
+serviceAccountKey.json
+*serviceAccount*.json
+
 build/
+generateInviteCodes.js
+firestore.rules

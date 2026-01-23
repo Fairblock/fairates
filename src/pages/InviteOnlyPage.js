@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { doc, getDoc, updateDoc, collection, addDoc } from "firebase/firestore";
 import { FONT_FAMILY } from "../styles.js";
 
 export function InviteOnlyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [inviteCode, setInviteCode] = useState("");
   const [email, setEmail] = useState("");
   const [inviteError, setInviteError] = useState("");
@@ -22,13 +23,15 @@ export function InviteOnlyPage() {
     const inviteCode = localStorage.getItem("inviteCode");
     
     if (inviteCodeValidated && inviteCode) {
-      navigate("/");
+      // Redirect to the page they were trying to access, or landing page
+      const redirectTo = location.state?.from?.pathname || "/";
+      navigate(redirectTo);
     }
     
     return () => {
       document.body.classList.remove("landing-page-active");
     };
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
@@ -72,19 +75,25 @@ export function InviteOnlyPage() {
         });
       } else {
         // For admin codes, just track usage without marking as used
-        // Optionally, you could add a usage count or log
-        await updateDoc(inviteRef, {
-          lastUsedAt: new Date().toISOString(),
-          lastUsedBy: localStorage.getItem("userIdentifier") || "anonymous"
-        });
+        // Make this optional - don't fail validation if update fails
+        try {
+          await updateDoc(inviteRef, {
+            lastUsedAt: new Date().toISOString(),
+            lastUsedBy: localStorage.getItem("userIdentifier") || "anonymous"
+          });
+        } catch (updateError) {
+          // Silently fail - tracking is optional and shouldn't block validation
+          // No user-facing message needed
+        }
       }
 
       // Store validated invite code in localStorage
       localStorage.setItem("inviteCode", inviteCode.trim().toUpperCase());
       localStorage.setItem("inviteCodeValidated", "true");
 
-      // Force page reload to ensure ProtectedRoute picks up the updated localStorage
-      window.location.href = "/";
+      // Redirect to the page they were trying to access, or landing page
+      const redirectTo = location.state?.from?.pathname || "/";
+      window.location.href = redirectTo;
     } catch (error) {
       console.error("Error validating invite code:", error);
       setInviteError("Failed to validate invite code. Please try again.");

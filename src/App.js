@@ -21,15 +21,8 @@ function App() {
       <Router>
         <BackgroundManager />
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/invite" element={<InviteOnlyPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <LandingPage />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/developer/*"
             element={

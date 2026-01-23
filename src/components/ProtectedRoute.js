@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { InviteOnlyPage } from "../pages/InviteOnlyPage";
+import { Navigate, useLocation } from "react-router-dom";
 
 export function ProtectedRoute({ children }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     // Check if user has a validated invite code
@@ -36,9 +37,10 @@ export function ProtectedRoute({ children }) {
     return null; // or a loading spinner
   }
 
-  // If no validated invite code, show invite-only page
+  // If no validated invite code, redirect to invite page
+  // Store the current location so we can redirect back after validation
   if (!isAuthorized) {
-    return <InviteOnlyPage />;
+    return <Navigate to="/invite" state={{ from: location }} replace />;
   }
 
   // User has valid invite code, allow access
