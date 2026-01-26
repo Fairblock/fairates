@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { useLocation } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { COLORS, FONT_FAMILY } from "../styles.js";
+import { FONT_FAMILY } from "../styles.js";
 
 export function WalletConnect() {
-  const location = useLocation();
-  const isDeveloperPage = location.pathname.includes("/developer");
   const {
     signer,
     walletAddress,
@@ -18,7 +15,7 @@ export function WalletConnect() {
 
   const [open, setOpen] = useState(false);
 
-  const pill = isDeveloperPage ? {
+  const pill = {
     background: "#000000",
     border: "none",
     color: "#FFFFFF",
@@ -29,20 +26,9 @@ export function WalletConnect() {
     cursor: "pointer",
     transition: "opacity .18s",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  } : {
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.25)",
-    color: COLORS.textPrimary,
-    fontWeight: 400,
-    fontSize: 16,
-    padding: "12px 20px",
-    borderRadius: 12,
-    cursor: "pointer",
-    transition: "background .18s",
-    fontFamily: FONT_FAMILY,
   };
 
-  const selectDark = isDeveloperPage ? {
+  const selectDark = {
     ...pill,
     width: 260,
     background: "#F9F9F9",
@@ -54,22 +40,9 @@ export function WalletConnect() {
       'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiMwMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
     backgroundRepeat: "no-repeat",
     backgroundPosition: "calc(100% - 16px) center",
-  } : {
-    ...pill,
-    width: 260,
-    background: "rgba(255,255,255,0.05)",
-    color: COLORS.textPrimary,
-    appearance: "none",
-    paddingRight: 42,
-    backgroundImage:
-      'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "calc(100% - 16px) center",
   };
   
-  const optionDark = isDeveloperPage 
-    ? { background: "#FFFFFF", color: "#000000" }
-    : { background: "#121212", color: "#fff" };
+  const optionDark = { background: "#FFFFFF", color: "#000000" };
 
   const overlay = {
     position: "fixed",
@@ -157,38 +130,22 @@ export function WalletConnect() {
               className="wallet-pill"
               style={pill}
               onClick={disconnectWallet}
-              onMouseEnter={(e) =>
-                isDeveloperPage 
-                  ? (e.currentTarget.style.opacity = "0.8")
-                  : (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
-              }
-              onMouseLeave={(e) =>
-                isDeveloperPage
-                  ? (e.currentTarget.style.opacity = "1")
-                  : (e.currentTarget.style.background = "transparent")
-              }
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
               Disconnect
             </button>
           </>
         ) : (
-          <button
-            className="wallet-pill"
-            style={pill}
-            onClick={() => setOpen(true)}
-            onMouseEnter={(e) =>
-              isDeveloperPage
-                ? (e.currentTarget.style.opacity = "0.8")
-                : (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
-            }
-            onMouseLeave={(e) =>
-              isDeveloperPage
-                ? (e.currentTarget.style.opacity = "1")
-                : (e.currentTarget.style.background = "transparent")
-            }
-          >
-            Connect Wallet
-          </button>
+            <button
+              className="wallet-pill"
+              style={pill}
+              onClick={() => setOpen(true)}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Connect
+            </button>
         )}
       </div>
 
