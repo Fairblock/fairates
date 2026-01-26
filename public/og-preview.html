@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fairates - Open Graph Preview</title>
+  <style>
+    @font-face {
+      font-family: 'Charter';
+      src: url('/fonts/charter_regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    
+    @font-face {
+      font-family: 'Charter';
+      src: url('/fonts/charter_bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 1200px;
+      height: 630px;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Charter', serif;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .main-text {
+      font-size: 72px;
+      font-weight: 700;
+      color: #000000;
+      text-align: center;
+      line-height: 1.2;
+      margin-bottom: 80px;
+      font-family: 'Charter', serif;
+    }
+    
+    .logo-container {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-container img {
+      height: 80px;
+      width: auto;
+      filter: brightness(0);
+      object-fit: contain;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-text">Fixed rates, not fixed games.</div>
+  <div class="logo-container">
+    <img src="/fairates-logo.png" alt="Fairates" />
+  </div>
+</body>
+</html>
