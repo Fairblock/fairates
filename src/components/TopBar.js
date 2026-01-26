@@ -201,7 +201,15 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
             )
           )}
 
-            <WalletConnect />
+            <button
+              style={launchAppBtn}
+              className="launch-app-btn"
+              onClick={() => navigate("/user")}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+            >
+              Launch App
+            </button>
           </div>
         </nav>
       </>
