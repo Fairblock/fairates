@@ -14,7 +14,6 @@ export function LandingPage() {
   }, []);
 
   const links = [
-    { to: "/developer/deploy", label: "Deploy Auction" },
     { to: "https://docs.fairblock.network/docs/Fairates", label: "How it works" },
   ];
 

@@ -1,0 +1,6 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1080" height="1080" fill="white"/>
+<path d="M390 240H240V390V540V690H390V540V390H540V240H390Z" fill="black"/>
+<path d="M690 390V540V690H540V840H690H840V690V540V390H690Z" fill="black"/>
+<path d="M690 540C690 540 540 537.82 540 390C540 537.82 390 540 390 540C390 540 540 542.18 540 690C540 542.18 690 540 690 540Z" fill="black"/>
+</svg>

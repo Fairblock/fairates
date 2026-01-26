@@ -10,6 +10,7 @@ export function UserWrapper() {
     { to: "/", label: "Home" },
     { to: "/user", label: "Participate" },
     { to: "/user/faucet", label: "Faucet" },
+    { to: "/developer/deploy", label: "Deploy Auction" },
   ];
   
   return (
