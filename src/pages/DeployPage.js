@@ -75,7 +75,7 @@ export function DeployPage() {
     margin: "0 auto",
     padding: "32px 32px",
     display: "flex",
-    gap: 64,
+    gap: 48,
     position: "relative",
     zIndex: 1,
   };
@@ -99,10 +99,10 @@ export function DeployPage() {
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
   const subP = {
-    fontSize: 18,
-    lineHeight: 1.55,
+    fontSize: 16,
+    lineHeight: 1.5,
     color: "#666666",
-    marginBottom: 20,
+    marginBottom: 24,
     marginTop: 0,
     maxWidth: 640,
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -111,25 +111,37 @@ export function DeployPage() {
   const grid = {
     display: "grid",
     gridTemplateColumns: "repeat(2,1fr)",
-    gap: 24,
+    gap: 20,
   };
   const gridMobile = "@media(max-width:860px){grid-template-columns:1fr !important;}";
 
+  const sectionTitle = {
+    fontSize: 16,
+    fontWeight: 500,
+    color: "#666666",
+    marginBottom: 12,
+    marginTop: 24,
+    display: "block",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
+
   const label = {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: 400,
-    color: "#000000",
-    marginBottom: 8,
+    color: "#333333",
+    marginBottom: 6,
     display: "block",
     textAlign: "left",
-    marginTop: 12,
+    marginTop: 0,
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
   const inp = {
-    width: "90%",
-    padding: "16px 20px",
-    fontSize: 17,
-    borderRadius: 12,
+    width: "100%",
+    padding: "10px 14px",
+    fontSize: 15,
+    borderRadius: 8,
     background: "#F9F9F9",
     color: "#000000",
     border: "none",
@@ -148,13 +160,14 @@ export function DeployPage() {
     background: "#E4F5FF",
     border: "none",
     color: "#00A3FF",
-    fontSize: 18,
-    fontWeight: 400,
-    padding: "18px 60px",
-    borderRadius: 14,
+    fontSize: 16,
+    fontWeight: 500,
+    padding: "14px 48px",
+    borderRadius: 10,
     cursor: "pointer",
-    marginTop: 48,
+    marginTop: 32,
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    transition: "background .18s, transform .18s",
   };
 
   const testDeployBtn = {
@@ -280,6 +293,7 @@ export function DeployPage() {
 
             <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
               <div>
+                <span style={sectionTitle}>Token Addresses</span>
                 <label style={label}>Price Oracle Address</label>
                 <input
                   style={inp}
@@ -290,7 +304,28 @@ export function DeployPage() {
                   placeholder="0x…"
                 />
 
-                <label style={label}>Bid duration (secs)</label>
+                <label style={label}>Purchase Token Address</label>
+                <input
+                  style={inp}
+                  value={customPurchaseToken}
+                  onChange={(e) => setCustomPurchaseToken(e.target.value)}
+                  onFocus={onF}
+                  onBlur={onB}
+                  placeholder="0x…"
+                />
+
+                <label style={label}>Initial Collateral Token Address</label>
+                <input
+                  style={inp}
+                  value={customCollateralToken}
+                  onChange={(e) => setCustomCollateralToken(e.target.value)}
+                  onFocus={onF}
+                  onBlur={onB}
+                  placeholder="0x…"
+                />
+
+                <span style={sectionTitle}>Durations</span>
+                <label style={label}>Bid Duration (secs)</label>
                 <input
                   style={inp}
                   value={customBidDuration}
@@ -300,7 +335,17 @@ export function DeployPage() {
                   placeholder="86400"
                 />
 
-                <label style={label}>Repayment duration (secs)</label>
+                <label style={label}>Reveal Duration (secs)</label>
+                <input
+                  style={inp}
+                  value={customRevealDuration}
+                  onChange={(e) => setCustomRevealDuration(e.target.value)}
+                  onFocus={onF}
+                  onBlur={onB}
+                  placeholder="86400"
+                />
+
+                <label style={label}>Repayment Duration (secs)</label>
                 <input
                   style={inp}
                   value={customRepaymentDuration}
@@ -310,6 +355,7 @@ export function DeployPage() {
                   placeholder="172800"
                 />
 
+                <span style={sectionTitle}>Fees & Ratios</span>
                 <label style={label}>Fee</label>
                 <input
                   style={inp}
@@ -337,26 +383,7 @@ export function DeployPage() {
                   onBlur={onB}
                   placeholder="0"
                 />
-
-                <label style={label}>Purchase token address</label>
-                <input
-                  style={inp}
-                  value={customPurchaseToken}
-                  onChange={(e) => setCustomPurchaseToken(e.target.value)}
-                  onFocus={onF}
-                  onBlur={onB}
-                  placeholder="0x…"
-                />
-                <label style={label}>Reveal duration (secs)</label>
-                <input
-                  style={inp}
-                  value={customRevealDuration}
-                  onChange={(e) => setCustomRevealDuration(e.target.value)}
-                  onFocus={onF}
-                  onBlur={onB}
-                  placeholder="86400"
-                />
-                <label style={label}>Initial collateral ratio</label>
+                <label style={label}>Initial Collateral Ratio</label>
                 <input
                   style={inp}
                   value={customCollateralRatio}
@@ -368,7 +395,8 @@ export function DeployPage() {
               </div>
 
               <div>
-                <label style={label}>Auction token ratio</label>
+                <span style={sectionTitle}>Auction Settings</span>
+                <label style={label}>Auction Token Ratio</label>
                 <input
                   style={inp}
                   value={customAuctionTokenAmount}
@@ -378,7 +406,18 @@ export function DeployPage() {
                   placeholder="1"
                 />
 
-                <label style={label}>Max bid value</label>
+                <span style={sectionTitle}>Bid Settings</span>
+                <label style={label}>Min Bid Value</label>
+                <input
+                  style={inp}
+                  value={customMinBid}
+                  onChange={(e) => setCustomMinBid(e.target.value)}
+                  onFocus={onF}
+                  onBlur={onB}
+                  placeholder="10"
+                />
+
+                <label style={label}>Max Bid Value</label>
                 <input
                   style={inp}
                   value={customMaxBid}
@@ -388,16 +427,7 @@ export function DeployPage() {
                   placeholder="15000"
                 />
 
-                <label style={label}>Min bid value</label>
-                <input
-                  style={inp}
-                  value={customMinBid}
-                  onChange={(e) => setCustomMinBid(e.target.value)}
-                  onFocus={onF}
-                  onBlur={onB}
-                  placeholder="10"
-                />
-                <label style={label}>Max number of bids</label>
+                <label style={label}>Max Number of Bids</label>
                 <input
                   style={inp}
                   value={customMaxNumBids}
@@ -406,7 +436,19 @@ export function DeployPage() {
                   onBlur={onB}
                   placeholder="50"
                 />
-                <label style={label}>Max offer value</label>
+
+                <span style={sectionTitle}>Offer Settings</span>
+                <label style={label}>Min Offer Value</label>
+                <input
+                  style={inp}
+                  value={customMinOffer}
+                  onChange={(e) => setCustomMinOffer(e.target.value)}
+                  onFocus={onF}
+                  onBlur={onB}
+                  placeholder="10"
+                />
+
+                <label style={label}>Max Offer Value</label>
                 <input
                   style={inp}
                   value={customMaxOffer}
@@ -416,16 +458,7 @@ export function DeployPage() {
                   placeholder="10000"
                 />
 
-                <label style={label}>Min offer value</label>
-                <input
-                  style={inp}
-                  value={customMinOffer}
-                  onChange={(e) => setCustomMinOffer(e.target.value)}
-                  onFocus={onF}
-                  onBlur={onB}
-                  placeholder="10"
-                />
-                <label style={label}>Max number of offers</label>
+                <label style={label}>Max Number of Offers</label>
                 <input
                   style={inp}
                   value={customMaxNumOffers}
@@ -433,15 +466,6 @@ export function DeployPage() {
                   onFocus={onF}
                   onBlur={onB}
                   placeholder="50"
-                />
-                <label style={label}>Initial collateral token address</label>
-                <input
-                  style={inp}
-                  value={customCollateralToken}
-                  onChange={(e) => setCustomCollateralToken(e.target.value)}
-                  onFocus={onF}
-                  onBlur={onB}
-                  placeholder="0x…"
                 />
               </div>
             </div>
