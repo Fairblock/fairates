@@ -91,7 +91,7 @@ export function WalletConnect() {
     <div style={overlay} onClick={() => setOpen(false)}>
       <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
         <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
-        <p style={{ color: "#000", fontSize: 18, fontWeight: 600, fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <p style={{ color: "#000", fontSize: 18, fontWeight: 300, fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           To get started, connect your<br />MetaMask wallet.
         </p>
         <button
