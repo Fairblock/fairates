@@ -9,8 +9,9 @@ export function UserWrapper() {
   const links = [
     { to: "/", label: "Home" },
     { to: "/user", label: "Participate" },
+    { to: "/developer/deploy", label: "Deploy" },
+    { to: "/developer/manage", label: "Manage" },
     { to: "/user/faucet", label: "Faucet" },
-    { to: "/developer/deploy", label: "Deploy Auction" },
   ];
   
   return (

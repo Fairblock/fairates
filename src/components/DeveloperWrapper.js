@@ -9,6 +9,7 @@ import { FaucetPage } from "../pages/FaucetPage";
 export function DeveloperWrapper() {
   const links = [
     { to: "/", label: "Home" },
+    { to: "/user", label: "Participate" },
     { to: "/developer/deploy", label: "Deploy" },
     { to: "/developer/manage", label: "Manage" },
     { to: "/developer/faucet", label: "Faucet" },
