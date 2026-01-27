@@ -51,30 +51,98 @@ function hexToUint8Array(hex) {
 
 const AppContext = createContext(null);
 
+// Helper function to check if a provider is MetaMask (not OKX)
+function isMetaMaskProvider(provider) {
+  if (!provider) return false;
+  
+  // Explicitly exclude OKX wallets
+  if (provider.isOKExWallet || provider.isOkxWallet || provider.isOKX) {
+    return false;
+  }
+  
+  // Check for MetaMask-specific internal property (most reliable)
+  if (provider._metamask) {
+    return true;
+  }
+  
+  // Check for MetaMask flag AND ensure it's not OKX
+  if (provider.isMetaMask) {
+    // Additional verification: check for MetaMask-specific properties
+    // MetaMask has _state property, OKX might not
+    if (provider._state !== undefined) {
+      return true;
+    }
+    // Check if it has MetaMask's request method signature
+    if (typeof provider.request === 'function') {
+      // MetaMask typically has these properties
+      if (provider.selectedAddress !== undefined || provider.networkVersion !== undefined) {
+        return true;
+      }
+    }
+  }
+  
+  // Check provider name/identifier
+  const providerName = provider.providerName || provider.name || '';
+  if (providerName.toLowerCase().includes('metamask')) {
+    return true;
+  }
+  
+  // Check constructor name
+  if (provider.constructor && provider.constructor.name === 'MetaMaskInpageProvider') {
+    return true;
+  }
+  
+  return false;
+}
+
+// Store detected MetaMask provider from EIP-6963
+let detectedMetaMaskProvider = null;
+
 // Helper function to get MetaMask provider specifically
 function getMetaMaskProvider() {
+  // First check if we've detected MetaMask via EIP-6963
+  if (detectedMetaMaskProvider && isMetaMaskProvider(detectedMetaMaskProvider)) {
+    return detectedMetaMaskProvider;
+  }
+  
   if (!window.ethereum) {
     return null;
   }
   
-  // Check if window.ethereum is MetaMask directly
-  if (window.ethereum.isMetaMask) {
+  // First, check if window.ethereum itself is MetaMask
+  if (isMetaMaskProvider(window.ethereum)) {
     return window.ethereum;
   }
   
-  // Check if there's a providers array (EIP-6963)
+  // Check if there's a providers array (EIP-6963 or multiple wallets)
   if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
-    const metamaskProvider = window.ethereum.providers.find(
-      (provider) => provider.isMetaMask
-    );
+    // Find MetaMask provider in the array
+    const metamaskProvider = window.ethereum.providers.find(isMetaMaskProvider);
     if (metamaskProvider) {
+      detectedMetaMaskProvider = metamaskProvider;
       return metamaskProvider;
     }
   }
   
-  // Fallback: return window.ethereum if MetaMask not found
-  // This allows the app to work even if MetaMask isn't detected
-  return window.ethereum;
+  // If we still can't find MetaMask, return null
+  // Don't fallback to window.ethereum as it might be OKX
+  return null;
+}
+
+// Initialize EIP-6963 provider detection
+function initializeEIP6963Detection() {
+  // Listen for EIP-6963 provider announcements
+  window.addEventListener('eip6963:announceProvider', (event) => {
+    const { info, provider } = event.detail;
+    // Check if this is MetaMask
+    if (info.name && info.name.toLowerCase().includes('metamask')) {
+      detectedMetaMaskProvider = provider;
+      console.log('MetaMask detected via EIP-6963');
+    }
+  });
+  
+  // Request provider announcements
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
 }
 
 export function AppProvider({ children }) {
@@ -248,6 +316,9 @@ export function AppProvider({ children }) {
   }, [collateralManagerAddress, signer]);
 
   useEffect(() => {
+    // Initialize EIP-6963 detection
+    initializeEIP6963Detection();
+    
     const eth = getMetaMaskProvider();
     if (eth) {
       eth.on("chainChanged", async () => {
@@ -279,17 +350,54 @@ export function AppProvider({ children }) {
   }, []);
 
   async function connectWallet() {
-    const eth = getMetaMaskProvider();
+    // Try to get MetaMask provider
+    let eth = getMetaMaskProvider();
+    
+    // If not found immediately, wait a bit and try again (in case MetaMask loads after OKX)
+    if (!eth && window.ethereum) {
+      // Wait for potential provider array to populate
+      await new Promise(resolve => setTimeout(resolve, 100));
+      eth = getMetaMaskProvider();
+    }
+    
     if (!eth) {
-      alert("MetaMask wallet not found. Please install MetaMask.");
+      // Check if any wallet is available
+      if (!window.ethereum) {
+        alert("No Ethereum wallet found. Please install MetaMask.");
+      } else {
+        // Provide helpful debugging info
+        console.log("Available providers:", {
+          hasEthereum: !!window.ethereum,
+          isMetaMask: window.ethereum?.isMetaMask,
+          isOKX: window.ethereum?.isOKExWallet || window.ethereum?.isOkxWallet,
+          hasProviders: !!window.ethereum?.providers,
+          providersCount: window.ethereum?.providers?.length || 0
+        });
+        alert("MetaMask wallet not detected. Please ensure MetaMask is installed and enabled. If you have multiple wallets, try disabling OKX Wallet temporarily or refresh the page.");
+      }
       return;
     }
+    
+    // Verify we have the right provider before connecting
+    if (!isMetaMaskProvider(eth)) {
+      console.error("Provider verification failed - not MetaMask");
+      alert("Failed to connect to MetaMask. Please ensure MetaMask is installed and try again.");
+      return;
+    }
+    
     try {
       await ensureArbitrumSepolia();
 
       const accounts = await eth.request({
         method: "eth_requestAccounts",
       });
+      
+      // Verify the provider is still MetaMask after connection
+      const currentProvider = getMetaMaskProvider();
+      if (!currentProvider || currentProvider !== eth) {
+        console.warn("Provider changed after connection request");
+      }
+      
       setAvailableAccounts(accounts);
 
       const provider = new ethers.providers.Web3Provider(eth);
@@ -298,8 +406,13 @@ export function AppProvider({ children }) {
       setWalletAddress(accounts[0]);
       refreshAuctions(accounts[0]);
     } catch (error) {
-      console.error(error);
-      alert("Failed to connect wallet: " + error.message);
+      console.error("Wallet connection error:", error);
+      // Check if error is because user rejected
+      if (error.code === 4001) {
+        alert("Connection rejected. Please approve the connection in MetaMask.");
+      } else {
+        alert("Failed to connect wallet: " + error.message);
+      }
     }
   }
 
