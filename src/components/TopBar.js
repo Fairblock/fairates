@@ -9,7 +9,8 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
   const isDeployPage = location.pathname.includes("/developer/deploy") || location.pathname === "/developer";
   const isManagePage = location.pathname.includes("/developer/manage");
   const isFaucetPage = location.pathname.includes("/developer/faucet");
-  const isDeveloperPage = isDeployPage || isManagePage || isFaucetPage;
+  const isAuctionManagementPage = location.pathname.includes("/developer/auction/");
+  const isDeveloperPage = isDeployPage || isManagePage || isFaucetPage || isAuctionManagementPage;
   const isUserPage = location.pathname.includes("/user");
 
   const landingPageTopBarStyle = {
