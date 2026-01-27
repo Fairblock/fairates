@@ -74,7 +74,7 @@ export function WalletConnect() {
     padding: "20px 0",
     borderRadius: 12,
     color: "#FFFFFF",
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 400,
     cursor: "pointer",
     marginTop: 40,
@@ -92,7 +92,7 @@ export function WalletConnect() {
     <div style={overlay} onClick={() => setOpen(false)}>
       <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
         <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
-        <p style={{ color: "#000", fontSize: 22, fontWeight: 600 }}>
+        <p style={{ color: "#000", fontSize: 18, fontWeight: 600 }}>
           To get started, connect your<br />MetaMask wallet.
         </p>
         <button
