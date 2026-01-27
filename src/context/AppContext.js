@@ -33,6 +33,7 @@ import {
   removeBid as removeBidUtil,
   removeOffer as removeOfferUtil,
 } from "../utils/auctionFunctions.js";
+import { getContracts, saveContracts } from "../utils/firebase.js";
 
 // Helper function to extract user-friendly error messages
 export function getErrorMessage(error) {
@@ -267,8 +268,7 @@ export function AppProvider({ children }) {
   const refreshAuctions = useCallback(
     async (addr = walletAddress) => {
       try {
-        const res = await fetch("https://auction-db.fairblock.network:9092/contracts");
-        const { auctions = [] } = await res.json();
+        const auctions = await getContracts();
   
         setDeployedAuctions(auctions);
   
@@ -735,11 +735,7 @@ export function AppProvider({ children }) {
       setDeployedAuctions(newList);
       selectAuction(auctionContracts);
 
-      await fetch("https://auction-db.fairblock.network:9092/contracts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ auctions: newList })
-      });
+      await saveContracts(newList);
 
       await refreshAuctions();
 
@@ -969,21 +965,20 @@ export function AppProvider({ children }) {
   }
 
   useEffect(() => {
-    fetch("https://auction-db.fairblock.network:9092/contracts")
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.auctions && data.auctions.length > 0) {
-          const latestAuction = data.auctions[data.auctions.length - 1];
+    getContracts()
+      .then((auctions) => {
+        if (auctions && auctions.length > 0) {
+          const latestAuction = auctions[auctions.length - 1];
           setCollateralManagerAddress(latestAuction.collateralManagerAddress);
           setAuctionEngineAddress(latestAuction.auctionEngineAddress);
           setLendingVaultAddress(latestAuction.lendingVaultAddress);
           setBidManagerAddress(latestAuction.bidManagerAddress);
           setOfferManagerAddress(latestAuction.offerManagerAddress);
-          setDeployedAuctions(data.auctions);
+          setDeployedAuctions(auctions);
         }
         setServerLoaded(true);
       })
-      .catch((error) => console.error("Error fetching contracts from server:", error));
+      .catch((error) => console.error("Error fetching contracts from Firestore:", error));
   }, []);
 
   const contextValue = {

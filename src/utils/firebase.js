@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Firebase configuration
 
@@ -17,5 +17,44 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
 export const db = getFirestore(app);
+
+// Contract operations
+const CONTRACTS_COLLECTION = 'contracts';
+const CONTRACTS_DOC_ID = 'auctions';
+
+/**
+ * Get all contracts from Firestore
+ * @returns {Promise<Array>} Array of auction contracts
+ */
+export async function getContracts() {
+  try {
+    const contractsRef = doc(db, CONTRACTS_COLLECTION, CONTRACTS_DOC_ID);
+    const contractsSnap = await getDoc(contractsRef);
+    
+    if (contractsSnap.exists()) {
+      const data = contractsSnap.data();
+      return data.auctions || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching contracts from Firestore:', error);
+    throw error;
+  }
+}
+
+/**
+ * Save contracts to Firestore
+ * @param {Array} auctions - Array of auction contracts to save
+ * @returns {Promise<void>}
+ */
+export async function saveContracts(auctions) {
+  try {
+    const contractsRef = doc(db, CONTRACTS_COLLECTION, CONTRACTS_DOC_ID);
+    await setDoc(contractsRef, { auctions }, { merge: false });
+  } catch (error) {
+    console.error('Error saving contracts to Firestore:', error);
+    throw error;
+  }
+}
 
 export default app;

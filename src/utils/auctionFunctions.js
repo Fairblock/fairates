@@ -13,6 +13,7 @@ import {
   FAIRYRING_CONTRACT_ADDRESS,
   ERC20ABI,
 } from "../styles.js";
+import { saveContracts } from "./firebase.js";
 
 function hexToUint8Array(hex) {
   if (hex.startsWith("0x")) hex = hex.slice(2);
@@ -189,11 +190,7 @@ export async function deployContractsCustom(
     setDeployedAuctions(newList);
     selectAuction(auctionContracts);
 
-    await fetch("https://auction-db.fairblock.network:9092/contracts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auctions: newList })
-    });
+    await saveContracts(newList);
 
     await refreshAuctions();
     showToast("All contracts deployed successfully!", "success");
