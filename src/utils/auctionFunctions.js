@@ -2,6 +2,14 @@ import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
 import { sendTx, safeSendTx } from "./deploy.js";
+
+/**
+ * Delay utility to prevent rate limiting
+ * @param {number} ms milliseconds to delay
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 import CollateralManagerArtifact from "../CollateralManager.json";
 import AuctionTokenArtifact from "../AuctionToken.json";
 import AuctionEngineArtifact from "../AuctionEngine.json";
@@ -94,12 +102,16 @@ export async function deployContractsCustom(
     );
     const cmContract = await sendTx(CollateralManagerFactory, "deploy", [priceOracle]);
     await cmContract.deployed();
+    await delay(500); // Delay after deployment
 
     await sendTx(cmContract, "addAcceptedCollateralToken", [customCollateralToken, Number(customCollateralRatio)]);
+    await delay(300); // Delay between transactions
     await sendTx(cmContract, "setMaintenanceRatio", [customCollateralToken, Number(customCollateralRatio)]);
+    await delay(300); // Delay between transactions
 
     const userAddr = await signer.getAddress();
     const ID = await generateAuctionID(signer, userAddr);
+    await delay(500); // Delay after ID generation
 
     const AuctionTokenFactory = new ethers.ContractFactory(
       AuctionTokenArtifact.abi,
@@ -110,6 +122,7 @@ export async function deployContractsCustom(
     const tokenSymbol = `${ID}-TOKEN`;
     const atContract = await sendTx(AuctionTokenFactory, "deploy", [tokenName, tokenSymbol]);
     await atContract.deployed();
+    await delay(500); // Delay after deployment
     const auctionTokenAddress = atContract.address;
 
     const AuctionEngineFactory = new ethers.ContractFactory(
@@ -129,8 +142,10 @@ export async function deployContractsCustom(
       auctionTokenAddress,
       AUCTION_TOKEN_AMOUNT]);
     await aeContract.deployed();
+    await delay(500); // Delay after deployment
 
     await sendTx(atContract, "setAuctionContract", [aeContract.address]);
+    await delay(300); // Delay between transactions
     
     const LendingVaultFactory = new ethers.ContractFactory(
       LendingVaultArtifact.abi,
@@ -139,6 +154,7 @@ export async function deployContractsCustom(
     );
     const lvContract = await sendTx(LendingVaultFactory, "deploy", [purchaseToken]);
     await lvContract.deployed();
+    await delay(500); // Delay after deployment
 
     const BidManagerFactory = new ethers.ContractFactory(
       BidManagerArtifact.abi,
@@ -153,8 +169,10 @@ export async function deployContractsCustom(
       minBid,
       maxNumBids]);
     await bmContract.deployed();
+    await delay(500); // Delay after deployment
 
     await sendTx(cmContract, "setManager", [bmContract.address]);
+    await delay(300); // Delay between transactions
     
     const OfferManagerFactory = new ethers.ContractFactory(
       OfferManagerArtifact.abi,
@@ -167,9 +185,12 @@ export async function deployContractsCustom(
       minOffer,
       maxNumOffers]);
     await omContract.deployed();
+    await delay(500); // Delay after deployment
 
     await sendTx(aeContract, "setManagers", [bmContract.address, omContract.address]);
+    await delay(300); // Delay between transactions
     await sendTx(lvContract, "setManager", [omContract.address]);
+    await delay(300); // Delay between transactions
     
     const auctionContracts = {
       collateralManagerAddress: cmContract.address,
@@ -793,6 +814,7 @@ async function generateAuctionID(signer, userAddr) {
 
   const tx = await sendTx(fairyringContract, "requestGeneralID");
   console.log("Requested new ID:", tx.hash);
+  await delay(500); // Delay after transaction to prevent rate limiting
   
   const generalIdBN = await fairyringContract.addressGeneralID(userAddr);
   const auctionIdNum = generalIdBN.sub(ethers.BigNumber.from(1)).toString();

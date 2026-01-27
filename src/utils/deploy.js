@@ -2,11 +2,21 @@
 import { utils } from "ethers";
 
 /**
+ * Delay utility to prevent rate limiting
+ * @param {number} ms milliseconds to delay
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Build EIP‑1559 overrides that stay valid for ~2 blocks
  * @param {import("ethers").ContractRunner} signer
  * @param {() => Promise<BigNumber>} [estimateFn] optional gas estimator
  */
 export async function eip1559Overrides(signer, estimateFn) {
+  // Add delay before RPC call to prevent rate limiting
+  await delay(200);
   const fee = await signer.provider.getFeeData();
 
   const tip  = fee.maxPriorityFeePerGas ?? utils.parseUnits("0.1", "gwei");
@@ -16,6 +26,8 @@ export async function eip1559Overrides(signer, estimateFn) {
 
   let gasLimit;
   if (estimateFn) {
+    // Add delay before gas estimation
+    await delay(200);
     const est = await estimateFn();
     gasLimit = est.mul(12).div(10);
   }
@@ -31,12 +43,17 @@ export async function eip1559Overrides(signer, estimateFn) {
  * @returns {Promise<import("ethers").ContractReceipt>}
  */
 export async function sendTx(contract, fnName, args = []) {
+  // Add delay before transaction to prevent rate limiting
+  await delay(300);
   const signer   = contract.runner ?? contract.signer;
   const estimate = () => contract.estimateGas[fnName](...args);
 
   const ov = await eip1559Overrides(signer, estimate);
   const tx = await contract[fnName](...args, ov);
-  return tx.wait();
+  const receipt = await tx.wait();
+  // Add delay after transaction to prevent rate limiting
+  await delay(300);
+  return receipt;
 }
 
 /**
@@ -46,13 +63,19 @@ export async function sendTx(contract, fnName, args = []) {
  * @returns {Promise<import("ethers").Contract>}
  */
 export async function deployWithGas(factory, ctorArgs = []) {
+  // Add delay before deployment to prevent rate limiting
+  await delay(500);
   const signer   = factory.runner ?? factory.signer;
   const unsigned = await factory.getDeployTransaction(...ctorArgs);
+  // Add delay before gas estimation
+  await delay(200);
   const est      = await signer.estimateGas(unsigned);
 
   const ov = await eip1559Overrides(signer, () => Promise.resolve(est));
   const contract = await factory.deploy(...ctorArgs, ov);
   await contract.deployed();
+  // Add delay after deployment to prevent rate limiting
+  await delay(500);
   return contract;
 }
 
@@ -85,6 +108,8 @@ export async function safeSendTx(
 
   /* ── 1. estimateGas probe ─────────────────────────────────────────── */
   try {
+    // Add delay before estimateGas to prevent rate limiting
+    await delay(200);
     await contract.estimateGas[fnName](...args);
   } catch (estErr) {
     if (

@@ -632,9 +632,12 @@ export function AppProvider({ children }) {
       const cmContract = await deployWithGas(CollateralManagerFactory, [priceOracle]);
       await cmContract.deployed();
       setCollateralManagerAddress(cmContract.address);
+      await sleep(500); // Delay after deployment
 
       let tx = await sendTx(cmContract, "addAcceptedCollateralToken", [DEFAULT_COLLATERAL, 1]);
+      await sleep(300); // Delay between transactions
       tx = await sendTx(cmContract, "setMaintenanceRatio", [DEFAULT_COLLATERAL, 1]);
+      await sleep(300); // Delay between transactions
 
       const AuctionTokenFactory = new ethers.ContractFactory(
         AuctionTokenArtifact.abi,
@@ -645,6 +648,7 @@ export function AppProvider({ children }) {
       const tokenSymbol = `${ID}-TOKEN`;
       const atContract = await deployWithGas(AuctionTokenFactory, [tokenName, tokenSymbol]);
       await atContract.deployed();
+      await sleep(500); // Delay after deployment
       const auctionTokenAddress = atContract.address;
 
       const BID_DURATION = 6000000;
@@ -672,8 +676,10 @@ export function AppProvider({ children }) {
         AUCTION_TOKEN_AMOUNT]);
       await aeContract.deployed();
       setAuctionEngineAddress(aeContract.address);
+      await sleep(500); // Delay after deployment
 
       tx = await sendTx(atContract, "setAuctionContract", [aeContract.address]);
+      await sleep(300); // Delay between transactions
       
       const LendingVaultFactory = new ethers.ContractFactory(
         LendingVaultArtifact.abi,
@@ -683,6 +689,7 @@ export function AppProvider({ children }) {
       const lvContract = await deployWithGas(LendingVaultFactory, [USDC_ADDRESS]);
       await lvContract.deployed();
       setLendingVaultAddress(lvContract.address);
+      await sleep(500); // Delay after deployment
 
       const BidManagerFactory = new ethers.ContractFactory(
         BidManagerArtifact.abi,
@@ -699,8 +706,10 @@ export function AppProvider({ children }) {
         50]);
       await bmContract.deployed();
       setBidManagerAddress(bmContract.address);
+      await sleep(500); // Delay after deployment
 
       tx = await sendTx(cmContract, "setManager", [bmContract.address]);
+      await sleep(300); // Delay between transactions
       
       const OfferManagerFactory = new ethers.ContractFactory(
         OfferManagerArtifact.abi,
@@ -712,9 +721,12 @@ export function AppProvider({ children }) {
       const omContract = await deployWithGas(OfferManagerFactory, [lvContract.address, aeContract.address, maxOffer, minOffer, 50]);
       await omContract.deployed();
       setOfferManagerAddress(omContract.address);
+      await sleep(500); // Delay after deployment
 
       tx = await sendTx(aeContract, "setManagers", [bmContract.address, omContract.address]);
+      await sleep(300); // Delay between transactions
       tx = await sendTx(lvContract, "setManager", [omContract.address]);
+      await sleep(300); // Delay between transactions
       
       const auctionContracts = {
         collateralManagerAddress: cmContract.address,
