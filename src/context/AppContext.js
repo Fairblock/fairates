@@ -55,11 +55,6 @@ export function getErrorMessage(error) {
     return "Network error. Please check your connection";
   }
   
-  // Gas errors
-  if (lowerMessage.includes("gas") || lowerMessage.includes("insufficient funds")) {
-    return "Insufficient funds for gas";
-  }
-  
   // Contract not found
   if (lowerMessage.includes("not found") || lowerMessage.includes("does not exist")) {
     return "Contract not found";
@@ -70,7 +65,7 @@ export function getErrorMessage(error) {
     return "Please connect your wallet";
   }
   
-  // Revert reasons (extract from error data)
+  // Revert reasons (extract from error data) - CHECK THIS FIRST before generic gas errors
   if (error.reason) {
     return error.reason;
   }
@@ -88,6 +83,15 @@ export function getErrorMessage(error) {
     } catch (e) {
       // Ignore parsing errors
     }
+  }
+  
+  // Gas errors - check AFTER revert reasons, and be more specific
+  // Only match actual gas-related errors, not just any message containing "gas"
+  if (lowerMessage.includes("insufficient funds for gas") ||
+      lowerMessage.includes("insufficient balance for gas") ||
+      (lowerMessage.includes("gas price") && lowerMessage.includes("insufficient")) ||
+      (lowerMessage.includes("gas") && (lowerMessage.includes("too low") || lowerMessage.includes("below")))) {
+    return "Insufficient funds for gas";
   }
   
   // Generic error messages - keep them short
