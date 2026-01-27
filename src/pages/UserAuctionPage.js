@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
-import { COLORS, FONT_FAMILY } from "../styles.js";
+import { COLORS, FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import BidManagerArtifact from "../BidManager.json";
 import OfferManagerArtifact from "../OfferManager.json";
@@ -47,6 +47,7 @@ export function UserAuctionPage() {
     removeOffer,
   } = useAppContext();
 
+  const [activeTab, setActiveTab] = useState("bid");
   const [auctionMeta, setAuctionMeta] = useState({
     phase: "-",
     status: "-",
@@ -60,7 +61,8 @@ export function UserAuctionPage() {
     minBid: "-",
     maxBid: "-",
     minOffer: "-",
-    maxOffer: "-"
+    maxOffer: "-",
+    loading: true,
   });
 
   const [headerHeight, setHeaderHeight] = useState(80);
@@ -95,29 +97,33 @@ export function UserAuctionPage() {
     }
   }, [bidCollateralSelections, setExtraCollateralSelections, setRemoveCollateralSelections]);
 
-  // load auction details every time a dependency changes
+  // Load auction details - works even without wallet connection
   useEffect(() => {
     async function loadDetails() {
-      if (!signer ||
-          !auctionEngineAddress ||
-          !bidManagerAddress ||
-          !offerManagerAddress) return;
+      if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
+        setAuctionMeta(prev => ({ ...prev, loading: false }));
+        return;
+      }
 
       try {
+        // Use provider instead of signer for read-only operations
+        const provider = signer?.provider ?? 
+          new ethers.providers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
+
         const ae = new ethers.Contract(
           auctionEngineAddress,
           AuctionEngineArtifact.abi,
-          signer
+          provider
         );
         const bm = new ethers.Contract(
           bidManagerAddress,
           BidManagerArtifact.abi,
-          signer
+          provider
         );
         const om = new ethers.Contract(
           offerManagerAddress,
           OfferManagerArtifact.abi,
-          signer
+          provider
         );
 
         // phase ↦ human string
@@ -174,150 +180,25 @@ export function UserAuctionPage() {
           maxOffer: ethers.utils.formatUnits(maxOffer, 18),
           minOffer: ethers.utils.formatUnits(minOffer, 18),
           decBids: finalized ? Number(bidsDec) : 0,
-          decOffers: finalized ? Number(offersDec) : 0
+          decOffers: finalized ? Number(offersDec) : 0,
+          loading: false,
         });
       } catch (err) {
         console.error("loadDetails:", err);
+        setAuctionMeta(prev => ({ ...prev, loading: false }));
       }
     }
 
     loadDetails();
+    // Refresh every 10 seconds
+    const interval = setInterval(loadDetails, 10000);
+    return () => clearInterval(interval);
   }, [
-    signer,
     auctionEngineAddress,
     bidManagerAddress,
-    offerManagerAddress
+    offerManagerAddress,
+    signer
   ]);
-
-  const pageContainer = {
-    minHeight: "calc(100vh - var(--header-height, 80px))",
-    backgroundColor: "#FFFFFF",
-    position: "relative",
-    padding: "0px 0px 0px",
-  };
-
-  const wrapper = { 
-    maxWidth: 1140, 
-    margin: "0 auto", 
-    padding: "32px 32px",
-    position: "relative",
-    zIndex: 1,
-  };
-  const section = { marginBottom: 64 };
-  const h1 = {
-    fontSize: 32,
-    fontWeight: 400,
-    marginBottom: 6,
-    color: "#000000",
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-  const h2 = { 
-    fontSize: 21, 
-    fontWeight: 400, 
-    color: "#000000", 
-    marginBottom: 24,
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-  const grid2 = { display: "grid", gap: 40, gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))" };
-  const label = { 
-    fontSize: 20, 
-    fontWeight: 400, 
-    color: "#000000", 
-    marginBottom: 8, 
-    display: "block", 
-    textAlign: "left", 
-    marginTop: 12,
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-  const input = { 
-    width: "90%", 
-    padding: "16px 20px", 
-    fontSize: 17, 
-    borderRadius: 12, 
-    background: "#F9F9F9", 
-    color: "#000000", 
-    border: "none", 
-    outline: "none", 
-    transition: "box-shadow .18s",
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.1)"; };
-  const focusOff = e => { e.currentTarget.style.boxShadow = ""; };
-  const btn = { 
-    background: "#E4F5FF", 
-    border: "none", 
-    color: "#00A3FF", 
-    fontSize: 18, 
-    fontWeight: 400, 
-    padding: "18px 64px", 
-    borderRadius: 14, 
-    cursor: "pointer", 
-    marginTop: 28, 
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-  const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
-  const th = {
-    border: "1px solid #E0E0E0",
-    padding: 12,
-    fontSize: 15,
-    color: "#000000",
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-    fontWeight: 500,
-    textAlign: "left",
-  };
-  const td = { 
-    border: "1px solid #E0E0E0", 
-    padding: 12, 
-    fontSize: 15,
-    color: "#000000",
-    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-
-  // White theme info styles
-  const infoStyles = {
-    wrap: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '12px',
-      marginBottom: '48px',
-    },
-    pill: {
-      flex: '1 0 auto',
-      minWidth: '160px',
-      padding: '14px 18px',
-      borderRadius: '14px',
-      background: '#F9F9F9',
-      border: '1px solid #E0E0E0',
-    },
-    label: {
-      fontSize: '11px',
-      letterSpacing: '.06em',
-      color: '#666666',
-      textTransform: 'uppercase',
-      marginBottom: '2px',
-      display: 'block',
-      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-    },
-    value: {
-      fontSize: '15px',
-      fontWeight: 500,
-      color: '#000000',
-      wordBreak: 'break-word',
-      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-    },
-  };
-
-  const patternStyle = {
-    position: "fixed",
-    right: 0,
-    top: `${headerHeight}px`,
-    height: `calc(100vh - ${headerHeight}px)`,
-    minHeight: `calc(100vh - ${headerHeight}px)`,
-    width: "auto",
-    objectFit: "cover",
-    zIndex: 0,
-    pointerEvents: "none",
-  };
 
   const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
@@ -342,6 +223,17 @@ export function UserAuctionPage() {
   const pills = auctionMeta.status.startsWith('✅')
                 ? [...base, ...final]
                 : [...base, ...live];
+
+  const tabs = [
+    { id: "bid", label: "Place Bid" },
+    { id: "offer", label: "Place Offer" },
+    { id: "collateral", label: "Collateral" },
+    { id: "repay", label: "Repay Loan" },
+    { id: "liquidate", label: "Liquidate" },
+    { id: "redeem", label: "Redeem" },
+  ];
+
+  const isWalletConnected = !!signer;
 
   return (
     <>
@@ -387,266 +279,899 @@ export function UserAuctionPage() {
             background-image: none !important;
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif !important;
           }
+
+          .tab-button {
+            transition: all 0.2s ease;
+          }
+
+          .tab-button:hover {
+            background-color: #F5F5F5;
+          }
+
+          .tab-button.active {
+            background-color: #E4F5FF;
+            color: #00A3FF;
+          }
+
+          .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.1);
+            border-color: #00A3FF;
+          }
+
+          .action-button {
+            transition: all 0.2s ease;
+          }
+
+          .action-button:hover {
+            background-color: #00A3FF;
+            color: #FFFFFF;
+          }
+
+          .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          @media (max-width: 768px) {
+            .tabs-container {
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
+            
+            .tabs-container::-webkit-scrollbar {
+              display: none;
+            }
+          }
         `}
       </style>
-      <div style={pageContainer}>
-        <img src="/bgpattern.png" alt="" style={patternStyle} />
-        <div style={wrapper}>
-          <h1 style={h1}>
-            Participate in auction{" "}
-            <span style={{ fontSize: 20, fontWeight: 400, color: "#666666", fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-              ({auctionEngineAddress?.slice(0, 6)}…{auctionEngineAddress?.slice(-4)})
-            </span>
-          </h1>
+      <div style={{
+        minHeight: "calc(100vh - var(--header-height, 80px))",
+        backgroundColor: "#FFFFFF",
+        position: "relative",
+        padding: 0,
+      }}>
+        <img 
+          src="/bgpattern.png" 
+          alt="" 
+          style={{
+            position: "fixed",
+            right: 0,
+            top: `${headerHeight}px`,
+            height: `calc(100vh - ${headerHeight}px)`,
+            minHeight: `calc(100vh - ${headerHeight}px)`,
+            width: "auto",
+            objectFit: "cover",
+            zIndex: 0,
+            pointerEvents: "none",
+          }} 
+        />
+        <div style={{ 
+          maxWidth: 1200, 
+          margin: "0 auto", 
+          padding: "48px 32px",
+          position: "relative",
+          zIndex: 1,
+        }}>
+          {/* Header */}
+          <div style={{ marginBottom: 40 }}>
+            <h1 style={{
+              fontSize: 32,
+              fontWeight: 400,
+              marginBottom: 4,
+              color: "#000000",
+              fontFamily: FONT_FAMILY,
+              letterSpacing: "-0.02em",
+            }}>
+              Auction Details
+            </h1>
+            <p style={{
+              fontSize: 14,
+              color: "#999999",
+              fontFamily: FONT_FAMILY,
+              margin: 0,
+              fontWeight: 400,
+            }}>
+              {auctionEngineAddress?.slice(0, 10)}…{auctionEngineAddress?.slice(-8)}
+            </p>
+          </div>
 
-          {/* ───────── auction info card ───────── */}
-          <div style={infoStyles.wrap}>
+          {/* Auction Info - Minimal Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '24px',
+            marginBottom: '48px',
+            paddingBottom: '32px',
+            borderBottom: '1px solid #F0F0F0',
+          }}>
             {pills.map(([label, val]) => (
-              <div key={label} style={infoStyles.pill}>
-                <span style={infoStyles.label}>{label}</span>
-                <span style={infoStyles.value}>{val}</span>
+              <div key={label} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}>
+                <span style={{
+                  fontSize: '11px',
+                  letterSpacing: '.06em',
+                  color: '#999999',
+                  textTransform: 'uppercase',
+                  fontFamily: FONT_FAMILY,
+                  fontWeight: 400,
+                }}>{label}</span>
+                <span style={{
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  color: '#000000',
+                  wordBreak: 'break-word',
+                  fontFamily: FONT_FAMILY,
+                  lineHeight: 1.4,
+                }}>{val}</span>
               </div>
             ))}
           </div>
 
-      <div style={{ ...grid2, ...section }}>
-        <div>
-          <h2 style={h2}>Place a Bid</h2>
-          <label style={label}>Bid amount</label>
-          <input
-            style={input}
-            value={bidAmount}
-            onChange={e => setBidAmount(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <label style={label}>Bid rate</label>
-          <input
-            style={input}
-            value={bidRate}
-            onChange={e => setBidRate(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <table style={table}>
-            <thead>
-              <tr>
-                <th style={th}>Collateral token</th>
-                <th style={th}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bidCollateralSelections.map((c, i) => (
-                <tr key={c.address}>
-                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
-                  <td style={td}>
-                    <input
-                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
-                      value={c.amount}
-                      onChange={e => updateBidCollat(i, e.target.value)}
-                      onFocus={focusOn} onBlur={focusOff}
-                      placeholder="0"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              className="btn-primary"
-              style={{ ...btn, flex: 1 }}
-              onClick={placeBid}
-            >
-              Submit Bid
-            </button>
-            <button
-              className="btn-primary"
-              style={{ ...btn, flex: 1 }}
-              onClick={removeBid}
-            >
-              Remove My Bid
-            </button>
+          {/* Tabs */}
+          <div 
+            className="tabs-container"
+            style={{
+              borderBottom: '1px solid #E8E8E8',
+              marginBottom: 32,
+              display: 'flex',
+              gap: 4,
+              overflowX: 'auto',
+            }}
+          >
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="tab-button"
+                style={{
+                  padding: '12px 24px',
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: activeTab === tab.id ? '#00A3FF' : '#666666',
+                  background: activeTab === tab.id ? '#E4F5FF' : 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab.id ? '2px solid #00A3FF' : '2px solid transparent',
+                  cursor: 'pointer',
+                  fontFamily: FONT_FAMILY,
+                  whiteSpace: 'nowrap',
+                  borderRadius: '8px 8px 0 0',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-        </div>
 
-        <div>
-          <h2 style={h2}>Place an Offer</h2>
-          <label style={label}>Offer amount</label>
-          <input
-            style={input}
-            value={offerAmount}
-            onChange={e => setOfferAmount(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <label style={label}>Offer rate</label>
-          <input
-            style={input}
-            value={offerRate}
-            onChange={e => setOfferRate(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              className="btn-primary"
-              style={{ ...btn, flex: 1 }}
-              onClick={placeOffer}
-            >
-              Submit Offer
-            </button>
-            <button
-              className="btn-primary"
-              style={{ ...btn, flex: 1 }}
-              onClick={removeOffer}
-            >
-              Remove My Offer
-            </button>
+          {/* Tab Content */}
+          <div style={{
+            backgroundColor: '#FAFAFA',
+            borderRadius: '16px',
+            padding: '40px',
+            minHeight: '400px',
+          }}>
+            {/* Place Bid Tab */}
+            {activeTab === "bid" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to place a bid.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Bid Amount</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={bidAmount}
+                    onChange={e => setBidAmount(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Bid Rate</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={bidRate}
+                    onChange={e => setBidRate(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  {bidCollateralSelections.length > 0 && (
+                    <>
+                      <label style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#000000',
+                        marginBottom: 12,
+                        display: 'block',
+                        fontFamily: FONT_FAMILY,
+                      }}>Collateral</label>
+                      <div style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '10px',
+                        border: '1px solid #E0E0E0',
+                        overflow: 'hidden',
+                        marginBottom: 24,
+                      }}>
+                        {bidCollateralSelections.map((c, i) => (
+                          <div key={c.address} style={{
+                            padding: '16px',
+                            borderBottom: i < bidCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}>
+                            <span style={{
+                              fontSize: 14,
+                              color: '#666666',
+                              fontFamily: FONT_FAMILY,
+                            }}>
+                              {c.address.slice(0, 8)}…{c.address.slice(-6)}
+                            </span>
+                            <input
+                              className="input-field"
+                              style={{
+                                width: "200px",
+                                padding: "10px 14px",
+                                fontSize: 14,
+                                borderRadius: "8px",
+                                background: "#F9F9F9",
+                                color: "#000000",
+                                border: "1px solid #E0E0E0",
+                                outline: "none",
+                                fontFamily: FONT_FAMILY,
+                              }}
+                              value={c.amount}
+                              onChange={e => updateBidCollat(i, e.target.value)}
+                              placeholder="0"
+                              disabled={!isWalletConnected}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#E4F5FF",
+                        border: "none",
+                        color: "#00A3FF",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={placeBid}
+                      disabled={!isWalletConnected}
+                    >
+                      Submit Bid
+                    </button>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#F5F5F5",
+                        border: "1px solid #E0E0E0",
+                        color: "#666666",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={removeBid}
+                      disabled={!isWalletConnected}
+                    >
+                      Remove Bid
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Place Offer Tab */}
+            {activeTab === "offer" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to place an offer.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Offer Amount</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={offerAmount}
+                    onChange={e => setOfferAmount(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Offer Rate</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={offerRate}
+                    onChange={e => setOfferRate(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#E4F5FF",
+                        border: "none",
+                        color: "#00A3FF",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={placeOffer}
+                      disabled={!isWalletConnected}
+                    >
+                      Submit Offer
+                    </button>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#F5F5F5",
+                        border: "1px solid #E0E0E0",
+                        color: "#666666",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={removeOffer}
+                      disabled={!isWalletConnected}
+                    >
+                      Remove Offer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Collateral Tab */}
+            {activeTab === "collateral" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to manage collateral.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  {extraCollateralSelections.length > 0 && (
+                    <>
+                      <label style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#000000',
+                        marginBottom: 12,
+                        display: 'block',
+                        fontFamily: FONT_FAMILY,
+                      }}>Collateral Tokens</label>
+                      <div style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '10px',
+                        border: '1px solid #E0E0E0',
+                        overflow: 'hidden',
+                        marginBottom: 24,
+                      }}>
+                        {extraCollateralSelections.map((c, i) => (
+                          <div key={c.address} style={{
+                            padding: '16px',
+                            borderBottom: i < extraCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}>
+                            <span style={{
+                              fontSize: 14,
+                              color: '#666666',
+                              fontFamily: FONT_FAMILY,
+                            }}>
+                              {c.address.slice(0, 8)}…{c.address.slice(-6)}
+                            </span>
+                            <input
+                              className="input-field"
+                              style={{
+                                width: "200px",
+                                padding: "10px 14px",
+                                fontSize: 14,
+                                borderRadius: "8px",
+                                background: "#F9F9F9",
+                                color: "#000000",
+                                border: "1px solid #E0E0E0",
+                                outline: "none",
+                                fontFamily: FONT_FAMILY,
+                              }}
+                              value={c.amount}
+                              onChange={e => updateExtraCollat(i, e.target.value)}
+                              placeholder="0"
+                              disabled={!isWalletConnected}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#E4F5FF",
+                        border: "none",
+                        color: "#00A3FF",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={() =>
+                        externalLockCollateral(
+                          extraCollateralSelections.map(c => c.address),
+                          extraCollateralSelections.map(c => c.amount)
+                        )
+                      }
+                      disabled={!isWalletConnected}
+                    >
+                      Lock Collateral
+                    </button>
+                    <button
+                      className="action-button"
+                      style={{
+                        flex: 1,
+                        background: "#F5F5F5",
+                        border: "1px solid #E0E0E0",
+                        color: "#666666",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 32px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                      }}
+                      onClick={() =>
+                        externalUnlockCollateral(
+                          extraCollateralSelections.map(c => c.address),
+                          extraCollateralSelections.map(c => c.amount)
+                        )
+                      }
+                      disabled={!isWalletConnected}
+                    >
+                      Unlock Collateral
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Repay Loan Tab */}
+            {activeTab === "repay" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to repay a loan.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Repay Amount</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={repayAmount}
+                    onChange={e => setRepayAmount(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  <button
+                    className="action-button"
+                    style={{
+                      background: "#E4F5FF",
+                      border: "none",
+                      color: "#00A3FF",
+                      fontSize: 16,
+                      fontWeight: 500,
+                      padding: "16px 48px",
+                      borderRadius: "10px",
+                      cursor: isWalletConnected ? "pointer" : "not-allowed",
+                      fontFamily: FONT_FAMILY,
+                      opacity: isWalletConnected ? 1 : 0.5,
+                    }}
+                    onClick={repay}
+                    disabled={!isWalletConnected}
+                  >
+                    Repay Loan
+                  </button>
+                  <div style={{ marginTop: 24 }}>
+                    <button
+                      className="action-button"
+                      style={{
+                        background: "#F5F5F5",
+                        border: "1px solid #E0E0E0",
+                        color: "#666666",
+                        fontSize: 16,
+                        fontWeight: 500,
+                        padding: "16px 48px",
+                        borderRadius: "10px",
+                        cursor: isWalletConnected ? "pointer" : "not-allowed",
+                        fontFamily: FONT_FAMILY,
+                        opacity: isWalletConnected ? 1 : 0.5,
+                        marginRight: 12,
+                      }}
+                      onClick={checkOwed}
+                      disabled={!isWalletConnected}
+                    >
+                      Check Owed
+                    </button>
+                    {owedAmount && (
+                      <span style={{
+                        fontSize: 16,
+                        color: "#000000",
+                        fontFamily: FONT_FAMILY,
+                        fontWeight: 500,
+                      }}>
+                        You owe: <strong>{owedAmount}</strong>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Liquidate Tab */}
+            {activeTab === "liquidate" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to liquidate.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Borrower Address</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={liquidationBorrower}
+                    onChange={e => setLiquidationBorrower(e.target.value)}
+                    placeholder="0x…"
+                    disabled={!isWalletConnected}
+                  />
+                  {liquidationCollateralSelections.length > 0 && (
+                    <>
+                      <label style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#000000',
+                        marginBottom: 12,
+                        display: 'block',
+                        fontFamily: FONT_FAMILY,
+                      }}>Coverage Amount</label>
+                      <div style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '10px',
+                        border: '1px solid #E0E0E0',
+                        overflow: 'hidden',
+                        marginBottom: 24,
+                      }}>
+                        {liquidationCollateralSelections.map((c, i) => (
+                          <div key={c.address} style={{
+                            padding: '16px',
+                            borderBottom: i < liquidationCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}>
+                            <span style={{
+                              fontSize: 14,
+                              color: '#666666',
+                              fontFamily: FONT_FAMILY,
+                            }}>
+                              {c.address.slice(0, 8)}…{c.address.slice(-6)}
+                            </span>
+                            <input
+                              className="input-field"
+                              style={{
+                                width: "200px",
+                                padding: "10px 14px",
+                                fontSize: 14,
+                                borderRadius: "8px",
+                                background: "#F9F9F9",
+                                color: "#000000",
+                                border: "1px solid #E0E0E0",
+                                outline: "none",
+                                fontFamily: FONT_FAMILY,
+                              }}
+                              value={c.amount}
+                              onChange={e => updateLiqCollat(i, e.target.value)}
+                              placeholder="0"
+                              disabled={!isWalletConnected}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <button
+                    className="action-button"
+                    style={{
+                      background: "#E4F5FF",
+                      border: "none",
+                      color: "#00A3FF",
+                      fontSize: 16,
+                      fontWeight: 500,
+                      padding: "16px 48px",
+                      borderRadius: "10px",
+                      cursor: isWalletConnected ? "pointer" : "not-allowed",
+                      fontFamily: FONT_FAMILY,
+                      opacity: isWalletConnected ? 1 : 0.5,
+                    }}
+                    onClick={liquidate}
+                    disabled={!isWalletConnected}
+                  >
+                    Liquidate
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Redeem Tab */}
+            {activeTab === "redeem" && (
+              <div>
+                {!isWalletConnected && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#FFF3CD',
+                    border: '1px solid #FFE69C',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                    color: '#856404',
+                    fontFamily: FONT_FAMILY,
+                    fontSize: 14,
+                  }}>
+                    Please connect your wallet to redeem tokens.
+                  </div>
+                )}
+                <div style={{ maxWidth: 600 }}>
+                  <label style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#000000',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontFamily: FONT_FAMILY,
+                  }}>Redemption Amount</label>
+                  <input
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      fontSize: 16,
+                      borderRadius: "10px",
+                      background: "#FFFFFF",
+                      color: "#000000",
+                      border: "1px solid #E0E0E0",
+                      outline: "none",
+                      marginBottom: 24,
+                      fontFamily: FONT_FAMILY,
+                      boxSizing: 'border-box',
+                    }}
+                    value={redemptionAmount}
+                    onChange={e => setRedemptionAmount(e.target.value)}
+                    placeholder="0"
+                    disabled={!isWalletConnected}
+                  />
+                  <button
+                    className="action-button"
+                    style={{
+                      background: "#E4F5FF",
+                      border: "none",
+                      color: "#00A3FF",
+                      fontSize: 16,
+                      fontWeight: 500,
+                      padding: "16px 48px",
+                      borderRadius: "10px",
+                      cursor: isWalletConnected ? "pointer" : "not-allowed",
+                      fontFamily: FONT_FAMILY,
+                      opacity: isWalletConnected ? 1 : 0.5,
+                    }}
+                    onClick={redeemToken}
+                    disabled={!isWalletConnected}
+                  >
+                    Redeem Token
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      <div style={{ ...grid2, ...section }}>
-        <div style={section}>
-          <h2 style={h2}>Add or Remove Collateral</h2>
-          <table style={table}>
-            <thead>
-              <tr>
-                <th style={th}>Token</th>
-                <th style={th}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {extraCollateralSelections.map((c, i) => (
-                <tr key={c.address}>
-                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
-                  <td style={td}>
-                    <input
-                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
-                      value={c.amount}
-                      onChange={e => updateExtraCollat(i, e.target.value)}
-                      onFocus={focusOn} onBlur={focusOff}
-                      placeholder="0"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              className="btn-primary"
-              style={btn}
-              onClick={() =>
-                externalLockCollateral(
-                  extraCollateralSelections.map(c => c.address),
-                  extraCollateralSelections.map(c => c.amount)
-                )
-              }
-            >
-              Lock Collateral
-            </button>
-            <button
-              className="btn-primary"
-              style={btn}
-              onClick={() =>
-                externalUnlockCollateral(
-                  extraCollateralSelections.map(c => c.address),
-                  extraCollateralSelections.map(c => c.amount)
-                )
-              }
-            >
-              Unlock Collateral
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ ...grid2, ...section }}>
-        <div>
-          <h2 style={h2}>Repay Loan</h2>
-          <label style={label}>Repay amount</label>
-          <input
-            style={input}
-            value={repayAmount}
-            onChange={e => setRepayAmount(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <button className="btn-primary" style={btn} onClick={repay}>
-            Repay
-          </button>
-        </div>
-        <div>
-          <h2 style={h2}>Check Owed</h2>
-          <button className="btn-primary" style={btn} onClick={checkOwed}>
-            Check
-          </button>
-          {owedAmount && (
-            <p style={{ marginTop: 10, fontSize: 16, color: "#000000", fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-              You owe: <strong>{owedAmount}</strong>
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div style={{ ...grid2, ...section }}>
-        <div>
-          <h2 style={h2}>Liquidate</h2>
-          <label style={label}>Borrower address</label>
-          <input
-            style={input}
-            value={liquidationBorrower}
-            onChange={e => setLiquidationBorrower(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0x…"
-          />
-          <table style={table}>
-            <thead>
-              <tr>
-                <th style={th}>Token</th>
-                <th style={th}>Coverage amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {liquidationCollateralSelections.map((c, i) => (
-                <tr key={c.address}>
-                  <td style={td}>{c.address.slice(0, 6)}…{c.address.slice(-4)}</td>
-                  <td style={td}>
-                    <input
-                      style={{ ...input, margin: 0, padding: "8px 10px", fontSize: 15 }}
-                      value={c.amount}
-                      onChange={e => updateLiqCollat(i, e.target.value)}
-                      onFocus={focusOn} onBlur={focusOff}
-                      placeholder="0"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button className="btn-primary" style={btn} onClick={liquidate}>
-            Liquidate
-          </button>
-        </div>
-        <div>
-          <h2 style={h2}>Redeem Token</h2>
-          <label style={label}>Redemption amount</label>
-          <input
-            style={input}
-            value={redemptionAmount}
-            onChange={e => setRedemptionAmount(e.target.value)}
-            onFocus={focusOn} onBlur={focusOff}
-            placeholder="0"
-          />
-          <button className="btn-primary" style={btn} onClick={redeemToken}>
-            Redeem
-          </button>
-        </div>
-      </div>
         </div>
       </div>
     </>
   );
-} 
+}
