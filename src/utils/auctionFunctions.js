@@ -404,7 +404,7 @@ export async function placeOffer(
     const purchaseToken = await am.repaymentToken();
     const tokenDecimals = await getTokenDecimals(purchaseToken);
     const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
-    await approveToken(purchaseToken, lendingVaultAddress);
+    await approveToken(signer, purchaseToken, lendingVaultAddress);
     await sendTx(om, "submitOffer", [quantity, encryptedOffer]);
     showToast("Offer placed successfully", "success");
     setOfferAmount("");
@@ -497,7 +497,7 @@ export async function repay(
     const purchaseToken = await am.repaymentToken();
     const tokenDecimals = await getTokenDecimals(purchaseToken);
     const amountBN = ethers.utils.parseUnits(repayAmount, tokenDecimals);
-    await approveToken(purchaseToken, auctionEngineAddress);
+    await approveToken(signer, purchaseToken, auctionEngineAddress);
     await sendTx(ae, "repay", [amountBN]);
     showToast("Repayment successful", "success");
     setRepayAmount("");
@@ -587,7 +587,7 @@ export async function liquidate(
       coverageArray.push(amountInSmallestUnit);
     }
     const purchaseToken = await ae.repaymentToken();
-    await approveToken(purchaseToken, auctionEngineAddress);
+    await approveToken(signer, purchaseToken, auctionEngineAddress);
 
     if (currentTime < threshold.toNumber()) {
       await sendTx(ae, "batchEarlyLiquidation", [liquidationBorrower, tokensArray, coverageArray]);
