@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useAppContext } from "../context/AppContext";
-import { FONT_FAMILY } from "../styles.js";
 
 export function WalletConnect() {
   const {
@@ -62,7 +61,7 @@ export function WalletConnect() {
     borderRadius: 20,
     boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
     textAlign: "center",
-    fontFamily: FONT_FAMILY,
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
   
   const fox = { width: 140, marginBottom: 32 };
@@ -92,7 +91,7 @@ export function WalletConnect() {
     <div style={overlay} onClick={() => setOpen(false)}>
       <div className="purple-card" style={card} onClick={(e) => e.stopPropagation()}>
         <img src={`${process.env.PUBLIC_URL}/metamask.svg`} alt="MetaMask" style={fox} />
-        <p style={{ color: "#000", fontSize: 18, fontWeight: 600 }}>
+        <p style={{ color: "#000", fontSize: 18, fontWeight: 600, fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           To get started, connect your<br />MetaMask wallet.
         </p>
         <button

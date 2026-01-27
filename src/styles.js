@@ -27,7 +27,7 @@ const COLORS = {
   accentHover: "#B570FF",
   buttonBorder: "rgba(255,255,255,0.15)",
 };
-const FONT_FAMILY = `"Montserrat", sans-serif`;
+const FONT_FAMILY = `'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif`;
 
 const sectionWrap = {
   marginBottom: "54px",
@@ -122,7 +122,7 @@ const walletBtnBase = {
 
 
 const heroHeading = {
-  fontFamily: "'Montserrat', sans-serif",
+  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   fontSize: "65px",
   fontWeight: 200,
   lineHeight: 1.2,
@@ -243,7 +243,7 @@ const buttonStyle = {
   cursor: "pointer",
   fontWeight: 500,
   transition: "background-color 0.2s ease-in-out",
-  fontFamily: "EB Garabond",
+  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   whiteSpace: "nowrap",
 };
 const buttonStyleBid = {
@@ -264,7 +264,7 @@ const inputStyle = {
   color: "#333",
   boxShadow: "inset 0 1px 2px rgba(0,0,0,0.05)",
   transition: "border-color 0.2s ease-in-out",
-  fontFamily: "EB Garabond",
+  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   marginRight: "0.7rem",
 };
 const inputStyleCollat = {
@@ -278,7 +278,7 @@ const cardStyle = {
   marginTop: "1.5rem",
   borderRadius: "8px",
   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-  fontFamily: "EB Garabond",
+  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
 };
 
 const auctionPageOuterStyle = {
@@ -340,7 +340,7 @@ const selectStyle = {
   border: "1px solid #ccc",
   fontSize: "1rem",
   color: "#333",
-  fontFamily: "EB Garabond",
+  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   marginTop: "1rem",
   marginRight: "0.5rem",
 };
