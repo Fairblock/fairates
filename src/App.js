@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AppProvider } from "./context/AppContext";
+import { AppProvider, useAppContext } from "./context/AppContext";
 import { LandingPage } from "./pages/LandingPage";
 import { DeployPage } from "./pages/DeployPage";
 import { ManageAuctionsPage } from "./pages/ManageAuctionsPage";
@@ -13,11 +13,14 @@ import { DeveloperWrapper } from "./components/DeveloperWrapper";
 import { UserWrapper } from "./components/UserWrapper";
 import { BackgroundManager } from "./components/BackgroundManager";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import Toast from "./components/Toast";
 import "./App.css";
 
-function App() {
+function AppContent() {
+  const { toast, hideToast } = useAppContext();
+
   return (
-    <AppProvider>
+    <>
       <Router>
         <BackgroundManager />
         <Routes>
@@ -41,6 +44,21 @@ function App() {
           />
         </Routes>
       </Router>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
     </AppProvider>
   );
 }

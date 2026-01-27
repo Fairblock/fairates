@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 
 export function UserDashboard() {
-  const { deployedAuctions, selectAuction } = useAppContext();
+  const { deployedAuctions, selectAuction, showToast } = useAppContext();
   const navigate = useNavigate();
   const [selected, setSelected] = React.useState("");
   const [headerHeight, setHeaderHeight] = useState(80);
@@ -181,8 +181,10 @@ export function UserDashboard() {
                   className="btn-primary"
                   style={btn}
                   onClick={() => {
-                    if (!selected)
-                      return alert("Please select an auction first.");
+                    if (!selected) {
+                      showToast("Please select an auction first", "warning");
+                      return;
+                    }
                     const found = deployedAuctions.find(
                       (a) => a.auctionEngineAddress === selected
                     );

@@ -47,22 +47,24 @@ export async function deployContractsCustom(
   setDeployedAuctions,
   setMyAuctions,
   selectAuction,
-  refreshAuctions
+  refreshAuctions,
+  showToast,
+  getErrorMessage
 ) {
   if (!signer) {
-    alert("Please connect your wallet first.");
+    showToast("Please connect your wallet first", "warning");
     return;
   }
   if (!customCollateralToken || !customCollateralRatio) {
-    alert("Please enter the initial collateral token address and its ratio.");
+    showToast("Please enter collateral token address and ratio", "warning");
     return;
   }
   if (!customMaxBid || !customMaxOffer) {
-    alert("Please enter both the maximum bid and maximum offer values.");
+    showToast("Please enter maximum bid and offer values", "warning");
     return;
   }
   if (!customPriceOracle || !customBidDuration || !customRevealDuration || !customRepaymentDuration || !customFee || !customAuctionTokenAmount || !customPurchaseToken) {
-    alert("Please fill in all custom deployment parameters.");
+    showToast("Please fill in all deployment parameters", "warning");
     return;
   }
   
@@ -194,12 +196,10 @@ export async function deployContractsCustom(
     });
 
     await refreshAuctions();
-    alert("All contracts deployed successfully!");
-
-    alert("All contracts deployed successfully with custom parameters.");
+    showToast("All contracts deployed successfully!", "success");
   } catch (error) {
     console.error("Custom deployment failed:", error);
-    alert("Custom deployment failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -214,11 +214,13 @@ export async function registerNewCollateral(
   setLiquidationCollateralSelections,
   setUnlockCollateralSelections,
   setNewCollateralAddress,
-  setNewCollateralRatio
+  setNewCollateralRatio,
+  showToast,
+  getErrorMessage
 ) {
   const cm = new ethers.Contract(collateralManagerAddress, CollateralManagerArtifact.abi, signer);
   if (!cm) {
-    alert("CollateralManager not found. Deploy or connect your wallet.");
+    showToast("CollateralManager not found", "error");
     return;
   }
   try {
@@ -247,12 +249,12 @@ export async function registerNewCollateral(
       { address: newCollateralAddress, unlock: false }
     ]);
 
-    alert(`Collateral ${newCollateralAddress} registered (ratio ${newCollateralRatio}).`);
+    showToast(`Collateral registered (ratio ${newCollateralRatio})`, "success");
     setNewCollateralAddress("");
     setNewCollateralRatio("");
   } catch (error) {
     console.error("Register collateral failed:", error);
-    alert("Register collateral failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -267,17 +269,19 @@ export async function placeBid(
   setBidAmount,
   setBidRate,
   setBidCollateralSelections,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   console.log("BidManager address:", bidManagerAddress);
   if (!bm) {
-    alert("BidManager not found. Deploy or connect your wallet.");
+    showToast("BidManager not found", "error");
     return;
   }
   const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!am) {
-    alert("AuctionManager not found. Deploy or connect your wallet.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   try {
@@ -288,7 +292,7 @@ export async function placeBid(
     let encryptedBid = "0x";
     const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
     if (!ae) {
-      alert("AuctionEngine not found. Deploy first.");
+      showToast("AuctionEngine not found", "error");
       return;
     }
     const ID = await ae.auctionID();
@@ -306,7 +310,7 @@ export async function placeBid(
     }
     const usedCollaterals = bidCollateralSelections.filter((c) => c.amount && c.amount !== "0");
     if (usedCollaterals.length === 0) {
-      alert("Enter some collateral amounts > 0.");
+      showToast("Enter collateral amounts greater than 0", "warning");
       return;
     }
 
@@ -329,13 +333,13 @@ export async function placeBid(
     }
     console.log("amountsArray:", amountsArray);
     await sendTx(bm, "submitBid", [quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken]);
-    alert("Bid placed successfully.");
+    showToast("Bid placed successfully", "success");
     setBidAmount("");
     setBidRate("");
     setBidCollateralSelections(bidCollateralSelections.map(c => ({ address: c.address, amount: "" })));
   } catch (error) {
     console.error("Bid failed:", error);
-    alert("Bid failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -348,13 +352,15 @@ export async function placeOffer(
   offerRate,
   setOfferAmount,
   setOfferRate,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   const om = new ethers.Contract(offerManagerAddress, OfferManagerArtifact.abi, signer);
   const lv = new ethers.Contract(lendingVaultAddress, LendingVaultArtifact.abi, signer);
   const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!om || !lv || !am) {
-    alert("OfferManager or LendingVault not found. Deploy or connect your wallet.");
+    showToast("Contract not found", "error");
     return;
   }
   try {
@@ -363,7 +369,7 @@ export async function placeOffer(
       const bufferValue = Buffer.from(offerRate, "utf8");
       const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
       if (!ae) {
-        alert("AuctionEngine not found. Deploy first.");
+        showToast("AuctionEngine not found", "error");
         return;
       }
       const ID = await ae.auctionID();
@@ -382,12 +388,12 @@ export async function placeOffer(
     const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
     await approveToken(purchaseToken, lendingVaultAddress);
     await sendTx(om, "submitOffer", [quantity, encryptedOffer]);
-    alert("Offer placed successfully.");
+    showToast("Offer placed successfully", "success");
     setOfferAmount("");
     setOfferRate("");
   } catch (error) {
     console.error("Offer failed:", error);
-    alert("Offer failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -395,11 +401,13 @@ export async function finalizeAuction(
   signer,
   auctionEngineAddress,
   walletAddress,
-  setDecryptingAuctionAddress
+  setDecryptingAuctionAddress,
+  showToast,
+  getErrorMessage
 ) {
   const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!ae) {
-    alert("AuctionEngine not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
 
@@ -431,20 +439,20 @@ export async function finalizeAuction(
     await safeSendTx(ae, "decryptBidsBatch", [3, keyArray]);
     await safeSendTx(ae, "decryptOffersBatch", [3, keyArray]);
 
-    alert("Decryption finalized.");
+    showToast("Decryption finalized", "success");
   } catch (error) {
     console.error("Decryption failed:", error);
     setDecryptingAuctionAddress(null);
-    alert("Decryption finalization failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
     return;
   }
 
   try {
     await sendTx(ae, "finalizeAuction");
-    alert("Auction finalized.");
+    showToast("Auction finalized", "success");
   } catch (error) {
     console.error("Finalize auction failed:", error);
-    alert("Auction finalization failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -453,16 +461,18 @@ export async function repay(
   auctionEngineAddress,
   repayAmount,
   setRepayAmount,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!ae) {
-    alert("LendingVault not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!am) {
-    alert("AuctionManager not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   try {
@@ -471,11 +481,11 @@ export async function repay(
     const amountBN = ethers.utils.parseUnits(repayAmount, tokenDecimals);
     await approveToken(purchaseToken, auctionEngineAddress);
     await sendTx(ae, "repay", [amountBN]);
-    alert("Repayment successful.");
+    showToast("Repayment successful", "success");
     setRepayAmount("");
   } catch (error) {
     console.error("Repayment failed:", error);
-    alert("Repayment failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -484,16 +494,18 @@ export async function checkOwed(
   auctionEngineAddress,
   walletAddress,
   setOwedAmount,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!ae) {
-    alert("AuctionEngine not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!am) {
-    alert("AuctionManager not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   try {
@@ -502,10 +514,10 @@ export async function checkOwed(
     const owed = await ae.repayments(walletAddress);
     const formattedOwed = ethers.utils.formatUnits(owed, tokenDecimals);
     setOwedAmount(formattedOwed);
-    alert(`You owe: ${formattedOwed}`);
+    showToast(`You owe: ${formattedOwed}`, "info");
   } catch (error) {
     console.error("Check owed failed:", error);
-    alert("Failed to check owed amount: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -516,15 +528,17 @@ export async function liquidate(
   liquidationCollateralSelections,
   setLiquidationBorrower,
   setLiquidationCollateralSelections,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!ae) {
-    alert("AuctionEngine not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   if (!liquidationBorrower) {
-    alert("Enter borrower address.");
+    showToast("Enter borrower address", "warning");
     return;
   }
 
@@ -538,7 +552,7 @@ export async function liquidate(
 
     const usedCollaterals = liquidationCollateralSelections.filter((c) => c.amount && c.amount !== "0");
     if (usedCollaterals.length === 0) {
-      alert("Enter coverage amounts > 0.");
+      showToast("Enter coverage amounts greater than 0", "warning");
       return;
     }
 
@@ -563,12 +577,12 @@ export async function liquidate(
       await sendTx(ae, "batchLateLiquidation", [liquidationBorrower, tokensArray, coverageArray]);
     }
 
-    alert("Liquidation executed.");
+    showToast("Liquidation executed", "success");
     setLiquidationBorrower("");
     setLiquidationCollateralSelections(liquidationCollateralSelections.map(c => ({ address: c.address, amount: "" })));
   } catch (error) {
     console.error("Liquidation failed:", error);
-    alert("Liquidation failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -576,20 +590,22 @@ export async function cancelAuction(
   signer,
   auctionEngineAddress,
   cancelReason,
-  setCancelReason
+  setCancelReason,
+  showToast,
+  getErrorMessage
 ) {
   const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!ae) {
-    alert("AuctionEngine not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   try {
     await sendTx(ae, "cancelAuction", [cancelReason]);
-    alert("Auction canceled.");
+    showToast("Auction canceled", "success");
     setCancelReason("");
   } catch (error) {
     console.error("Auction cancellation failed:", error);
-    alert("Auction cancellation failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -599,20 +615,22 @@ export async function redeemToken(
   auctionEngineAddress,
   redemptionAmount,
   setRedemptionAmount,
-  getTokenDecimals
+  getTokenDecimals,
+  showToast,
+  getErrorMessage
 ) {
   if (!signer) {
-    alert("Please connect your wallet first.");
+    showToast("Please connect your wallet first", "warning");
     return;
   }
   const atContract = new ethers.Contract(currentAuction.auctionTokenAddress, AuctionTokenArtifact.abi, signer);
   if (!atContract) {
-    alert("Auction token contract not found.");
+    showToast("Auction token contract not found", "error");
     return;
   }
   const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!am) {
-    alert("AuctionManager not found.");
+    showToast("AuctionEngine not found", "error");
     return;
   }
   try {
@@ -620,11 +638,11 @@ export async function redeemToken(
     const tokenDecimals = await getTokenDecimals(purchaseToken);
     const amount = ethers.utils.parseUnits(redemptionAmount, tokenDecimals);
     await sendTx(atContract, "redeemToken", [amount]);
-    alert("Token redemption successful.");
+    showToast("Token redemption successful", "success");
     setRedemptionAmount("");
   } catch (error) {
     console.error("Token redemption failed:", error);
-    alert("Token redemption failed: " + error.message);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -636,11 +654,13 @@ export async function externalLockCollateral(
   amounts,
   setExtraCollateralSelections,
   getTokenDecimals,
-  extraCollateralSelections
+  extraCollateralSelections,
+  showToast,
+  getErrorMessage
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   if (!bm) {
-    alert("BidManager not found. Deploy or connect your wallet.");
+    showToast("BidManager not found", "error");
     return;
   }
   try {
@@ -660,13 +680,13 @@ export async function externalLockCollateral(
     }
 
     await sendTx(bm, "externalLockCollateral", [tokens, amountsInSmallestUnit]);
-    alert("Extra collateral locked successfully.");
+    showToast("Extra collateral locked successfully", "success");
     setExtraCollateralSelections(
       extraCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
     );
   } catch (err) {
     console.error("Lock collateral failed:", err);
-    alert("Lock collateral failed: " + err.message);
+    showToast(getErrorMessage(err), "error");
   }
 }
 
@@ -677,11 +697,13 @@ export async function externalUnlockCollateral(
   amounts,
   setRemoveCollateralSelections,
   getTokenDecimals,
-  removeCollateralSelections
+  removeCollateralSelections,
+  showToast,
+  getErrorMessage
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   if (!bm) {
-    alert("BidManager not found. Deploy or connect your wallet.");
+    showToast("BidManager not found", "error");
     return;
   }
   try {
@@ -697,13 +719,13 @@ export async function externalUnlockCollateral(
     }
 
     await sendTx(bm, "externalUnlockCollateral", [tokens, amountsInSmallestUnit]);
-    alert("Excessive collateral unlocked successfully.");
+    showToast("Excessive collateral unlocked successfully", "success");
     setRemoveCollateralSelections(
       removeCollateralSelections.map((c) => ({ address: c.address, amount: "" }))
     );
   } catch (err) {
     console.error("Unlock collateral failed:", err);
-    alert("Unlock collateral failed: " + err.message);
+    showToast(getErrorMessage(err), "error");
   }
 }
 
@@ -713,16 +735,18 @@ export async function removeBid(
   setBidAmount,
   setBidRate,
   setBidCollateralSelections,
-  bidCollateralSelections
+  bidCollateralSelections,
+  showToast,
+  getErrorMessage
 ) {
   const bm = new ethers.Contract(bidManagerAddress, BidManagerArtifact.abi, signer);
   if (!bm) {
-    alert("BidManager not found. Deploy or connect your wallet.");
+    showToast("BidManager not found", "error");
     return;
   }
   try {
     await sendTx(bm, "removeBid");
-    alert("Your bid was removed and collateral unlocked.");
+    showToast("Bid removed and collateral unlocked", "success");
     setBidAmount("");
     setBidRate("");
     setBidCollateralSelections(
@@ -730,7 +754,7 @@ export async function removeBid(
     );
   } catch (err) {
     console.error("Remove bid failed:", err);
-    alert("Remove bid failed: " + err.message);
+    showToast(getErrorMessage(err), "error");
   }
 }
 
@@ -738,21 +762,23 @@ export async function removeOffer(
   signer,
   offerManagerAddress,
   setOfferAmount,
-  setOfferRate
+  setOfferRate,
+  showToast,
+  getErrorMessage
 ) {
   const om = new ethers.Contract(offerManagerAddress, OfferManagerArtifact.abi, signer);
   if (!om) {
-    alert("OfferManager not found. Deploy or connect your wallet.");
+    showToast("OfferManager not found", "error");
     return;
   }
   try {
     await sendTx(om, "removeOffer");
-    alert("Your offer was removed and funds unlocked.");
+    showToast("Offer removed and funds unlocked", "success");
     setOfferAmount("");
     setOfferRate("");
   } catch (err) {
     console.error("Remove offer failed:", err);
-    alert("Remove offer failed: " + err.message);
+    showToast(getErrorMessage(err), "error");
   }
 }
 

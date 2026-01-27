@@ -4,7 +4,7 @@ import { useAppContext } from "../context/AppContext";
 import { COLORS, FONT_FAMILY } from "../styles.js";
 
 export function ManageAuctionsPage() {
-  const { myAuctions, selectAuction } = useAppContext();
+  const { myAuctions, selectAuction, showToast } = useAppContext();
   const navigate = useNavigate();
   const [headerHeight, setHeaderHeight] = useState(80);
 
@@ -192,7 +192,10 @@ export function ManageAuctionsPage() {
                   style={btn}
                   onClick={() => {
                     const sel = document.querySelector("select").value;
-                    if (!sel) return alert("Please select an auction first.");
+                    if (!sel) {
+                      showToast("Please select an auction first", "warning");
+                      return;
+                    }
                     navigate(`/developer/auction/${sel}`);
                   }}
                 >

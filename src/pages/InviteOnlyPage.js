@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { doc, getDoc, updateDoc, collection, addDoc } from "firebase/firestore";
 import { FONT_FAMILY } from "../styles.js";
+import { useAppContext } from "../context/AppContext";
 
 export function InviteOnlyPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToast } = useAppContext();
   const [inviteCode, setInviteCode] = useState("");
   const [email, setEmail] = useState("");
   const [inviteError, setInviteError] = useState("");
@@ -139,7 +141,7 @@ export function InviteOnlyPage() {
         userAgent: navigator.userAgent
       });
 
-      alert("You've been added to the waitlist! We'll reach out when you're eligible.");
+      showToast("You've been added to the waitlist!", "success");
       setShowEmailInput(false);
       setEmail("");
     } catch (error) {

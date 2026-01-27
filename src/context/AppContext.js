@@ -34,6 +34,80 @@ import {
   removeOffer as removeOfferUtil,
 } from "../utils/auctionFunctions.js";
 
+// Helper function to extract user-friendly error messages
+export function getErrorMessage(error) {
+  if (!error) return "An unknown error occurred";
+  
+  const errorMessage = error.message || error.toString() || "";
+  const lowerMessage = errorMessage.toLowerCase();
+  
+  // User rejected transaction
+  if (lowerMessage.includes("user rejected") || 
+      lowerMessage.includes("user denied") ||
+      lowerMessage.includes("action_cancelled") ||
+      error.code === 4001) {
+    return "Transaction cancelled";
+  }
+  
+  // Network errors
+  if (lowerMessage.includes("network") || lowerMessage.includes("connection")) {
+    return "Network error. Please check your connection";
+  }
+  
+  // Gas errors
+  if (lowerMessage.includes("gas") || lowerMessage.includes("insufficient funds")) {
+    return "Insufficient funds for gas";
+  }
+  
+  // Contract not found
+  if (lowerMessage.includes("not found") || lowerMessage.includes("does not exist")) {
+    return "Contract not found";
+  }
+  
+  // Wallet not connected
+  if (lowerMessage.includes("wallet") && lowerMessage.includes("connect")) {
+    return "Please connect your wallet";
+  }
+  
+  // Revert reasons (extract from error data)
+  if (error.reason) {
+    return error.reason;
+  }
+  
+  // Try to extract revert reason from error data
+  if (error.error?.data) {
+    try {
+      const data = error.error.data;
+      if (typeof data === "string" && data.length > 10) {
+        const reason = ethers.utils.toUtf8String("0x" + data.slice(10));
+        if (reason && reason.length < 100) {
+          return reason;
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
+  
+  // Generic error messages - keep them short
+  if (lowerMessage.includes("deployment failed")) {
+    return "Deployment failed";
+  }
+  if (lowerMessage.includes("transaction failed")) {
+    return "Transaction failed";
+  }
+  if (lowerMessage.includes("execution reverted")) {
+    return "Transaction reverted";
+  }
+  
+  // If message is too long, truncate it
+  if (errorMessage.length > 80) {
+    return errorMessage.substring(0, 77) + "...";
+  }
+  
+  return errorMessage || "An error occurred";
+}
+
 const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function balanceOf(address owner) view returns (uint256)",
@@ -250,6 +324,17 @@ export function AppProvider({ children }) {
   const [extraCollateralSelections, setExtraCollateralSelections] = useState([]);
   const [removeCollateralSelections, setRemoveCollateralSelections] = useState([]);
 
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((message, type = "info") => {
+    setToast({ message, type, id: Date.now() });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
   // Custom deployment parameters
   const [customPriceOracle, setCustomPriceOracle] = useState("");
   const [customBidDuration, setCustomBidDuration] = useState("");
@@ -363,7 +448,7 @@ export function AppProvider({ children }) {
     if (!eth) {
       // Check if any wallet is available
       if (!window.ethereum) {
-        alert("No Ethereum wallet found. Please install MetaMask.");
+        showToast("No Ethereum wallet found. Please install MetaMask.", "error");
       } else {
         // Provide helpful debugging info
         console.log("Available providers:", {
@@ -373,7 +458,7 @@ export function AppProvider({ children }) {
           hasProviders: !!window.ethereum?.providers,
           providersCount: window.ethereum?.providers?.length || 0
         });
-        alert("MetaMask wallet not detected. Please ensure MetaMask is installed and enabled. If you have multiple wallets, try disabling OKX Wallet temporarily or refresh the page.");
+        showToast("MetaMask wallet not detected. Please ensure MetaMask is installed.", "error");
       }
       return;
     }
@@ -381,7 +466,7 @@ export function AppProvider({ children }) {
     // Verify we have the right provider before connecting
     if (!isMetaMaskProvider(eth)) {
       console.error("Provider verification failed - not MetaMask");
-      alert("Failed to connect to MetaMask. Please ensure MetaMask is installed and try again.");
+      showToast("Failed to connect to MetaMask. Please try again.", "error");
       return;
     }
     
@@ -409,9 +494,9 @@ export function AppProvider({ children }) {
       console.error("Wallet connection error:", error);
       // Check if error is because user rejected
       if (error.code === 4001) {
-        alert("Connection rejected. Please approve the connection in MetaMask.");
+        showToast("Connection rejected", "warning");
       } else {
-        alert("Failed to connect wallet: " + error.message);
+        showToast(getErrorMessage(error), "error");
       }
     }
   }
@@ -426,7 +511,7 @@ export function AppProvider({ children }) {
   function switchAccount(account) {
     const eth = getMetaMaskProvider();
     if (!eth) {
-      alert("MetaMask wallet not found.");
+      showToast("MetaMask wallet not found", "error");
       return;
     }
     const provider = new ethers.providers.Web3Provider(eth);
@@ -440,7 +525,7 @@ export function AppProvider({ children }) {
 
   async function approveToken(tokenAddress, spenderAddress) {
     if (!signer) {
-      alert("No signer. Please connect your wallet first.");
+      showToast("Please connect your wallet first", "warning");
       return;
     }
     try {
@@ -529,12 +614,13 @@ export function AppProvider({ children }) {
   // Contract deployment functions
   async function deployContracts() {
     if (!signer) {
-      alert("Please connect your wallet first.");
+      showToast("Please connect your wallet first", "warning");
       return;
     }
     try {
       const userAddr = await signer.getAddress();
-      const ID = await generateAuctionID(signer, userAddr);
+      //const ID = await generateAuctionID(signer, userAddr);
+      const ID = "test";
       console.log("Generated ID:", ID);
       const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       
@@ -657,10 +743,10 @@ export function AppProvider({ children }) {
 
       await refreshAuctions();
 
-      alert("All contracts deployed successfully. Auction address: " + auctionContracts.auctionEngineAddress);
+      showToast("All contracts deployed successfully!", "success");
     } catch (error) {
       console.error("Deployment failed:", error);
-      alert("Deployment failed: " + error.message + ". Check console for details.");
+      showToast(getErrorMessage(error), "error");
     }
   }
 
@@ -690,7 +776,9 @@ export function AppProvider({ children }) {
       setDeployedAuctions,
       setMyAuctions,
       selectAuction,
-      refreshAuctions
+      refreshAuctions,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -706,7 +794,9 @@ export function AppProvider({ children }) {
       setLiquidationCollateralSelections,
       setUnlockCollateralSelections,
       setNewCollateralAddress,
-      setNewCollateralRatio
+      setNewCollateralRatio,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -722,7 +812,9 @@ export function AppProvider({ children }) {
       setBidAmount,
       setBidRate,
       setBidCollateralSelections,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -736,7 +828,9 @@ export function AppProvider({ children }) {
       offerRate,
       setOfferAmount,
       setOfferRate,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -745,7 +839,9 @@ export function AppProvider({ children }) {
       signer,
       auctionEngineAddress,
       walletAddress,
-      setDecryptingAuctionAddress
+      setDecryptingAuctionAddress,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -755,7 +851,9 @@ export function AppProvider({ children }) {
       auctionEngineAddress,
       repayAmount,
       setRepayAmount,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -765,7 +863,9 @@ export function AppProvider({ children }) {
       auctionEngineAddress,
       walletAddress,
       setOwedAmount,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -777,7 +877,9 @@ export function AppProvider({ children }) {
       liquidationCollateralSelections,
       setLiquidationBorrower,
       setLiquidationCollateralSelections,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -786,7 +888,9 @@ export function AppProvider({ children }) {
       signer,
       auctionEngineAddress,
       cancelReason,
-      setCancelReason
+      setCancelReason,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -797,7 +901,9 @@ export function AppProvider({ children }) {
       auctionEngineAddress,
       redemptionAmount,
       setRedemptionAmount,
-      getTokenDecimals
+      getTokenDecimals,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -810,7 +916,9 @@ export function AppProvider({ children }) {
       extraCollateralSelections.map(c => c.amount),
       setExtraCollateralSelections,
       getTokenDecimals,
-      extraCollateralSelections
+      extraCollateralSelections,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -822,7 +930,9 @@ export function AppProvider({ children }) {
       removeCollateralSelections.map(c => c.amount),
       setRemoveCollateralSelections,
       getTokenDecimals,
-      removeCollateralSelections
+      removeCollateralSelections,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -833,7 +943,9 @@ export function AppProvider({ children }) {
       setBidAmount,
       setBidRate,
       setBidCollateralSelections,
-      bidCollateralSelections
+      bidCollateralSelections,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -842,7 +954,9 @@ export function AppProvider({ children }) {
       signer,
       offerManagerAddress,
       setOfferAmount,
-      setOfferRate
+      setOfferRate,
+      showToast,
+      getErrorMessage
     );
   }
 
@@ -991,6 +1105,9 @@ export function AppProvider({ children }) {
     removeBid,
     removeOffer,
     handleUnlockCollateralToggle,
+    showToast,
+    hideToast,
+    toast,
   };
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

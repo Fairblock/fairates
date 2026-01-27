@@ -25,13 +25,15 @@ export function AuctionManagementPage() {
     cancelReason,
     setCancelReason,
     cancelAuction,
+    showToast,
+    getErrorMessage,
   } = useAppContext();
 
   const [clearingRate, setClearingRate] = React.useState("");
 
   async function checkClearingRate() {
     if (!signer || !auctionEngineAddress) {
-      alert("AuctionEngine not set or wallet not connected.");
+      showToast("AuctionEngine not set or wallet not connected", "warning");
       return;
     }
     try {
@@ -43,10 +45,10 @@ export function AuctionManagementPage() {
       const r = await ae.auctionClearingRate();
       const rate = r / 1e18;
       setClearingRate(rate.toString());
-      alert(`Clearing Rate: ${rate}`);
+      showToast(`Clearing Rate: ${rate}`, "info");
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch clearing rate: " + err.message);
+      showToast(getErrorMessage(err), "error");
     }
   }
 

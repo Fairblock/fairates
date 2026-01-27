@@ -6,7 +6,7 @@ import { sendTx } from "../utils/deploy.js";
 import { USDC_ADDRESS, ETH_ADDRESS, BTC_ADDRESS, USDC_FAUCET, ETH_FAUCET, BTC_FAUCET } from "../styles.js";
 
 export function FaucetPage() {
-  const { signer } = useAppContext();
+  const { signer, showToast, getErrorMessage } = useAppContext();
   const [headerHeight, setHeaderHeight] = useState(80);
 
   useEffect(() => {
@@ -30,17 +30,17 @@ export function FaucetPage() {
 
   const handleWithdraw = async (tokenName, faucetAddress) => {
     if (!signer) {
-      alert("Please connect your wallet first.");
+      showToast("Please connect your wallet first", "warning");
       return;
     }
     try {
       const FaucetABI = ["function withdraw() public"];
       const faucetContract = new ethers.Contract(faucetAddress, FaucetABI, signer);
       const tx = await sendTx(faucetContract, "withdraw");
-      alert(`${tokenName} withdrawal successful.`);
+      showToast(`${tokenName} withdrawal successful`, "success");
     } catch (error) {
       console.error(error);
-      alert(`${tokenName} withdrawal failed: ${error.message}`);
+      showToast(getErrorMessage(error), "error");
     }
   };
 
