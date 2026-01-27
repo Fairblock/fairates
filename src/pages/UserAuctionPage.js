@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
 import { COLORS, FONT_FAMILY } from "../styles.js";
-import { infoStyles as S } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import BidManagerArtifact from "../BidManager.json";
 import OfferManagerArtifact from "../OfferManager.json";
@@ -63,6 +62,27 @@ export function UserAuctionPage() {
     minOffer: "-",
     maxOffer: "-"
   });
+
+  const [headerHeight, setHeaderHeight] = useState(80);
+
+  useEffect(() => {
+    document.body.classList.add("user-auction-page-active");
+    
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('nav');
+      if (header) {
+        setHeaderHeight(header.offsetHeight);
+      }
+    };
+    
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    
+    return () => {
+      document.body.classList.remove("user-auction-page-active");
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, []);
 
   useEffect(() => {
     if (bidCollateralSelections.length > 0) {
@@ -169,17 +189,135 @@ export function UserAuctionPage() {
     offerManagerAddress
   ]);
 
-  const wrapper = { maxWidth: 1140, margin: "0 auto", padding: 32 };
+  const pageContainer = {
+    minHeight: "calc(100vh - var(--header-height, 80px))",
+    backgroundColor: "#FFFFFF",
+    position: "relative",
+    padding: "0px 0px 0px",
+  };
+
+  const wrapper = { 
+    maxWidth: 1140, 
+    margin: "0 auto", 
+    padding: "32px 32px",
+    position: "relative",
+    zIndex: 1,
+  };
   const section = { marginBottom: 64 };
-  const h2 = { fontSize: 28, fontWeight: 400, color: COLORS.accent, marginBottom: 24 };
+  const h1 = {
+    fontSize: 32,
+    fontWeight: 400,
+    marginBottom: 6,
+    color: "#000000",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
+  const h2 = { 
+    fontSize: 21, 
+    fontWeight: 400, 
+    color: "#000000", 
+    marginBottom: 24,
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
   const grid2 = { display: "grid", gap: 40, gridTemplateColumns: "repeat(auto-fit,minmax(430px,1fr))" };
-  const label = { fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8, display: "block", textAlign: "left", marginTop: 12 };
-  const input = { width: "90%", padding: "18px 20px", fontSize: 18, borderRadius: 12, background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", outline: "none", transition: "box-shadow .18s,border .18s" };
-  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(155,61,255,0.45)"; e.currentTarget.style.borderColor = COLORS.accent; };
-  const focusOff = e => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; };
-  const purpleBtn = { background: COLORS.accent, border: "none", color: "#fff", fontSize: 18, fontWeight: 400, padding: "18px 64px", borderRadius: 14, cursor: "pointer", marginTop: 28, fontFamily: FONT_FAMILY };
+  const label = { 
+    fontSize: 20, 
+    fontWeight: 400, 
+    color: "#000000", 
+    marginBottom: 8, 
+    display: "block", 
+    textAlign: "left", 
+    marginTop: 12,
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
+  const input = { 
+    width: "90%", 
+    padding: "16px 20px", 
+    fontSize: 17, 
+    borderRadius: 12, 
+    background: "#F9F9F9", 
+    color: "#000000", 
+    border: "none", 
+    outline: "none", 
+    transition: "box-shadow .18s",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
+  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.1)"; };
+  const focusOff = e => { e.currentTarget.style.boxShadow = ""; };
+  const btn = { 
+    background: "#E4F5FF", 
+    border: "none", 
+    color: "#00A3FF", 
+    fontSize: 18, 
+    fontWeight: 400, 
+    padding: "18px 64px", 
+    borderRadius: 14, 
+    cursor: "pointer", 
+    marginTop: 28, 
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
   const table = { width: "100%", borderCollapse: "collapse", marginTop: 24 };
-  const td = { border: "1px solid rgba(255,255,255,0.15)", padding: 12, fontSize: 15 };
+  const th = {
+    border: "1px solid #E0E0E0",
+    padding: 12,
+    fontSize: 15,
+    color: "#000000",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontWeight: 500,
+    textAlign: "left",
+  };
+  const td = { 
+    border: "1px solid #E0E0E0", 
+    padding: 12, 
+    fontSize: 15,
+    color: "#000000",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+  };
+
+  // White theme info styles
+  const infoStyles = {
+    wrap: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '12px',
+      marginBottom: '48px',
+    },
+    pill: {
+      flex: '1 0 auto',
+      minWidth: '160px',
+      padding: '14px 18px',
+      borderRadius: '14px',
+      background: '#F9F9F9',
+      border: '1px solid #E0E0E0',
+    },
+    label: {
+      fontSize: '11px',
+      letterSpacing: '.06em',
+      color: '#666666',
+      textTransform: 'uppercase',
+      marginBottom: '2px',
+      display: 'block',
+      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    },
+    value: {
+      fontSize: '15px',
+      fontWeight: 500,
+      color: '#000000',
+      wordBreak: 'break-word',
+      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+    },
+  };
+
+  const patternStyle = {
+    position: "fixed",
+    right: 0,
+    top: `${headerHeight}px`,
+    height: `calc(100vh - ${headerHeight}px)`,
+    minHeight: `calc(100vh - ${headerHeight}px)`,
+    width: "auto",
+    objectFit: "cover",
+    zIndex: 0,
+    pointerEvents: "none",
+  };
 
   const updateBidCollat = (i, v) => setBidCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
   const updateLiqCollat = (i, v) => setLiquidationCollateralSelections(prev => { const c = [...prev]; c[i].amount = v; return c; });
@@ -206,23 +344,70 @@ export function UserAuctionPage() {
                 : [...base, ...live];
 
   return (
-    <div style={wrapper}>
-      <h1 style={{ fontSize: 38, fontWeight: 400, marginBottom: 48 }}>
-        Participate in auction{" "}
-        <span style={{ fontSize: 20, fontWeight: 400, color: COLORS.textMuted }}>
-          ({auctionEngineAddress?.slice(0, 6)}…{auctionEngineAddress?.slice(-4)})
-        </span>
-      </h1>
+    <>
+      <style>
+        {`
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'Charter';
+            src: url('/fonts/charter_bold.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYREGULAR.OTF') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYMEDIUM.OTF') format('opentype');
+            font-weight: 500;
+            font-style: normal;
+          }
+          
+          @font-face {
+            font-family: 'SF Pro Display';
+            src: url('/fonts/SFPRODISPLAYBOLD.OTF') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+          }
+          
+          body.user-auction-page-active {
+            background-color: #FFFFFF !important;
+            background-image: none !important;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif !important;
+          }
+        `}
+      </style>
+      <div style={pageContainer}>
+        <img src="/bgpattern.png" alt="" style={patternStyle} />
+        <div style={wrapper}>
+          <h1 style={h1}>
+            Participate in auction{" "}
+            <span style={{ fontSize: 20, fontWeight: 400, color: "#666666", fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+              ({auctionEngineAddress?.slice(0, 6)}…{auctionEngineAddress?.slice(-4)})
+            </span>
+          </h1>
 
-      {/* ───────── auction info card ───────── */}
-      <div style={S.wrap}>
-        {pills.map(([label, val]) => (
-          <div key={label} style={S.pill}>
-            <span style={S.label}>{label}</span>
-            <span style={S.value}>{val}</span>
+          {/* ───────── auction info card ───────── */}
+          <div style={infoStyles.wrap}>
+            {pills.map(([label, val]) => (
+              <div key={label} style={infoStyles.pill}>
+                <span style={infoStyles.label}>{label}</span>
+                <span style={infoStyles.value}>{val}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
       <div style={{ ...grid2, ...section }}>
         <div>
@@ -246,8 +431,8 @@ export function UserAuctionPage() {
           <table style={table}>
             <thead>
               <tr>
-                <th style={td}>Collateral token</th>
-                <th style={td}>Amount</th>
+                <th style={th}>Collateral token</th>
+                <th style={th}>Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -270,14 +455,14 @@ export function UserAuctionPage() {
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="btn-primary"
-              style={{ ...purpleBtn, flex: 1 }}
+              style={{ ...btn, flex: 1 }}
               onClick={placeBid}
             >
               Submit Bid
             </button>
             <button
               className="btn-primary"
-              style={{ ...purpleBtn, flex: 1 }}
+              style={{ ...btn, flex: 1 }}
               onClick={removeBid}
             >
               Remove My Bid
@@ -306,14 +491,14 @@ export function UserAuctionPage() {
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="btn-primary"
-              style={{ ...purpleBtn, flex: 1 }}
+              style={{ ...btn, flex: 1 }}
               onClick={placeOffer}
             >
               Submit Offer
             </button>
             <button
               className="btn-primary"
-              style={{ ...purpleBtn, flex: 1 }}
+              style={{ ...btn, flex: 1 }}
               onClick={removeOffer}
             >
               Remove My Offer
@@ -328,8 +513,8 @@ export function UserAuctionPage() {
           <table style={table}>
             <thead>
               <tr>
-                <th style={td}>Token</th>
-                <th style={td}>Amount</th>
+                <th style={th}>Token</th>
+                <th style={th}>Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -352,7 +537,7 @@ export function UserAuctionPage() {
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="btn-primary"
-              style={purpleBtn}
+              style={btn}
               onClick={() =>
                 externalLockCollateral(
                   extraCollateralSelections.map(c => c.address),
@@ -364,7 +549,7 @@ export function UserAuctionPage() {
             </button>
             <button
               className="btn-primary"
-              style={purpleBtn}
+              style={btn}
               onClick={() =>
                 externalUnlockCollateral(
                   extraCollateralSelections.map(c => c.address),
@@ -389,17 +574,17 @@ export function UserAuctionPage() {
             onFocus={focusOn} onBlur={focusOff}
             placeholder="0"
           />
-          <button className="btn-primary" style={purpleBtn} onClick={repay}>
+          <button className="btn-primary" style={btn} onClick={repay}>
             Repay
           </button>
         </div>
         <div>
           <h2 style={h2}>Check Owed</h2>
-          <button className="btn-primary" style={purpleBtn} onClick={checkOwed}>
+          <button className="btn-primary" style={btn} onClick={checkOwed}>
             Check
           </button>
           {owedAmount && (
-            <p style={{ marginTop: 10, fontSize: 16 }}>
+            <p style={{ marginTop: 10, fontSize: 16, color: "#000000", fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               You owe: <strong>{owedAmount}</strong>
             </p>
           )}
@@ -420,8 +605,8 @@ export function UserAuctionPage() {
           <table style={table}>
             <thead>
               <tr>
-                <th style={td}>Token</th>
-                <th style={td}>Coverage amount</th>
+                <th style={th}>Token</th>
+                <th style={th}>Coverage amount</th>
               </tr>
             </thead>
             <tbody>
@@ -441,7 +626,7 @@ export function UserAuctionPage() {
               ))}
             </tbody>
           </table>
-          <button className="btn-primary" style={purpleBtn} onClick={liquidate}>
+          <button className="btn-primary" style={btn} onClick={liquidate}>
             Liquidate
           </button>
         </div>
@@ -455,11 +640,13 @@ export function UserAuctionPage() {
             onFocus={focusOn} onBlur={focusOff}
             placeholder="0"
           />
-          <button className="btn-primary" style={purpleBtn} onClick={redeemToken}>
+          <button className="btn-primary" style={btn} onClick={redeemToken}>
             Redeem
           </button>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </>
   );
 } 
