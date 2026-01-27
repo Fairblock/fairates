@@ -51,6 +51,32 @@ function hexToUint8Array(hex) {
 
 const AppContext = createContext(null);
 
+// Helper function to get MetaMask provider specifically
+function getMetaMaskProvider() {
+  if (!window.ethereum) {
+    return null;
+  }
+  
+  // Check if window.ethereum is MetaMask directly
+  if (window.ethereum.isMetaMask) {
+    return window.ethereum;
+  }
+  
+  // Check if there's a providers array (EIP-6963)
+  if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+    const metamaskProvider = window.ethereum.providers.find(
+      (provider) => provider.isMetaMask
+    );
+    if (metamaskProvider) {
+      return metamaskProvider;
+    }
+  }
+  
+  // Fallback: return window.ethereum if MetaMask not found
+  // This allows the app to work even if MetaMask isn't detected
+  return window.ethereum;
+}
+
 export function AppProvider({ children }) {
   const [signer, setSigner] = useState(null);
   const [walletAddress, setWalletAddress] = useState("");
@@ -58,7 +84,7 @@ export function AppProvider({ children }) {
 
   async function ensureArbitrumSepolia() {
     const { chainId } = ARBITRUM_SEPOLIA;
-    const eth = window.ethereum;
+    const eth = getMetaMaskProvider();
     if (!eth) return;
 
     try {
@@ -222,8 +248,9 @@ export function AppProvider({ children }) {
   }, [collateralManagerAddress, signer]);
 
   useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.on("chainChanged", async () => {
+    const eth = getMetaMaskProvider();
+    if (eth) {
+      eth.on("chainChanged", async () => {
         try {
           await ensureArbitrumSepolia();
         } catch (err) {
@@ -232,14 +259,14 @@ export function AppProvider({ children }) {
       });
     }
 
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", async (accounts) => {
+    if (eth) {
+      eth.on("accountsChanged", async (accounts) => {
         if (accounts.length > 0) {
           setAvailableAccounts(accounts);
           const newAddr = accounts[0];
           setWalletAddress(newAddr);
           refreshAuctions(newAddr);
-          const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+          const tempProvider = new ethers.providers.Web3Provider(eth);
           const tempSigner = tempProvider.getSigner(0);
           setSigner(tempSigner);
         } else {
@@ -252,19 +279,20 @@ export function AppProvider({ children }) {
   }, []);
 
   async function connectWallet() {
-    if (!window.ethereum) {
-      alert("No Ethereum wallet found. Please install MetaMask.");
+    const eth = getMetaMaskProvider();
+    if (!eth) {
+      alert("MetaMask wallet not found. Please install MetaMask.");
       return;
     }
     try {
       await ensureArbitrumSepolia();
 
-      const accounts = await window.ethereum.request({
+      const accounts = await eth.request({
         method: "eth_requestAccounts",
       });
       setAvailableAccounts(accounts);
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(eth);
       const newSigner = provider.getSigner();
       setSigner(newSigner);
       setWalletAddress(accounts[0]);
@@ -283,11 +311,12 @@ export function AppProvider({ children }) {
   }
 
   function switchAccount(account) {
-    if (!window.ethereum) {
-      alert("No Ethereum wallet found.");
+    const eth = getMetaMaskProvider();
+    if (!eth) {
+      alert("MetaMask wallet not found.");
       return;
     }
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(eth);
     const index = availableAccounts.indexOf(account);
     if (index === -1) return;
     const newSigner = provider.getSigner(index);
