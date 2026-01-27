@@ -348,14 +348,14 @@ export function UserAuctionPage() {
         <div style={{ 
           maxWidth: 1200, 
           margin: "0 auto", 
-          padding: "48px 32px",
+          padding: "24px 32px",
           position: "relative",
           zIndex: 1,
         }}>
           {/* Header */}
-          <div style={{ marginBottom: 40 }}>
+          <div style={{ marginBottom: 24 }}>
             <h1 style={{
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: 400,
               marginBottom: 4,
               color: "#000000",
@@ -365,7 +365,7 @@ export function UserAuctionPage() {
               Auction Details
             </h1>
             <p style={{
-              fontSize: 14,
+              fontSize: 13,
               color: "#999999",
               fontFamily: FONT_FAMILY,
               margin: 0,
@@ -378,10 +378,10 @@ export function UserAuctionPage() {
           {/* Auction Info - Minimal Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '24px',
-            marginBottom: '48px',
-            paddingBottom: '32px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '16px',
+            marginBottom: '24px',
+            paddingBottom: '20px',
             borderBottom: '1px solid #F0F0F0',
           }}>
             {pills.map(([label, val]) => (
@@ -415,7 +415,7 @@ export function UserAuctionPage() {
             className="tabs-container"
             style={{
               borderBottom: '1px solid #E8E8E8',
-              marginBottom: 32,
+              marginBottom: 20,
               display: 'flex',
               gap: 4,
               overflowX: 'auto',
@@ -449,27 +449,28 @@ export function UserAuctionPage() {
           <div style={{
             backgroundColor: '#FAFAFA',
             borderRadius: '16px',
-            padding: '40px',
-            minHeight: '400px',
+            padding: '24px',
+            minHeight: '300px',
+            maxWidth: '700px',
           }}>
             {/* Place Bid Tab */}
             {activeTab === "bid" && (
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to place a bid.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   <label style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -482,14 +483,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -510,14 +511,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -541,18 +542,18 @@ export function UserAuctionPage() {
                         borderRadius: '10px',
                         border: '1px solid #E0E0E0',
                         overflow: 'hidden',
-                        marginBottom: 24,
+                        marginBottom: 18,
                       }}>
                         {bidCollateralSelections.map((c, i) => (
                           <div key={c.address} style={{
-                            padding: '16px',
+                            padding: '12px',
                             borderBottom: i < bidCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                           }}>
                             <span style={{
-                              fontSize: 14,
+                              fontSize: 13,
                               color: '#666666',
                               fontFamily: FONT_FAMILY,
                             }}>
@@ -562,8 +563,8 @@ export function UserAuctionPage() {
                               className="input-field"
                               style={{
                                 width: "200px",
-                                padding: "10px 14px",
-                                fontSize: 14,
+                                padding: "8px 12px",
+                                fontSize: 13,
                                 borderRadius: "8px",
                                 background: "#F9F9F9",
                                 color: "#000000",
@@ -589,9 +590,9 @@ export function UserAuctionPage() {
                         background: "#E4F5FF",
                         border: "none",
                         color: "#00A3FF",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -609,9 +610,9 @@ export function UserAuctionPage() {
                         background: "#F5F5F5",
                         border: "1px solid #E0E0E0",
                         color: "#666666",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -632,19 +633,19 @@ export function UserAuctionPage() {
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to place an offer.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   <label style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -657,14 +658,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -685,14 +686,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -709,9 +710,9 @@ export function UserAuctionPage() {
                         background: "#E4F5FF",
                         border: "none",
                         color: "#00A3FF",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -729,9 +730,9 @@ export function UserAuctionPage() {
                         background: "#F5F5F5",
                         border: "1px solid #E0E0E0",
                         color: "#666666",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -752,19 +753,19 @@ export function UserAuctionPage() {
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to manage collateral.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   {extraCollateralSelections.length > 0 && (
                     <>
                       <label style={{
@@ -780,18 +781,18 @@ export function UserAuctionPage() {
                         borderRadius: '10px',
                         border: '1px solid #E0E0E0',
                         overflow: 'hidden',
-                        marginBottom: 24,
+                        marginBottom: 18,
                       }}>
                         {extraCollateralSelections.map((c, i) => (
                           <div key={c.address} style={{
-                            padding: '16px',
+                            padding: '12px',
                             borderBottom: i < extraCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                           }}>
                             <span style={{
-                              fontSize: 14,
+                              fontSize: 13,
                               color: '#666666',
                               fontFamily: FONT_FAMILY,
                             }}>
@@ -801,8 +802,8 @@ export function UserAuctionPage() {
                               className="input-field"
                               style={{
                                 width: "200px",
-                                padding: "10px 14px",
-                                fontSize: 14,
+                                padding: "8px 12px",
+                                fontSize: 13,
                                 borderRadius: "8px",
                                 background: "#F9F9F9",
                                 color: "#000000",
@@ -828,9 +829,9 @@ export function UserAuctionPage() {
                         background: "#E4F5FF",
                         border: "none",
                         color: "#00A3FF",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -853,9 +854,9 @@ export function UserAuctionPage() {
                         background: "#F5F5F5",
                         border: "1px solid #E0E0E0",
                         color: "#666666",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 32px",
+                        padding: "12px 24px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -881,19 +882,19 @@ export function UserAuctionPage() {
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to repay a loan.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   <label style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -906,14 +907,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -928,9 +929,9 @@ export function UserAuctionPage() {
                       background: "#E4F5FF",
                       border: "none",
                       color: "#00A3FF",
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: 500,
-                      padding: "16px 48px",
+                      padding: "12px 32px",
                       borderRadius: "10px",
                       cursor: isWalletConnected ? "pointer" : "not-allowed",
                       fontFamily: FONT_FAMILY,
@@ -941,16 +942,16 @@ export function UserAuctionPage() {
                   >
                     Repay Loan
                   </button>
-                  <div style={{ marginTop: 24 }}>
+                  <div style={{ marginTop: 18 }}>
                     <button
                       className="action-button"
                       style={{
                         background: "#F5F5F5",
                         border: "1px solid #E0E0E0",
                         color: "#666666",
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 500,
-                        padding: "16px 48px",
+                        padding: "12px 32px",
                         borderRadius: "10px",
                         cursor: isWalletConnected ? "pointer" : "not-allowed",
                         fontFamily: FONT_FAMILY,
@@ -964,7 +965,7 @@ export function UserAuctionPage() {
                     </button>
                     {owedAmount && (
                       <span style={{
-                        fontSize: 16,
+                        fontSize: 15,
                         color: "#000000",
                         fontFamily: FONT_FAMILY,
                         fontWeight: 500,
@@ -982,19 +983,19 @@ export function UserAuctionPage() {
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to liquidate.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   <label style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -1007,14 +1008,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -1038,18 +1039,18 @@ export function UserAuctionPage() {
                         borderRadius: '10px',
                         border: '1px solid #E0E0E0',
                         overflow: 'hidden',
-                        marginBottom: 24,
+                        marginBottom: 18,
                       }}>
                         {liquidationCollateralSelections.map((c, i) => (
                           <div key={c.address} style={{
-                            padding: '16px',
+                            padding: '12px',
                             borderBottom: i < liquidationCollateralSelections.length - 1 ? '1px solid #E8E8E8' : 'none',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                           }}>
                             <span style={{
-                              fontSize: 14,
+                              fontSize: 13,
                               color: '#666666',
                               fontFamily: FONT_FAMILY,
                             }}>
@@ -1059,8 +1060,8 @@ export function UserAuctionPage() {
                               className="input-field"
                               style={{
                                 width: "200px",
-                                padding: "10px 14px",
-                                fontSize: 14,
+                                padding: "8px 12px",
+                                fontSize: 13,
                                 borderRadius: "8px",
                                 background: "#F9F9F9",
                                 color: "#000000",
@@ -1084,9 +1085,9 @@ export function UserAuctionPage() {
                       background: "#E4F5FF",
                       border: "none",
                       color: "#00A3FF",
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: 500,
-                      padding: "16px 48px",
+                      padding: "12px 32px",
                       borderRadius: "10px",
                       cursor: isWalletConnected ? "pointer" : "not-allowed",
                       fontFamily: FONT_FAMILY,
@@ -1106,19 +1107,19 @@ export function UserAuctionPage() {
               <div>
                 {!isWalletConnected && (
                   <div style={{
-                    padding: '16px',
+                    padding: '12px',
                     backgroundColor: '#FFF3CD',
                     border: '1px solid #FFE69C',
                     borderRadius: '8px',
-                    marginBottom: '24px',
+                    marginBottom: '18px',
                     color: '#856404',
                     fontFamily: FONT_FAMILY,
-                    fontSize: 14,
+                    fontSize: 13,
                   }}>
                     Please connect your wallet to redeem tokens.
                   </div>
                 )}
-                <div style={{ maxWidth: 600 }}>
+                <div style={{ maxWidth: '100%' }}>
                   <label style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -1131,14 +1132,14 @@ export function UserAuctionPage() {
                     className="input-field"
                     style={{
                       width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 16,
+                      padding: "12px 16px",
+                      fontSize: 15,
                       borderRadius: "10px",
                       background: "#FFFFFF",
                       color: "#000000",
                       border: "1px solid #E0E0E0",
                       outline: "none",
-                      marginBottom: 24,
+                      marginBottom: 18,
                       fontFamily: FONT_FAMILY,
                       boxSizing: 'border-box',
                     }}
@@ -1153,9 +1154,9 @@ export function UserAuctionPage() {
                       background: "#E4F5FF",
                       border: "none",
                       color: "#00A3FF",
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: 500,
-                      padding: "16px 48px",
+                      padding: "12px 32px",
                       borderRadius: "10px",
                       cursor: isWalletConnected ? "pointer" : "not-allowed",
                       fontFamily: FONT_FAMILY,
