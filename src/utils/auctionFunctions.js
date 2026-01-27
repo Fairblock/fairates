@@ -2,14 +2,6 @@ import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
 import { sendTx, safeSendTx } from "./deploy.js";
-
-/**
- * Delay utility to prevent rate limiting
- * @param {number} ms milliseconds to delay
- */
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 import CollateralManagerArtifact from "../CollateralManager.json";
 import AuctionTokenArtifact from "../AuctionToken.json";
 import AuctionEngineArtifact from "../AuctionEngine.json";
@@ -22,6 +14,14 @@ import {
   ERC20ABI,
 } from "../styles.js";
 import { saveContracts } from "./firebase.js";
+
+/**
+ * Delay utility to prevent rate limiting
+ * @param {number} ms milliseconds to delay
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function hexToUint8Array(hex) {
   if (hex.startsWith("0x")) hex = hex.slice(2);
