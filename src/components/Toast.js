@@ -14,26 +14,32 @@ const Toast = ({ message, type = "info", onClose, duration = 5000 }) => {
     switch (type) {
       case "success":
         return {
-          backgroundColor: "#10B981",
-          borderColor: "#059669",
+          backgroundColor: "rgba(16, 185, 129, 0.15)",
+          borderColor: "rgba(5, 150, 105, 0.5)",
+          textColor: "#059669",
         };
       case "error":
         return {
-          backgroundColor: "#EF4444",
-          borderColor: "#DC2626",
+          backgroundColor: "rgba(239, 68, 68, 0.15)",
+          borderColor: "rgba(220, 38, 38, 0.5)",
+          textColor: "#DC2626",
         };
       case "warning":
         return {
-          backgroundColor: "#F59E0B",
-          borderColor: "#D97706",
+          backgroundColor: "rgba(245, 158, 11, 0.15)",
+          borderColor: "rgba(217, 119, 6, 0.5)",
+          textColor: "#D97706",
         };
       default:
         return {
-          backgroundColor: "#3B82F6",
-          borderColor: "#2563EB",
+          backgroundColor: "rgba(59, 130, 246, 0.15)",
+          borderColor: "rgba(37, 99, 235, 0.5)",
+          textColor: "#2563EB",
         };
     }
   };
+
+  const typeStyles = getTypeStyles();
 
   const styles = {
     position: "fixed",
@@ -43,8 +49,8 @@ const Toast = ({ message, type = "info", onClose, duration = 5000 }) => {
     maxWidth: "400px",
     padding: "16px 20px",
     borderRadius: "12px",
-    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-    color: "#FFFFFF",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+    color: typeStyles.textColor,
     fontSize: "15px",
     lineHeight: "1.5",
     zIndex: 10000,
@@ -53,15 +59,17 @@ const Toast = ({ message, type = "info", onClose, duration = 5000 }) => {
     justifyContent: "space-between",
     gap: "12px",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-    border: `1px solid ${getTypeStyles().borderColor}`,
-    ...getTypeStyles(),
+    border: `1px solid ${typeStyles.borderColor}`,
+    backgroundColor: typeStyles.backgroundColor,
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
     animation: "slideInRight 0.3s ease-out",
   };
 
   const closeButtonStyle = {
     background: "transparent",
     border: "none",
-    color: "#FFFFFF",
+    color: typeStyles.textColor,
     cursor: "pointer",
     fontSize: "20px",
     lineHeight: "1",
@@ -71,7 +79,7 @@ const Toast = ({ message, type = "info", onClose, duration = 5000 }) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.8,
+    opacity: 0.7,
     transition: "opacity 0.2s",
     flexShrink: 0,
   };
