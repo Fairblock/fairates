@@ -86,7 +86,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
             
             .landing-page-nav img {
               height: auto;
-              max-height: 80px;
+              max-height: 64px;
               width: auto;
               object-fit: contain;
             }
@@ -111,7 +111,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
               }
               
               .landing-page-nav img {
-                max-height: 70px;
+                max-height: 56px;
               }
             }
             
@@ -122,7 +122,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
               }
               
               .landing-page-nav img {
-                max-height: 60px;
+                max-height: 48px;
               }
               
               .landing-page-nav .nav-link {
@@ -141,7 +141,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
               }
               
               .landing-page-nav img {
-                max-height: 50px;
+                max-height: 40px;
               }
               
               .landing-page-nav .nav-link {

@@ -103,7 +103,7 @@ const navLink = {
   marginLeft: "64px",
   color: COLORS.textPrimary,
 };
-const logoStyle = { height: 50 };
+const logoStyle = { height: 40 };
 
 const walletBtnBase = {
   height: "56px",
@@ -398,7 +398,7 @@ const responsiveCss = `
  @media (max-width: 540px) {
    /* shrink the logo height */
    nav > img {
-     height: 65px !important;
+     height: 52px !important;
      width: auto    !important;
    }
  }
@@ -478,7 +478,7 @@ const responsiveCss = `
    }
    /* shrink logo */
    nav > img {
-     height: 48px !important;
+     height: 38px !important;
      width: auto   !important;
    }
    /* extra-small links */
