@@ -224,6 +224,8 @@ function initializeEIP6963Detection() {
   window.dispatchEvent(new Event('eip6963:requestProvider'));
 }
 
+const SESSION_STORAGE_WALLET_KEY = "fairates_wallet_connected";
+
 export function AppProvider({ children }) {
   const [signer, setSigner] = useState(null);
   const [walletAddress, setWalletAddress] = useState("");
@@ -433,8 +435,31 @@ export function AppProvider({ children }) {
           setWalletAddress("");
           setSigner(null);
           setAvailableAccounts([]);
+          try {
+            sessionStorage.removeItem(SESSION_STORAGE_WALLET_KEY);
+          } catch (e) {}
         }
       });
+
+      // Reconnect on refresh only (sessionStorage persists in same tab). Tab close = new session = disconnected.
+      const wasConnected = typeof sessionStorage !== "undefined" && sessionStorage.getItem(SESSION_STORAGE_WALLET_KEY) === "1";
+      if (wasConnected) {
+        (async () => {
+          try {
+            const accounts = await eth.request({ method: "eth_accounts" });
+            if (accounts && accounts.length > 0) {
+              await ensureArbitrumSepolia();
+              setAvailableAccounts(accounts);
+              setWalletAddress(accounts[0]);
+              const provider = new ethers.providers.Web3Provider(eth);
+              setSigner(provider.getSigner(0));
+              refreshAuctions(accounts[0]);
+            }
+          } catch (err) {
+            console.warn("Reconnect on load failed", err);
+          }
+        })();
+      }
     }
   }, []);
 
@@ -494,6 +519,9 @@ export function AppProvider({ children }) {
       setSigner(newSigner);
       setWalletAddress(accounts[0]);
       refreshAuctions(accounts[0]);
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_WALLET_KEY, "1");
+      } catch (e) {}
     } catch (error) {
       console.error("Wallet connection error:", error);
       // Check if error is because user rejected
@@ -506,6 +534,9 @@ export function AppProvider({ children }) {
   }
 
   function disconnectWallet() {
+    try {
+      sessionStorage.removeItem(SESSION_STORAGE_WALLET_KEY);
+    } catch (e) {}
     setSigner(null);
     setWalletAddress("");
     setAvailableAccounts([]);
