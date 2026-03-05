@@ -9,3 +9,54 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Global page loader (used across pages) */
+.auction-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.auction-loading-loader {
+  height: 110px;
+  aspect-ratio: 1;
+  display: grid;
+}
+
+.auction-loading-loader::before,
+.auction-loading-loader::after {
+  content: "";
+  --c: no-repeat linear-gradient(#00A3FF 0 0);
+  background: var(--c), var(--c);
+  background-size: 25% 50%;
+  animation: auction-loader-l5 1.5s infinite linear;
+}
+
+.auction-loading-loader::after {
+  transform: scale(-1);
+}
+
+@keyframes auction-loader-l5 {
+  0%,
+  5% {
+    background-position: 33.4% 100%, 66.6% 100%;
+  }
+  25% {
+    background-position: 33.4% 100%, 100% 0;
+  }
+  50% {
+    background-position: 0 0, 100% 0;
+  }
+  75% {
+    background-position: 0 0, 66.6% 100%;
+  }
+  95%,
+  100% {
+    background-position: 33.4% 100%, 66.6% 100%;
+  }
+}

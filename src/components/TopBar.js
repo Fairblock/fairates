@@ -234,6 +234,16 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
     textDecoration: "none",
   };
 
+  const isNavLinkActive = (to) => {
+    const path = location.pathname;
+    if (path === to) return true;
+    if (to === "/developer/deploy" && path === "/developer") return true;
+    if (to === "/developer/manage" && (path.startsWith("/developer/manage") || path.startsWith("/developer/auction/"))) return true;
+    if (to === "/user") return path === "/user" || path.startsWith("/user/auction/");
+    if (path.startsWith(to + "/")) return true;
+    return false;
+  };
+
   const deployPageLogoStyle = {
     ...logoStyle,
     filter: "brightness(0)",
@@ -254,7 +264,15 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
           <img src="/fairates-logo.png" alt="Fairates" style={deployPageLogoStyle} />
 
           {sectionLinks.map(({ to, label }) => (
-            <Link key={label} to={to} style={deployPageNavLink} className="nav-link">
+            <Link
+              key={label}
+              to={to}
+              style={{
+                ...deployPageNavLink,
+                fontWeight: isNavLinkActive(to) ? 600 : 400,
+              }}
+              className="nav-link"
+            >
               {label}
             </Link>
           ))}

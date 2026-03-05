@@ -83,16 +83,16 @@ export function DeployPage() {
 
   const cardBreak = "@media(max-width: 1020px){flex-direction:column;gap:48px;}";
 
-  const h1 = { 
-    fontSize: 32, 
-    fontWeight: 400, 
-    marginBottom: 6, 
+  const h1 = {
+    fontSize: 32,
+    fontWeight: 500,
+    marginBottom: 6,
     color: "#000000",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
   const h2 = {
-    fontSize:21,
-    fontWeight: 400,
+    fontSize: 18,
+    fontWeight: 500,
     color: "#000000",
     marginBottom: 6,
     marginTop: 0,
@@ -118,19 +118,17 @@ export function DeployPage() {
   const sectionTitle = {
     fontSize: 16,
     fontWeight: 500,
-    color: "#666666",
+    color: "#000000",
     marginBottom: 12,
-    marginTop: 24,
+    marginTop: 32,
     display: "block",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
 
   const label = {
     fontSize: 14,
     fontWeight: 400,
-    color: "#333333",
+    color: "#00000080",
     marginBottom: 6,
     display: "block",
     textAlign: "left",
@@ -221,18 +219,6 @@ export function DeployPage() {
     </div>
   );
 
-  const patternStyle = {
-    position: "fixed",
-    right: 0,
-    top: `${headerHeight}px`,
-    height: `calc(100vh - ${headerHeight}px)`,
-    minHeight: `calc(100vh - ${headerHeight}px)`,
-    width: "auto",
-    objectFit: "cover",
-    zIndex: 0,
-    pointerEvents: "none",
-  };
-
   return (
     <>
       <style>
@@ -280,7 +266,6 @@ export function DeployPage() {
         `}
       </style>
       <div style={pageContainer}>
-        <img src="/bgpattern.png" alt="" style={patternStyle} />
         <div className="deploy-flex" style={{ ...page, [cardBreak]: {} }}>
           <div style={columnStyle}>
             <h1 style={h1}>Deploy Contracts</h1>
@@ -293,8 +278,8 @@ export function DeployPage() {
 
             <div className="grid-2" style={{ ...grid, [gridMobile]: {} }}>
               <div>
-                <span style={sectionTitle}>Token Addresses</span>
-                <label style={label}>Price Oracle Address</label>
+                <span style={sectionTitle}>Token addresses</span>
+                <label style={label}>Price oracle address</label>
                 <input
                   style={inp}
                   value={customPriceOracle}
@@ -304,7 +289,7 @@ export function DeployPage() {
                   placeholder="0x…"
                 />
 
-                <label style={label}>Purchase Token Address</label>
+                <label style={label}>Purchase token address</label>
                 <input
                   style={inp}
                   value={customPurchaseToken}
@@ -314,7 +299,7 @@ export function DeployPage() {
                   placeholder="0x…"
                 />
 
-                <label style={label}>Initial Collateral Token Address</label>
+                <label style={label}>Initial collateral token address</label>
                 <input
                   style={inp}
                   value={customCollateralToken}
@@ -325,7 +310,7 @@ export function DeployPage() {
                 />
 
                 <span style={sectionTitle}>Durations</span>
-                <label style={label}>Bid Duration (secs)</label>
+                <label style={label}>Bid duration (secs)</label>
                 <input
                   style={inp}
                   value={customBidDuration}
@@ -335,7 +320,7 @@ export function DeployPage() {
                   placeholder="86400"
                 />
 
-                <label style={label}>Reveal Duration (secs)</label>
+                <label style={label}>Reveal duration (secs)</label>
                 <input
                   style={inp}
                   value={customRevealDuration}
@@ -345,7 +330,7 @@ export function DeployPage() {
                   placeholder="86400"
                 />
 
-                <label style={label}>Repayment Duration (secs)</label>
+                <label style={label}>Repayment duration (secs)</label>
                 <input
                   style={inp}
                   value={customRepaymentDuration}
@@ -355,7 +340,7 @@ export function DeployPage() {
                   placeholder="172800"
                 />
 
-                <span style={sectionTitle}>Fees & Ratios</span>
+                <span style={sectionTitle}>Fees and ratio</span>
                 <label style={label}>Fee</label>
                 <input
                   style={inp}
@@ -365,7 +350,7 @@ export function DeployPage() {
                   onBlur={onB}
                   placeholder="0"
                 />
-                <label style={label}>Liquidation Fee</label>
+                <label style={label}>Liquidation fee</label>
                 <input
                   style={inp}
                   value={customLiquidationFee}
@@ -374,7 +359,7 @@ export function DeployPage() {
                   onBlur={onB}
                   placeholder="0"
                 />
-                <label style={label}>Protocol Liquidation Fee</label>
+                <label style={label}>Protocol liquidation fee</label>
                 <input
                   style={inp}
                   value={customProtocolLiquidationFee}
@@ -383,7 +368,7 @@ export function DeployPage() {
                   onBlur={onB}
                   placeholder="0"
                 />
-                <label style={label}>Initial Collateral Ratio</label>
+                <label style={label}>Initial collateral ratio</label>
                 <input
                   style={inp}
                   value={customCollateralRatio}
@@ -395,8 +380,8 @@ export function DeployPage() {
               </div>
 
               <div>
-                <span style={sectionTitle}>Auction Settings</span>
-                <label style={label}>Auction Token Ratio</label>
+                <span style={sectionTitle}>Auction settings</span>
+                <label style={label}>Auction token ratio</label>
                 <input
                   style={inp}
                   value={customAuctionTokenAmount}
@@ -406,8 +391,8 @@ export function DeployPage() {
                   placeholder="1"
                 />
 
-                <span style={sectionTitle}>Bid Settings</span>
-                <label style={label}>Min Bid Value</label>
+                <span style={sectionTitle}>Bid settings</span>
+                <label style={label}>Min bid value</label>
                 <input
                   style={inp}
                   value={customMinBid}
@@ -417,7 +402,7 @@ export function DeployPage() {
                   placeholder="10"
                 />
 
-                <label style={label}>Max Bid Value</label>
+                <label style={label}>Max bid value</label>
                 <input
                   style={inp}
                   value={customMaxBid}
@@ -427,7 +412,7 @@ export function DeployPage() {
                   placeholder="15000"
                 />
 
-                <label style={label}>Max Number of Bids</label>
+                <label style={label}>Max number of bids</label>
                 <input
                   style={inp}
                   value={customMaxNumBids}
@@ -437,8 +422,8 @@ export function DeployPage() {
                   placeholder="50"
                 />
 
-                <span style={sectionTitle}>Offer Settings</span>
-                <label style={label}>Min Offer Value</label>
+                <span style={sectionTitle}>Offer settings</span>
+                <label style={label}>Min offer value</label>
                 <input
                   style={inp}
                   value={customMinOffer}
@@ -448,7 +433,7 @@ export function DeployPage() {
                   placeholder="10"
                 />
 
-                <label style={label}>Max Offer Value</label>
+                <label style={label}>Max offer value</label>
                 <input
                   style={inp}
                   value={customMaxOffer}
@@ -458,7 +443,7 @@ export function DeployPage() {
                   placeholder="10000"
                 />
 
-                <label style={label}>Max Number of Offers</label>
+                <label style={label}>Max number of offers</label>
                 <input
                   style={inp}
                   value={customMaxNumOffers}

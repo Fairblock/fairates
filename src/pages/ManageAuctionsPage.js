@@ -89,18 +89,6 @@ export function ManageAuctionsPage() {
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
 
-  const patternStyle = {
-    position: "fixed",
-    right: 0,
-    top: `${headerHeight}px`,
-    height: `calc(100vh - ${headerHeight}px)`,
-    minHeight: `calc(100vh - ${headerHeight}px)`,
-    width: "auto",
-    objectFit: "cover",
-    zIndex: 0,
-    pointerEvents: "none",
-  };
-
   return (
     <>
       <style>
@@ -148,7 +136,6 @@ export function ManageAuctionsPage() {
         `}
       </style>
       <div style={pageContainer}>
-        <img src="/bgpattern.png" alt="" style={patternStyle} />
         <div style={wrap}>
           <div className="purple-card" style={card}>
             <h2 style={heading}>Manage my auctions</h2>

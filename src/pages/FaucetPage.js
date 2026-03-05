@@ -66,8 +66,8 @@ export function FaucetPage() {
     margin: "0 auto",
     padding: 32,
     borderRadius: 12,
-    border: "1px solid #A9A9A9",
-    background: "#FFFFFF",
+    border: "none",
+    background: "#FAFAFA",
     color: "#000000",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
   };
@@ -100,18 +100,6 @@ export function FaucetPage() {
     marginTop: 12,
     width: "100%",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-  };
-
-  const patternStyle = {
-    position: "fixed",
-    right: 0,
-    top: `${headerHeight}px`,
-    height: `calc(100vh - ${headerHeight}px)`,
-    minHeight: `calc(100vh - ${headerHeight}px)`,
-    width: "auto",
-    objectFit: "cover",
-    zIndex: 0,
-    pointerEvents: "none",
   };
 
   return (
@@ -161,7 +149,6 @@ export function FaucetPage() {
         `}
       </style>
       <div style={pageContainer}>
-        <img src="/bgpattern.png" alt="" style={patternStyle} />
         <div style={wrap}>
           <div className="purple-card" style={card}>
             <h2 style={heading}>Faucet</h2>

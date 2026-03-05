@@ -13,7 +13,7 @@ import {
   FAIRYRING_CONTRACT_ADDRESS,
   ERC20ABI,
 } from "../styles.js";
-import { saveContracts } from "./firebase.js";
+import { saveContracts, logAuctionActivity } from "./firebase.js";
 
 /**
  * Delay utility to prevent rate limiting
@@ -350,7 +350,37 @@ export async function placeBid(
       await approveToken(signer, tokensArray[i], collateralManagerAddress);
     }
     console.log("amountsArray:", amountsArray);
-    await sendTx(bm, "submitBid", [quantityBN, encryptedBid, tokensArray, amountsArray, purchaseToken]);
+    const receipt = await sendTx(bm, "submitBid", [
+      quantityBN,
+      encryptedBid,
+      tokensArray,
+      amountsArray,
+      purchaseToken,
+    ]);
+
+    try {
+      const wallet = await signer.getAddress();
+      const provider = signer.provider || bm.provider || am.provider;
+      let createdAt = new Date();
+      if (provider && receipt?.blockNumber != null) {
+        const block = await provider.getBlock(receipt.blockNumber);
+        if (block && block.timestamp) {
+          createdAt = new Date(block.timestamp * 1000);
+        }
+      }
+
+      await logAuctionActivity({
+        auctionEngineAddress,
+        type: "bid",
+        wallet,
+        txHash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber,
+        createdAt,
+      });
+    } catch (activityError) {
+      console.error("Failed to log bid activity:", activityError);
+    }
+
     showToast("Bid placed successfully", "success");
     setBidAmount("");
     setBidRate("");
@@ -405,7 +435,31 @@ export async function placeOffer(
     const tokenDecimals = await getTokenDecimals(purchaseToken);
     const quantity = ethers.utils.parseUnits(offerAmount, tokenDecimals);
     await approveToken(signer, purchaseToken, lendingVaultAddress);
-    await sendTx(om, "submitOffer", [quantity, encryptedOffer]);
+    const receipt = await sendTx(om, "submitOffer", [quantity, encryptedOffer]);
+
+    try {
+      const wallet = await signer.getAddress();
+      const provider = signer.provider || om.provider || am.provider;
+      let createdAt = new Date();
+      if (provider && receipt?.blockNumber != null) {
+        const block = await provider.getBlock(receipt.blockNumber);
+        if (block && block.timestamp) {
+          createdAt = new Date(block.timestamp * 1000);
+        }
+      }
+
+      await logAuctionActivity({
+        auctionEngineAddress,
+        type: "offer",
+        wallet,
+        txHash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber,
+        createdAt,
+      });
+    } catch (activityError) {
+      console.error("Failed to log offer activity:", activityError);
+    }
+
     showToast("Offer placed successfully", "success");
     setOfferAmount("");
     setOfferRate("");

@@ -1,5 +1,17 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
 
 // Firebase configuration
 
@@ -54,6 +66,94 @@ export async function saveContracts(auctions) {
   } catch (error) {
     console.error('Error saving contracts to Firestore:', error);
     throw error;
+  }
+}
+
+// Auction activity logging
+const ACTIVITY_COLLECTION = 'auctionActivity';
+
+/**
+ * Log a bid/offer activity entry for an auction.
+ *
+ * @param {Object} params
+ * @param {string} params.auctionEngineAddress
+ * @param {"bid"|"offer"} params.type
+ * @param {string} params.wallet
+ * @param {string} params.txHash
+ * @param {number} params.blockNumber
+ * @param {Date}   params.createdAt
+ */
+export async function logAuctionActivity({
+  auctionEngineAddress,
+  type,
+  wallet,
+  txHash,
+  blockNumber,
+  createdAt,
+}) {
+  try {
+    const colRef = collection(db, ACTIVITY_COLLECTION);
+    await addDoc(colRef, {
+      auctionEngineAddress: auctionEngineAddress?.toLowerCase?.() || auctionEngineAddress,
+      type,
+      wallet,
+      txHash,
+      blockNumber,
+      createdAt,
+    });
+  } catch (error) {
+    console.error('Error logging auction activity to Firestore:', error);
+  }
+}
+
+/**
+ * Fetch the latest activity entries for an auction.
+ *
+ * @param {string} auctionEngineAddress
+ * @param {number} [maxItems=10]
+ * @returns {Promise<Array<{type:string,wallet:string,txHash:string,createdAt:Date}>>}
+ */
+export async function getLatestAuctionActivity(auctionEngineAddress, maxItems = 10) {
+  try {
+    if (!auctionEngineAddress) return [];
+
+    const colRef = collection(db, ACTIVITY_COLLECTION);
+    const qRef = query(
+      colRef,
+      where('auctionEngineAddress', '==', auctionEngineAddress.toLowerCase()),
+      limit(50),
+    );
+
+    const snap = await getDocs(qRef);
+    const items = snap.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const createdAtRaw = data.createdAt;
+      const createdAtDate =
+        createdAtRaw && typeof createdAtRaw.toDate === 'function'
+          ? createdAtRaw.toDate()
+          : createdAtRaw instanceof Date
+            ? createdAtRaw
+            : null;
+
+      return {
+        type: data.type || 'bid',
+        wallet: data.wallet || '-',
+        txHash: data.txHash || '',
+        blockNumber: data.blockNumber || 0,
+        createdAt: createdAtDate,
+      };
+    });
+
+    items.sort((a, b) => {
+      const at = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+      const bt = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+      return bt - at;
+    });
+
+    return items.slice(0, maxItems);
+  } catch (error) {
+    console.error('Error fetching auction activity from Firestore:', error);
+    return [];
   }
 }
 

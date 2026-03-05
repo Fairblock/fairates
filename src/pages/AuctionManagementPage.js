@@ -83,18 +83,6 @@ export function AuctionManagementPage() {
     }
   }, [aeAddress, currentAuction, deployedAuctions, selectAuction, setAuctionEngineAddress]);
 
-  const patternStyle = {
-    position: "fixed",
-    right: 0,
-    top: `${headerHeight}px`,
-    height: `calc(100vh - ${headerHeight}px)`,
-    minHeight: `calc(100vh - ${headerHeight}px)`,
-    width: "auto",
-    objectFit: "cover",
-    zIndex: 0,
-    pointerEvents: "none",
-  };
-
   const tabs = [
     { id: "finalize", label: "Finalize" },
     { id: "rate", label: "Check Rate" },
@@ -187,7 +175,6 @@ export function AuctionManagementPage() {
         position: "relative",
         padding: 0,
       }}>
-        <img src="/bgpattern.png" alt="" style={patternStyle} />
         <div style={{ 
           maxWidth: 1200, 
           margin: "0 auto", 
