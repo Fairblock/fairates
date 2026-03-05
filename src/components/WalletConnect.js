@@ -29,16 +29,20 @@ export function WalletConnect() {
 
   const selectDark = {
     ...pill,
-    width: 260,
+    width: 140,
+    minWidth: 100,
+    maxWidth: 200,
     background: "#F9F9F9",
     color: "#000000",
     border: "none",
     appearance: "none",
-    paddingRight: 42,
+    paddingRight: 36,
     backgroundImage:
       'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDEwIDYiIGZpbGw9IiMwMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkgMC41TDUuMDAyIDQuNjY3TDEgMC41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")',
     backgroundRepeat: "no-repeat",
-    backgroundPosition: "calc(100% - 16px) center",
+    backgroundPosition: "calc(100% - 12px) center",
+    flexShrink: 1,
+    boxSizing: "border-box",
   };
   
   const optionDark = { background: "#FFFFFF", color: "#000000" };
@@ -110,13 +114,25 @@ export function WalletConnect() {
 
   return (
     <>
-      <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+      <style>
+        {`
+          .wallet-connect-root {
+            min-width: 0;
+            flex-shrink: 0;
+          }
+          .wallet-address-select {
+            min-width: 0;
+          }
+        `}
+      </style>
+      <div className="wallet-connect-root" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap", minWidth: 0 }}>
         {signer ? (
           <>
             <select
               value={walletAddress}
               style={selectDark}
               onChange={(e) => switchAccount(e.target.value)}
+              className="wallet-address-select"
             >
               {availableAccounts.map((acc) => (
                 <option key={acc} value={acc} style={optionDark}>
@@ -126,8 +142,8 @@ export function WalletConnect() {
             </select>
 
             <button
-              className="wallet-pill"
-              style={pill}
+              className="wallet-pill wallet-disconnect-btn"
+              style={{ ...pill, flexShrink: 0 }}
               onClick={disconnectWallet}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}

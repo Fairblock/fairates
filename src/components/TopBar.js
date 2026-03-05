@@ -224,7 +224,9 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
     height: "auto",
     minHeight: "auto",
     padding: "12px 48px",
-    flexWrap: "nowrap",
+    flexWrap: "wrap",
+    gap: "16px",
+    minWidth: 0,
   };
 
   const deployPageNavLink = {
@@ -258,26 +260,98 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
             .user-page-nav .nav-link {
               text-decoration: none !important;
             }
+            .developer-page-nav,
+            .user-page-nav {
+              display: flex;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 16px;
+              min-width: 0;
+            }
+            .developer-page-nav .nav-links-row,
+            .user-page-nav .nav-links-row {
+              display: flex;
+              align-items: center;
+              flex: 1 1 auto;
+              min-width: 0;
+              gap: 0;
+            }
+            .developer-page-nav .nav-links-row .nav-link,
+            .user-page-nav .nav-links-row .nav-link {
+              flex-shrink: 0;
+              margin-left: 32px !important;
+            }
+            .developer-page-nav .nav-links-row .nav-link:first-of-type,
+            .user-page-nav .nav-links-row .nav-link:first-of-type {
+              margin-left: 24px !important;
+            }
+            .developer-page-nav .nav-logo,
+            .user-page-nav .nav-logo {
+              flex-shrink: 0;
+            }
+            .developer-page-nav .wallet-wrap,
+            .user-page-nav .wallet-wrap {
+              flex-shrink: 0;
+              margin-left: auto;
+              min-width: 0;
+            }
+            @media (max-width: 900px) {
+              .developer-page-nav,
+              .user-page-nav {
+                padding: 12px 24px;
+                gap: 12px;
+              }
+              .developer-page-nav .nav-links-row .nav-link,
+              .user-page-nav .nav-links-row .nav-link {
+                margin-left: 20px !important;
+                font-size: 0.95rem;
+              }
+              .developer-page-nav .nav-links-row .nav-link:first-of-type,
+              .user-page-nav .nav-links-row .nav-link:first-of-type {
+                margin-left: 16px !important;
+              }
+            }
+            @media (max-width: 640px) {
+              .developer-page-nav,
+              .user-page-nav {
+                padding: 10px 16px;
+                gap: 8px;
+              }
+              .developer-page-nav .nav-links-row .nav-link,
+              .user-page-nav .nav-links-row .nav-link {
+                margin-left: 12px !important;
+                font-size: 0.9rem;
+              }
+              .developer-page-nav .nav-links-row .nav-link:first-of-type,
+              .user-page-nav .nav-links-row .nav-link:first-of-type {
+                margin-left: 12px !important;
+              }
+            }
           `}
         </style>
         <nav style={deployPageTopBarStyle} className={isDeveloperPage ? "developer-page-nav" : "user-page-nav"}>
-          <img src="/fairates-logo.png" alt="Fairates" style={deployPageLogoStyle} />
+          <img src="/fairates-logo.png" alt="Fairates" style={deployPageLogoStyle} className="nav-logo" />
 
-          {sectionLinks.map(({ to, label }) => (
-            <Link
-              key={label}
-              to={to}
-              style={{
-                ...deployPageNavLink,
-                fontWeight: isNavLinkActive(to) ? 600 : 400,
-              }}
-              className="nav-link"
-            >
-              {label}
-            </Link>
-          ))}
+          <div className="nav-links-row">
+            {sectionLinks.map(({ to, label }, index) => (
+              <Link
+                key={label}
+                to={to}
+                style={{
+                  ...deployPageNavLink,
+                  marginLeft: index === 0 ? 24 : 32,
+                  fontWeight: isNavLinkActive(to) ? 600 : 400,
+                }}
+                className="nav-link"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
 
-          <WalletConnect />
+          <div className="wallet-wrap">
+            <WalletConnect />
+          </div>
         </nav>
       </>
     );
