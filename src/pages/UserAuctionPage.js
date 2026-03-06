@@ -760,7 +760,7 @@ export function UserAuctionPage() {
                       Max
                     </button>
                   </div>
-                  <Label>Minimum Interest Rate</Label>
+                  <Label>Maximum Interest Rate</Label>
                   <input
                     className="input-field"
                     style={inputStyle}
