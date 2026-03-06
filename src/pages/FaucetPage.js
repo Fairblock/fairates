@@ -4,6 +4,7 @@ import { useAppContext } from "../context/AppContext";
 import { TokenDisplay } from "../components/TokenDisplay";
 import { sendTx } from "../utils/deploy.js";
 import { USDC_ADDRESS, ETH_ADDRESS, BTC_ADDRESS, USDC_FAUCET, ETH_FAUCET, BTC_FAUCET } from "../styles.js";
+import { getTokenLogoPath } from "../utils/symbolDisplay";
 
 export function FaucetPage() {
   const { signer, showToast, getErrorMessage } = useAppContext();
@@ -155,7 +156,12 @@ export function FaucetPage() {
 
             <div style={{ marginBottom: 28 }}>
               <p style={sub}>
-                <strong style={{ color: "#000000" }}>USDC token</strong>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {getTokenLogoPath("USDC") && (
+                    <img src={getTokenLogoPath("USDC")} alt="USDC" style={{ width: 28, height: 28, borderRadius: 8 }} />
+                  )}
+                  <strong style={{ color: "#000000" }}>test USDC token</strong>
+                </span>
                 <br />
                 Address:&nbsp;<span className="wrap-addr">
                   <TokenDisplay address={USDC_ADDRESS} />
@@ -168,27 +174,37 @@ export function FaucetPage() {
 
             <div style={{ marginBottom: 28 }}>
               <p style={sub}>
-                <strong style={{ color: "#000000" }}>ETH token</strong>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {getTokenLogoPath("WETH") && (
+                    <img src={getTokenLogoPath("WETH")} alt="WETH" style={{ width: 28, height: 28, borderRadius: 8 }} />
+                  )}
+                  <strong style={{ color: "#000000" }}>test WETH token</strong>
+                </span>
                 <br />
                 Address:&nbsp;<span className="wrap-addr">
                   <TokenDisplay address={ETH_ADDRESS} />
                 </span>
               </p>
               <button className="btn-primary" style={btn} onClick={() => handleWithdraw("ETH", ETH_FAUCET)}>
-                Request&nbsp;ETH
+                Request&nbsp;WETH
               </button>
             </div>
 
             <div>
               <p style={sub}>
-                <strong style={{ color: "#000000" }}>BTC token</strong>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {getTokenLogoPath("WBTC") && (
+                    <img src={getTokenLogoPath("WBTC")} alt="WBTC" style={{ width: 28, height: 28, borderRadius: 8 }} />
+                  )}
+                  <strong style={{ color: "#000000" }}>test WBTC token</strong>
+                </span>
                 <br />
                 Address:&nbsp;<span className="wrap-addr">
                   <TokenDisplay address={BTC_ADDRESS} />
                 </span>
               </p>
-              <button className="btn-primary" style={btn} onClick={() => handleWithdraw("BTC", BTC_FAUCET)}>
-                Request&nbsp;BTC
+              <button className="btn-primary" style={btn} onClick={() => handleWithdraw("WBTC", BTC_FAUCET)}>
+                Request&nbsp;WBTC
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
 import { PageLoader } from "../components/PageLoader";
+import { displaySymbol, getTokenLogoPath } from "../utils/symbolDisplay";
 import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import CollateralManagerArtifact from "../CollateralManager.json";
@@ -60,7 +61,7 @@ export function UserDashboard() {
             const c = erc20For(addr);
             const sym = await c.symbol();
             if (sym && typeof sym === "string" && sym.trim().length > 0) {
-              return sym.trim();
+              return displaySymbol(sym.trim());
             }
           } catch {
             // ignore
@@ -498,23 +499,35 @@ export function UserDashboard() {
                                 gap: 10,
                               }}
                             >
-                              <div
-                                style={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: "999px",
-                                  background:
-                                    "linear-gradient(135deg, #E4F5FF 0%, #B3E0FF 100%)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  color: "#004B7A",
-                                }}
-                              >
-                                $
-                              </div>
+                              {getTokenLogoPath(meta.repaymentSymbol) ? (
+                                <img
+                                  src={getTokenLogoPath(meta.repaymentSymbol)}
+                                  alt={meta.repaymentSymbol || ""}
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: 8,
+                                  }}
+                                />
+                              ) : (
+                                <div
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: "999px",
+                                    background:
+                                      "linear-gradient(135deg, #E4F5FF 0%, #B3E0FF 100%)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    color: "#004B7A",
+                                  }}
+                                >
+                                  $
+                                </div>
+                              )}
                               <div>
                                 <div
                                   style={{
@@ -542,7 +555,27 @@ export function UserDashboard() {
                             {formatMaturity(meta.repaymentDue)}
                           </td>
                           <td style={tdStyle}>
-                            {formatCollateral(meta.collateralSymbols)}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                              }}
+                            >
+                              {(meta.collateralSymbols && meta.collateralSymbols.length > 0 &&
+                                getTokenLogoPath(meta.collateralSymbols[0])) ? (
+                                <img
+                                  src={getTokenLogoPath(meta.collateralSymbols[0])}
+                                  alt={meta.collateralSymbols[0] || ""}
+                                  style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 8,
+                                  }}
+                                />
+                              ) : null}
+                              <span>{formatCollateral(meta.collateralSymbols)}</span>
+                            </div>
                           </td>
                           <td style={{ ...tdStyle, textAlign: "right" }}>
                             <div

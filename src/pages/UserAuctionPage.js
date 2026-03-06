@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
 import { getLatestAuctionActivity } from "../utils/firebase";
+import { displaySymbol, getTokenLogoPath } from "../utils/symbolDisplay";
 import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import BidManagerArtifact from "../BidManager.json";
@@ -263,7 +264,7 @@ export function UserAuctionPage() {
           try {
             const c = erc20For(addr);
             const sym = await c.symbol();
-            return sym || `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+            return displaySymbol(sym) || `${addr.slice(0, 6)}…${addr.slice(-4)}`;
           } catch {
             return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
           }
@@ -394,6 +395,12 @@ export function UserAuctionPage() {
   const maturityDate = auctionMeta.repaymentDue
     ? formatDateShort(auctionMeta.repaymentDue)
     : "–";
+  const collateralPrimarySymbol = (auctionMeta.collateralLabel || "")
+    .split(",")[0]
+    .trim();
+  const collateralLogoPath = collateralPrimarySymbol
+    ? getTokenLogoPath(collateralPrimarySymbol)
+    : null;
 
   return (
     <>
@@ -570,7 +577,31 @@ export function UserAuctionPage() {
             <InfoCell label="Auction Timeline" value={auctionTimeline} />
             <InfoCell label="Loan Term" value={loanTerm} />
             <InfoCell label="Maturity Date" value={maturityDate} />
-            <InfoCell label="Collateral Asset" value={auctionMeta.collateralLabel} />
+            <InfoCell
+              label="Collateral Asset"
+              value={
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {collateralLogoPath && (
+                    <img
+                      src={collateralLogoPath}
+                      alt={collateralPrimarySymbol || ""}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 8,
+                      }}
+                    />
+                  )}
+                  <span>{auctionMeta.collateralLabel || "–"}</span>
+                </span>
+              }
+            />
           </div>
 
           {/* Asset row: icon + name, then Bid Limit, Offer Limit, Active Bids, Active Offers */}
@@ -585,22 +616,34 @@ export function UserAuctionPage() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 12,
-                  background: "linear-gradient(135deg, #E4F5FF 0%, #B3E0FF 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: "#333",
-                }}
-              >
-                $
-              </div>
+              {getTokenLogoPath(auctionMeta.assetLabel) ? (
+                <img
+                  src={getTokenLogoPath(auctionMeta.assetLabel)}
+                  alt={auctionMeta.assetLabel || ""}
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #E4F5FF 0%, #B3E0FF 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "#333",
+                  }}
+                >
+                  $
+                </div>
+              )}
               <span
                 style={{
                   fontSize: 18,

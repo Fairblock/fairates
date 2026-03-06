@@ -210,7 +210,7 @@ export function DeployPage() {
         auction characteristics and disables some checks for easier testing.
       </p>
       <p style={{ fontSize: 14, lineHeight: 1.4, marginBottom: 20, color: "#666666", marginTop: 0, fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        In the generated auction, USDC is set as purchase token and ETH is the
+        In the generated auction, USDC is set as purchase token and WETH is the
         collateral by default.
       </p>
       <button className="btn-primary" style={testDeployBtn} onClick={deployContracts}>

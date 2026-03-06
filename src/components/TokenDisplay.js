@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
+import { displaySymbol } from "../utils/symbolDisplay";
 
 export function TokenDisplay({ address }) {
   const { signer } = useAppContext();
@@ -12,7 +13,7 @@ export function TokenDisplay({ address }) {
         const provider = signer ? signer.provider : ethers.getDefaultProvider();
         const tokenContract = new ethers.Contract(address, ["function symbol() view returns (string)"], provider);
         const tokenSymbol = await tokenContract.symbol();
-        setSymbol(tokenSymbol);
+        setSymbol(displaySymbol(tokenSymbol));
       } catch (e) {
         console.error("Error fetching symbol for", address, e);
         setSymbol("");
