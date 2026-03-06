@@ -35,16 +35,6 @@ export function InviteOnlyPage() {
     };
   }, [navigate, location]);
 
-  // Development bypass function
-  const bypassInviteForDev = () => {
-    if (process.env.NODE_ENV === 'development') {
-      localStorage.setItem("inviteCode", "DEV-BYPASS");
-      localStorage.setItem("inviteCodeValidated", "true");
-      const redirectTo = location.state?.from?.pathname || "/";
-      window.location.href = redirectTo;
-    }
-  };
-
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
     setInviteError("");
@@ -56,16 +46,7 @@ export function InviteOnlyPage() {
       return;
     }
 
-    // Development bypass: Allow "DEV" or "LOCAL" codes in development mode
     const codeUpper = inviteCode.trim().toUpperCase();
-    if (process.env.NODE_ENV === 'development' && (codeUpper === 'DEV' || codeUpper === 'LOCAL')) {
-      localStorage.setItem("inviteCode", codeUpper);
-      localStorage.setItem("inviteCodeValidated", "true");
-      const redirectTo = location.state?.from?.pathname || "/";
-      window.location.href = redirectTo;
-      return;
-    }
-
     try {
       const inviteRef = doc(db, "inviteCodes", codeUpper);
       const inviteSnap = await getDoc(inviteRef);
@@ -485,35 +466,6 @@ export function InviteOnlyPage() {
                 <span style={separatorText}>or</span>
                 <div style={separatorLine}></div>
               </div>
-
-              {/* Development bypass button - only shows in development */}
-              {process.env.NODE_ENV === 'development' && (
-                <>
-                  <button
-                    onClick={bypassInviteForDev}
-                    style={{
-                      ...button,
-                      background: "#FF6B35",
-                      color: "#FFFFFF",
-                      width: "100%",
-                      marginBottom: "12px",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                  >
-                    🚀 Skip for Development (Local Only)
-                  </button>
-                  <div style={{
-                    ...separatorText,
-                    fontSize: "0.75rem",
-                    marginBottom: "12px",
-                    textAlign: "center",
-                    color: "#999999"
-                  }}>
-                    💡 Tip: You can also use "DEV" or "LOCAL" as invite code
-                  </div>
-                </>
-              )}
 
               {!showEmailInput ? (
                 <button
