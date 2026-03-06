@@ -9,7 +9,7 @@ import AuctionEngineArtifact from "../AuctionEngine.json";
 import CollateralManagerArtifact from "../CollateralManager.json";
 
 export function UserDashboard() {
-  const { deployedAuctions, selectAuction, showToast } = useAppContext();
+  const { deployedAuctions, selectAuction, showToast, signer } = useAppContext();
   const navigate = useNavigate();
   const [headerHeight, setHeaderHeight] = useState(80);
   const [activeTab, setActiveTab] = useState("live");
@@ -48,7 +48,7 @@ export function UserDashboard() {
     async function loadAuctionMeta() {
       try {
         const provider =
-          (window.ethereum && new ethers.providers.Web3Provider(window.ethereum)) ||
+          signer?.provider ??
           new ethers.providers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
 
         const ERC20_META_ABI = ["function symbol() view returns (string)"];
