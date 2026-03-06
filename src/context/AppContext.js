@@ -686,9 +686,9 @@ export function AppProvider({ children }) {
       await sleep(500); // Delay after deployment
       const auctionTokenAddress = atContract.address;
 
-      const BID_DURATION = 6000000;
-      const REVEAL_DURATION = 31104000;
-      const LOAN_DURATION = 1;
+      const BID_DURATION = 2 * 24 * 3600;   // 2 days bidding
+      const REVEAL_DURATION = 2 * 24 * 3600; // 2 days repayment
+      const LOAN_DURATION = 60 * 24 * 3600; // 60 days loan
       const FEE = 0;
       const AUCTION_TOKEN_AMOUNT = 1;
       const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
