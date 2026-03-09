@@ -654,8 +654,7 @@ export function AppProvider({ children }) {
     }
     try {
       const userAddr = await signer.getAddress();
-      //const ID = await generateAuctionID(signer, userAddr);
-      const ID = "test";
+      const ID = await generateAuctionID(signer, userAddr);
       console.log("Generated ID:", ID);
       const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       
