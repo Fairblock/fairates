@@ -98,6 +98,8 @@ export function UserAuctionPage() {
     userOwedAmount: "0",
   });
 
+  const [collateralSymbolsByAddress, setCollateralSymbolsByAddress] = useState({});
+
   const [headerHeight, setHeaderHeight] = useState(80);
 
   useEffect(() => {
@@ -405,6 +407,15 @@ export function UserAuctionPage() {
           const collSymbols = await Promise.all(
             collateralAddresses.map(safeSymbol)
           );
+
+          const symbolMap = {};
+          collateralAddresses.forEach((addr, idx) => {
+            if (addr) {
+              symbolMap[addr.toLowerCase()] = collSymbols[idx];
+            }
+          });
+          setCollateralSymbolsByAddress(symbolMap);
+
           if (collSymbols.length === 1) {
             collateralLabel = collSymbols[0];
           } else if (collSymbols.length === 2) {
@@ -885,24 +896,39 @@ export function UserAuctionPage() {
 
                         {collateralTab === "lock" && (
                           <>
-                            {extraCollateralSelections.map((c, i) => (
-                              <div key={c.address} style={{ marginBottom: 8 }}>
-                                <Label style={{ fontSize: 12, color: "#666" }}>
-                                  {`${c.address.slice(0, 6)}…${c.address.slice(-4)}`}
-                                </Label>
-                                <input
-                                  className="input-field"
-                                  style={inputStyle}
-                                  value={c.amount}
-                                  onChange={(e) => {
-                                    const updated = [...extraCollateralSelections];
-                                    updated[i] = { ...updated[i], amount: e.target.value };
-                                    setExtraCollateralSelections(updated);
-                                  }}
-                                  placeholder="Amount to lock"
-                                />
-                              </div>
-                            ))}
+                            {extraCollateralSelections.map((c, i) => {
+                              const symbol =
+                                collateralSymbolsByAddress[c.address?.toLowerCase()] || "";
+                              const logoPath = symbol ? getTokenLogoPath(symbol) : null;
+                              return (
+                                <div key={c.address} style={{ marginBottom: 8 }}>
+                                  <Label style={{ fontSize: 12, color: "#666" }}>
+                                    {logoPath && (
+                                      <img
+                                        src={logoPath}
+                                        alt={symbol}
+                                        style={{
+                                          width: 16,
+                                          height: 16,
+                                          borderRadius: 6,
+                                        }}
+                                      />
+                                    )}
+                                  </Label>
+                                  <input
+                                    className="input-field"
+                                    style={inputStyle}
+                                    value={c.amount}
+                                    onChange={(e) => {
+                                      const updated = [...extraCollateralSelections];
+                                      updated[i] = { ...updated[i], amount: e.target.value };
+                                      setExtraCollateralSelections(updated);
+                                    }}
+                                    placeholder="Amount to lock"
+                                  />
+                                </div>
+                              );
+                            })}
                             <button
                               className="action-button"
                               style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}
@@ -916,24 +942,39 @@ export function UserAuctionPage() {
 
                         {collateralTab === "unlock" && (
                           <>
-                            {removeCollateralSelections.map((c, i) => (
-                              <div key={c.address} style={{ marginBottom: 8 }}>
-                                <Label style={{ fontSize: 12, color: "#666" }}>
-                                  {`${c.address.slice(0, 6)}…${c.address.slice(-4)}`}
-                                </Label>
-                                <input
-                                  className="input-field"
-                                  style={inputStyle}
-                                  value={c.amount}
-                                  onChange={(e) => {
-                                    const updated = [...removeCollateralSelections];
-                                    updated[i] = { ...updated[i], amount: e.target.value };
-                                    setRemoveCollateralSelections(updated);
-                                  }}
-                                  placeholder="Amount to unlock"
-                                />
-                              </div>
-                            ))}
+                            {removeCollateralSelections.map((c, i) => {
+                              const symbol =
+                                collateralSymbolsByAddress[c.address?.toLowerCase()] || "";
+                              const logoPath = symbol ? getTokenLogoPath(symbol) : null;
+                              return (
+                                <div key={c.address} style={{ marginBottom: 8 }}>
+                                  <Label style={{ fontSize: 12, color: "#666" }}>
+                                    {logoPath && (
+                                      <img
+                                        src={logoPath}
+                                        alt={symbol}
+                                        style={{
+                                          width: 16,
+                                          height: 16,
+                                          borderRadius: 6,
+                                        }}
+                                      />
+                                    )}
+                                  </Label>
+                                  <input
+                                    className="input-field"
+                                    style={inputStyle}
+                                    value={c.amount}
+                                    onChange={(e) => {
+                                      const updated = [...removeCollateralSelections];
+                                      updated[i] = { ...updated[i], amount: e.target.value };
+                                      setRemoveCollateralSelections(updated);
+                                    }}
+                                    placeholder="Amount to unlock"
+                                  />
+                                </div>
+                              );
+                            })}
                             <button
                               className="action-button"
                               style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}

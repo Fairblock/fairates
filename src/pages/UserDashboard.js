@@ -84,12 +84,14 @@ export function UserDashboard() {
                 revealEndBn,
                 repaymentDueBn,
                 repaymentTokenAddress,
+                isFinalized,
               ] = await Promise.all([
                 ae.biddingStart(),
                 ae.biddingEnd(),
                 ae.revealEnd(),
                 ae.repaymentDue(),
                 ae.repaymentToken(),
+                ae.isFinalized(),
               ]);
 
               let collateralSymbols = [];
@@ -120,6 +122,7 @@ export function UserDashboard() {
                   repaymentDue: repaymentDueBn.toNumber(),
                   repaymentSymbol,
                   collateralSymbols,
+                  isFinalized: !!isFinalized,
                 },
               ];
             } catch (err) {
@@ -313,7 +316,18 @@ export function UserDashboard() {
     return Math.min(1, Math.max(0, elapsed / total));
   };
 
-  const auctionsToShow = activeTab === "live" ? deployedAuctions : [];
+  const liveAuctions = deployedAuctions.filter((a) => {
+    const meta = auctionMeta[a.auctionEngineAddress.toLowerCase()];
+    // Treat auctions with missing meta or not-yet-finalized as live
+    return !meta || !meta.isFinalized;
+  });
+
+  const closedAuctions = deployedAuctions.filter((a) => {
+    const meta = auctionMeta[a.auctionEngineAddress.toLowerCase()];
+    return !!meta?.isFinalized;
+  });
+
+  const auctionsToShow = activeTab === "live" ? liveAuctions : closedAuctions;
   const visibleAuctions = auctionsToShow.slice(0, visibleCount);
   const hasMore = auctionsToShow.length > visibleCount;
 
