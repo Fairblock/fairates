@@ -11,7 +11,7 @@ import OfferManagerArtifact from "../OfferManager.json";
 
 const LIGHT_BLUE = "#E4F5FF";
 const ACCENT_BLUE = "#00A3FF";
-const ERC20_META_ABI = ["function symbol() view returns (string)"];
+const ERC20_META_ABI = ["function symbol() view returns (string)", "function decimals() view returns (uint8)"];
 
 export function UserAuctionPage() {
   const { auctionAddress } = useParams();
@@ -38,6 +38,21 @@ export function UserAuctionPage() {
     bidManagerAddress,
     offerManagerAddress,
     walletAddress,
+    repay,
+    repayAmount,
+    setRepayAmount,
+    owedAmount,
+    redeemToken,
+    redemptionAmount,
+    setRedemptionAmount,
+    externalLockCollateral,
+    extraCollateralSelections,
+    setExtraCollateralSelections,
+    externalUnlockCollateral,
+    removeCollateralSelections,
+    setRemoveCollateralSelections,
+    currentAuction,
+    collateralManagerAddress,
   } = useAppContext();
 
   // When opening via direct URL, ensure the auction from route is selected
@@ -53,6 +68,7 @@ export function UserAuctionPage() {
 
   const [activeTab, setActiveTab] = useState("borrow"); // "borrow" | "supply"
   const [manageTab, setManageTab] = useState("offers"); // "offers" | "bids"
+  const [collateralTab, setCollateralTab] = useState("lock"); // "lock" | "unlock"
   const [auctionMeta, setAuctionMeta] = useState({
     phase: "-",
     status: "-",
@@ -73,6 +89,13 @@ export function UserAuctionPage() {
     userHasOffer: false,
     assetLabel: "-",
     collateralLabel: "-",
+    isFinalized: false,
+    isBiddingOver: false,
+    clearingRate: "-",
+    totalVolume: "-",
+    userBidAllocation: "0",
+    userOfferAllocation: "0",
+    userOwedAmount: "0",
   });
 
   const [headerHeight, setHeaderHeight] = useState(80);
@@ -91,6 +114,21 @@ export function UserAuctionPage() {
       window.removeEventListener("resize", updateHeaderHeight);
     };
   }, []);
+
+  useEffect(() => {
+    if (availableCollaterals.length > 0) {
+      if (extraCollateralSelections.length === 0) {
+        setExtraCollateralSelections(
+          availableCollaterals.map((c) => ({ address: c.address, amount: "" }))
+        );
+      }
+      if (removeCollateralSelections.length === 0) {
+        setRemoveCollateralSelections(
+          availableCollaterals.map((c) => ({ address: c.address, amount: "" }))
+        );
+      }
+    }
+  }, [availableCollaterals]);
 
   const resetParticipationFields = () => {
     setBidAmount("");
@@ -182,62 +220,145 @@ export function UserAuctionPage() {
           : finalized
             ? "Finalized"
             : phaseTxt;
+        const isBiddingOver = phaseTxt !== "Bidding" || cancelled;
 
-        const fallbackActivity = [];
-        (bidsArr || []).forEach((b) => {
-          const submitter = b.submitter || "-";
-          fallbackActivity.push({
-            type: "bid",
-            wallet: submitter,
-            bid: "Encrypted",
-            maxPrice: "Encrypted",
-            time: "–",
+        let clearingRate = "-";
+        let totalVolume = "-";
+        let revealedBids = [];
+        let revealedOffers = [];
+        let userBidAllocation = "0";
+        let userOfferAllocation = "0";
+        let userOwedAmount = "0";
+
+        if (finalized) {
+          try {
+            let tokenDec = 18;
+            try {
+              const rc = new ethers.Contract(repaymentTokenAddress, ERC20_META_ABI, provider);
+              tokenDec = await rc.decimals();
+            } catch {}
+
+            const [clearingRateBN, volumeBN, bidRevLen, offerRevLen] = await Promise.all([
+              ae.auctionClearingRate(),
+              ae.auctionVolume(),
+              ae.bidsRevealedLength(),
+              ae.offersRevealedLength(),
+            ]);
+
+            clearingRate = (clearingRateBN / 1e18).toString();
+            totalVolume = ethers.utils.formatUnits(volumeBN, tokenDec);
+
+            const bidRevCount = bidRevLen.toNumber();
+            const bidPromises = [];
+            for (let i = 0; i < bidRevCount; i++) bidPromises.push(ae.bidsRevealed(i));
+            const bidResults = await Promise.all(bidPromises);
+            revealedBids = bidResults.map(([bidder, quantity, rate]) => ({
+              bidder,
+              quantity: ethers.utils.formatUnits(quantity, tokenDec),
+              rate: (rate / 1e18).toString(),
+            }));
+
+            const offerRevCount = offerRevLen.toNumber();
+            const offerPromises = [];
+            for (let i = 0; i < offerRevCount; i++) offerPromises.push(ae.offersRevealed(i));
+            const offerResults = await Promise.all(offerPromises);
+            revealedOffers = offerResults.map(([offerer, quantity, rate]) => ({
+              offerer,
+              quantity: ethers.utils.formatUnits(quantity, tokenDec),
+              rate: (rate / 1e18).toString(),
+            }));
+
+            if (walletAddress) {
+              const [bidAlloc, offerAlloc, owed] = await Promise.all([
+                ae.finalBidAllocation(walletAddress),
+                ae.finalOfferAllocation(walletAddress),
+                ae.repayments(walletAddress),
+              ]);
+              userBidAllocation = ethers.utils.formatUnits(bidAlloc, tokenDec);
+              userOfferAllocation = ethers.utils.formatUnits(offerAlloc, tokenDec);
+              userOwedAmount = ethers.utils.formatUnits(owed, tokenDec);
+            }
+          } catch (finErr) {
+            console.error("Failed to load finalized data:", finErr);
+          }
+        }
+
+        let latestActivity = [];
+
+        if (finalized && (revealedBids.length > 0 || revealedOffers.length > 0)) {
+          revealedBids.forEach((b) => {
+            latestActivity.push({
+              type: "bid",
+              wallet: b.bidder,
+              amount: b.quantity,
+              rate: b.rate,
+            });
           });
-        });
-        (offersArr || []).forEach((o) => {
-          const submitter = o.submitter || "-";
-          fallbackActivity.push({
-            type: "offer",
-            wallet: submitter,
-            bid: "Encrypted",
-            maxPrice: "Encrypted",
-            time: "–",
+          revealedOffers.forEach((o) => {
+            latestActivity.push({
+              type: "offer",
+              wallet: o.offerer,
+              amount: o.quantity,
+              rate: o.rate,
+            });
           });
-        });
-
-        let latestActivity = [...fallbackActivity];
-        try {
-          const activityDocs = await getLatestAuctionActivity(auctionEngineAddress, 10);
-
-          if (activityDocs.length > 0 && fallbackActivity.length === 0) {
-            latestActivity = activityDocs.map((entry) => ({
-              type: entry.type,
-              wallet: entry.wallet,
+        } else {
+          const fallbackActivity = [];
+          (bidsArr || []).forEach((b) => {
+            const submitter = b.submitter || "-";
+            fallbackActivity.push({
+              type: "bid",
+              wallet: submitter,
               bid: "Encrypted",
               maxPrice: "Encrypted",
-              time: relativeTimeFromDate(entry.createdAt),
-              txHash: entry.txHash,
-            }));
-          } else if (activityDocs.length > 0 && fallbackActivity.length > 0) {
-            const byWalletType = new Map();
-            activityDocs.forEach((entry) => {
-              const key = `${(entry.wallet || "").toLowerCase()}:${entry.type || "bid"}`;
-              if (!byWalletType.has(key)) byWalletType.set(key, entry);
+              time: "–",
             });
+          });
+          (offersArr || []).forEach((o) => {
+            const submitter = o.submitter || "-";
+            fallbackActivity.push({
+              type: "offer",
+              wallet: submitter,
+              bid: "Encrypted",
+              maxPrice: "Encrypted",
+              time: "–",
+            });
+          });
 
-            latestActivity = fallbackActivity.map((item) => {
-              const key = `${(item.wallet || "").toLowerCase()}:${item.type}`;
-              const match = byWalletType.get(key);
-              const createdAt = match?.createdAt;
-              return {
-                ...item,
-                time: createdAt ? relativeTimeFromDate(createdAt) : item.time,
-                txHash: match?.txHash || item.txHash,
-              };
-            });
+          latestActivity = [...fallbackActivity];
+          try {
+            const activityDocs = await getLatestAuctionActivity(auctionEngineAddress, 10);
+
+            if (activityDocs.length > 0 && fallbackActivity.length === 0) {
+              latestActivity = activityDocs.map((entry) => ({
+                type: entry.type,
+                wallet: entry.wallet,
+                bid: "Encrypted",
+                maxPrice: "Encrypted",
+                time: relativeTimeFromDate(entry.createdAt),
+                txHash: entry.txHash,
+              }));
+            } else if (activityDocs.length > 0 && fallbackActivity.length > 0) {
+              const byWalletType = new Map();
+              activityDocs.forEach((entry) => {
+                const key = `${(entry.wallet || "").toLowerCase()}:${entry.type || "bid"}`;
+                if (!byWalletType.has(key)) byWalletType.set(key, entry);
+              });
+
+              latestActivity = fallbackActivity.map((item) => {
+                const key = `${(item.wallet || "").toLowerCase()}:${item.type}`;
+                const match = byWalletType.get(key);
+                const createdAt = match?.createdAt;
+                return {
+                  ...item,
+                  time: createdAt ? relativeTimeFromDate(createdAt) : item.time,
+                  txHash: match?.txHash || item.txHash,
+                };
+              });
+            }
+          } catch (activityErr) {
+            console.error("Failed to load activity from Firestore:", activityErr);
           }
-        } catch (activityErr) {
-          console.error("Failed to load activity from Firestore:", activityErr);
         }
 
         if (latestActivity.length > 10) {
@@ -315,6 +436,13 @@ export function UserAuctionPage() {
           loading: false,
           assetLabel: pairLabel,
           collateralLabel,
+          isFinalized: !!finalized,
+          isBiddingOver,
+          clearingRate,
+          totalVolume,
+          userBidAllocation,
+          userOfferAllocation,
+          userOwedAmount,
         });
       } catch (err) {
         console.error("loadDetails:", err);
@@ -680,7 +808,7 @@ export function UserAuctionPage() {
               alignItems: "start",
             }}
           >
-            {/* Left: Participation — Supply / Borrow tabs + form */}
+            {/* Left: Participation / Post-Auction Actions */}
             <div
               style={{
                 backgroundColor: "#FFFFFF",
@@ -689,171 +817,366 @@ export function UserAuctionPage() {
                 border: "none",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  marginBottom: "24px",
-                }}
-              >
-                {[
-                  { id: "supply", label: "Supply" },
-                  { id: "borrow", label: "Borrow" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        resetParticipationFields();
-                      }}
-                    className={`participation-tab ${activeTab === tab.id ? "active" : ""}`}
-                    style={{
-                      padding: "12px 28px",
-                      fontSize: 15,
-                      fontWeight: 500,
-                      color: activeTab === tab.id ? ACCENT_BLUE : "#666",
-                      background: activeTab === tab.id ? LIGHT_BLUE : "transparent",
-                      border: "none",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      fontFamily: FONT_FAMILY,
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {activeTab === "borrow" && (
-                <>
-                  <Label>Borrow Amount</Label>
-                  <div style={{ position: "relative", marginBottom: 18 }}>
-                    <input
-                      className="input-field"
-                      style={{ ...inputStyle, marginBottom: 0 }}
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
-                      placeholder="0"
-                      disabled={!isWalletConnected}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setBidAmount(auctionMeta.maxBid !== "-" ? auctionMeta.maxBid : "")}
-                      style={{
-                        position: "absolute",
-                        right: 12,
-                        top: 0,
-                        bottom: 0,
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        background: "none",
-                        border: "none",
-                        color: ACCENT_BLUE,
-                        fontSize: 13,
-                        fontWeight: 500,
-                        cursor: isWalletConnected ? "pointer" : "default",
-                        fontFamily: FONT_FAMILY,
-                        padding: 0,
-                      }}
-                    >
-                      Max
-                    </button>
-                  </div>
-                  <Label>Maximum Interest Rate</Label>
-                  <input
-                    className="input-field"
-                    style={inputStyle}
-                    value={bidRate}
-                    onChange={(e) => setBidRate(e.target.value)}
-                    placeholder="0"
-                    disabled={!isWalletConnected}
-                  />
-                  {bidCollateralSelections.length > 0 && (
+              {auctionMeta.isBiddingOver ? (
+                auctionMeta.isFinalized ? (
+                  isWalletConnected && parseFloat(auctionMeta.userBidAllocation) > 0 ? (
+                    /* Allocated bidder: results + repay + manage collateral */
                     <>
-                      <Label>Collateral</Label>
-                      <div
-                        style={{
-                          backgroundColor: "transparent",
-                          borderRadius: "10px",
-                          border: "none",
-                          overflow: "hidden",
-                          marginBottom: 18,
-                        }}
-                      >
-                        {bidCollateralSelections.map((c, i) => (
-                          <div
-                            key={c.address}
-                            style={{
-                              padding: 0,
-                              borderBottom:
-                                i < bidCollateralSelections.length - 1
-                                  ? "1px solid #E8E8E8"
-                                  : "none",
-                            }}
-                          >
-                            <input
-                              className="input-field"
+                      <h3 style={{ fontSize: 16, fontWeight: 600, color: "#000", marginBottom: 16, fontFamily: FONT_FAMILY }}>
+                        Auction Results
+                      </h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                        <InfoCell label="Clearing Rate" value={`${auctionMeta.clearingRate}%`} />
+                        <InfoCell label="Your Allocation" value={auctionMeta.userBidAllocation} />
+                        <InfoCell label="Amount Owed" value={auctionMeta.userOwedAmount} />
+                        <InfoCell label="Total Volume" value={auctionMeta.totalVolume} />
+                      </div>
+
+                      <div style={{ borderTop: "1px solid #eee", paddingTop: 20, marginBottom: 20 }}>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, color: "#000", marginBottom: 12, fontFamily: FONT_FAMILY }}>
+                          Repay Loan
+                        </h4>
+                        <Label>Repayment Amount</Label>
+                        <input
+                          className="input-field"
+                          style={inputStyle}
+                          value={repayAmount}
+                          onChange={(e) => setRepayAmount(e.target.value)}
+                          placeholder="0"
+                        />
+                        <button
+                          className="action-button"
+                          style={{ ...primaryBtnStyle, width: "100%", padding: "14px 24px" }}
+                          onClick={repay}
+                        >
+                          Repay
+                        </button>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid #eee", paddingTop: 20 }}>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, color: "#000", marginBottom: 12, fontFamily: FONT_FAMILY }}>
+                          Manage Collateral
+                        </h4>
+                        <div style={{ display: "flex", gap: "8px", marginBottom: 16 }}>
+                          {[
+                            { id: "lock", label: "Lock More" },
+                            { id: "unlock", label: "Unlock Excess" },
+                          ].map((tab) => (
+                            <button
+                              key={tab.id}
+                              onClick={() => setCollateralTab(tab.id)}
+                              className={`participation-tab ${collateralTab === tab.id ? "active" : ""}`}
                               style={{
-                                ...inputStyle,
+                                padding: "8px 16px",
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: collateralTab === tab.id ? ACCENT_BLUE : "#666",
+                                background: collateralTab === tab.id ? LIGHT_BLUE : "transparent",
+                                border: "none",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontFamily: FONT_FAMILY,
                               }}
-                              value={c.amount}
-                              onChange={(e) => updateBidCollat(i, e.target.value)}
-                              placeholder="Collateral amount"
-                              disabled={!isWalletConnected}
-                            />
-                          </div>
-                        ))}
+                            >
+                              {tab.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {collateralTab === "lock" && (
+                          <>
+                            {extraCollateralSelections.map((c, i) => (
+                              <div key={c.address} style={{ marginBottom: 8 }}>
+                                <Label style={{ fontSize: 12, color: "#666" }}>
+                                  {`${c.address.slice(0, 6)}…${c.address.slice(-4)}`}
+                                </Label>
+                                <input
+                                  className="input-field"
+                                  style={inputStyle}
+                                  value={c.amount}
+                                  onChange={(e) => {
+                                    const updated = [...extraCollateralSelections];
+                                    updated[i] = { ...updated[i], amount: e.target.value };
+                                    setExtraCollateralSelections(updated);
+                                  }}
+                                  placeholder="Amount to lock"
+                                />
+                              </div>
+                            ))}
+                            <button
+                              className="action-button"
+                              style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}
+                              onClick={externalLockCollateral}
+                              disabled={extraCollateralSelections.length === 0}
+                            >
+                              Lock Collateral
+                            </button>
+                          </>
+                        )}
+
+                        {collateralTab === "unlock" && (
+                          <>
+                            {removeCollateralSelections.map((c, i) => (
+                              <div key={c.address} style={{ marginBottom: 8 }}>
+                                <Label style={{ fontSize: 12, color: "#666" }}>
+                                  {`${c.address.slice(0, 6)}…${c.address.slice(-4)}`}
+                                </Label>
+                                <input
+                                  className="input-field"
+                                  style={inputStyle}
+                                  value={c.amount}
+                                  onChange={(e) => {
+                                    const updated = [...removeCollateralSelections];
+                                    updated[i] = { ...updated[i], amount: e.target.value };
+                                    setRemoveCollateralSelections(updated);
+                                  }}
+                                  placeholder="Amount to unlock"
+                                />
+                              </div>
+                            ))}
+                            <button
+                              className="action-button"
+                              style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}
+                              onClick={externalUnlockCollateral}
+                              disabled={removeCollateralSelections.length === 0}
+                            >
+                              Unlock Collateral
+                            </button>
+                          </>
+                        )}
                       </div>
                     </>
-                  )}
-                  <button
-                    className="action-button"
-                    style={{
-                      ...primaryBtnStyle,
-                      width: "100%",
-                      padding: "14px 24px",
-                    }}
-                    onClick={placeBid}
-                    disabled={!isWalletConnected}
-                  >
-                    {isWalletConnected ? "Submit Bid" : "Connect wallet to bid"}
-                  </button>
-                </>
-              )}
+                  ) : isWalletConnected && parseFloat(auctionMeta.userOfferAllocation) > 0 ? (
+                    /* Allocated offerer: results + redeem */
+                    <>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, color: "#000", marginBottom: 16, fontFamily: FONT_FAMILY }}>
+                        Auction Results
+                      </h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                        <InfoCell label="Clearing Rate" value={`${auctionMeta.clearingRate}%`} />
+                        <InfoCell label="Your Allocation" value={auctionMeta.userOfferAllocation} />
+                        <InfoCell label="Total Volume" value={auctionMeta.totalVolume} />
+                      </div>
 
-              {activeTab === "supply" && (
+                      <div style={{ borderTop: "1px solid #eee", paddingTop: 20 }}>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, color: "#000", marginBottom: 12, fontFamily: FONT_FAMILY }}>
+                          Redeem Auction Token
+                        </h4>
+                        <Label>Redemption Amount</Label>
+                        <input
+                          className="input-field"
+                          style={inputStyle}
+                          value={redemptionAmount}
+                          onChange={(e) => setRedemptionAmount(e.target.value)}
+                          placeholder="0"
+                        />
+                        <button
+                          className="action-button"
+                          style={{ ...primaryBtnStyle, width: "100%", padding: "14px 24px" }}
+                          onClick={redeemToken}
+                        >
+                          Redeem
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    /* No wallet or no allocation: results summary */
+                    <>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, color: "#000", marginBottom: 16, fontFamily: FONT_FAMILY }}>
+                        Auction Results
+                      </h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                        <InfoCell label="Clearing Interest Rate" value={`${auctionMeta.clearingRate}%`} />
+                        <InfoCell label="Total Allocated Volume" value={auctionMeta.totalVolume} />
+                      </div>
+                      <div style={{ padding: "16px 0", fontSize: 14, color: "#666", fontFamily: FONT_FAMILY, lineHeight: 1.6 }}>
+                        {isWalletConnected
+                          ? "You did not receive an allocation in this auction."
+                          : "Connect your wallet to see your allocation details."}
+                      </div>
+                    </>
+                  )
+                ) : (
+                  /* Bidding over but not finalized: waiting message */
+                  <div style={{ textAlign: "center", padding: "40px 24px" }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: "#000", marginBottom: 8, fontFamily: FONT_FAMILY }}>
+                      Auction Has Ended
+                    </h3>
+                    <p style={{ fontSize: 14, color: "#666", fontFamily: FONT_FAMILY, lineHeight: 1.6, margin: 0 }}>
+                      The bidding period is over. Please wait while the auction results are being finalized.
+                    </p>
+                  </div>
+                )
+              ) : (
+                /* Active bidding phase: Supply / Borrow tabs + form */
                 <>
-                  <Label>Supply Amount</Label>
-                  <input
-                    className="input-field"
-                    style={inputStyle}
-                    value={offerAmount}
-                    onChange={(e) => setOfferAmount(e.target.value)}
-                    placeholder="0"
-                    disabled={!isWalletConnected}
-                  />
-                  <Label>Minimum Interest Rate</Label>
-                  <input
-                    className="input-field"
-                    style={inputStyle}
-                    value={offerRate}
-                    onChange={(e) => setOfferRate(e.target.value)}
-                    placeholder="0"
-                    disabled={!isWalletConnected}
-                  />
-                  <button
-                    className="action-button"
+                  <div
                     style={{
-                      ...primaryBtnStyle,
-                      width: "100%",
-                      padding: "14px 24px",
+                      display: "flex",
+                      gap: "8px",
+                      marginBottom: "24px",
                     }}
-                    onClick={placeOffer}
-                    disabled={!isWalletConnected}
                   >
-                    {isWalletConnected ? "Submit Offer" : "Connect wallet to supply"}
-                  </button>
+                    {[
+                      { id: "supply", label: "Supply" },
+                      { id: "borrow", label: "Borrow" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          resetParticipationFields();
+                        }}
+                        className={`participation-tab ${activeTab === tab.id ? "active" : ""}`}
+                        style={{
+                          padding: "12px 28px",
+                          fontSize: 15,
+                          fontWeight: 500,
+                          color: activeTab === tab.id ? ACCENT_BLUE : "#666",
+                          background: activeTab === tab.id ? LIGHT_BLUE : "transparent",
+                          border: "none",
+                          borderRadius: "10px",
+                          cursor: "pointer",
+                          fontFamily: FONT_FAMILY,
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {activeTab === "borrow" && (
+                    <>
+                      <Label>Borrow Amount</Label>
+                      <div style={{ position: "relative", marginBottom: 18 }}>
+                        <input
+                          className="input-field"
+                          style={{ ...inputStyle, marginBottom: 0 }}
+                          value={bidAmount}
+                          onChange={(e) => setBidAmount(e.target.value)}
+                          placeholder="0"
+                          disabled={!isWalletConnected}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setBidAmount(auctionMeta.maxBid !== "-" ? auctionMeta.maxBid : "")}
+                          style={{
+                            position: "absolute",
+                            right: 12,
+                            top: 0,
+                            bottom: 0,
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            background: "none",
+                            border: "none",
+                            color: ACCENT_BLUE,
+                            fontSize: 13,
+                            fontWeight: 500,
+                            cursor: isWalletConnected ? "pointer" : "default",
+                            fontFamily: FONT_FAMILY,
+                            padding: 0,
+                          }}
+                        >
+                          Max
+                        </button>
+                      </div>
+                      <Label>Maximum Interest Rate</Label>
+                      <input
+                        className="input-field"
+                        style={inputStyle}
+                        value={bidRate}
+                        onChange={(e) => setBidRate(e.target.value)}
+                        placeholder="0"
+                        disabled={!isWalletConnected}
+                      />
+                      {bidCollateralSelections.length > 0 && (
+                        <>
+                          <Label>Collateral</Label>
+                          <div
+                            style={{
+                              backgroundColor: "transparent",
+                              borderRadius: "10px",
+                              border: "none",
+                              overflow: "hidden",
+                              marginBottom: 18,
+                            }}
+                          >
+                            {bidCollateralSelections.map((c, i) => (
+                              <div
+                                key={c.address}
+                                style={{
+                                  padding: 0,
+                                  borderBottom:
+                                    i < bidCollateralSelections.length - 1
+                                      ? "1px solid #E8E8E8"
+                                      : "none",
+                                }}
+                              >
+                                <input
+                                  className="input-field"
+                                  style={{
+                                    ...inputStyle,
+                                  }}
+                                  value={c.amount}
+                                  onChange={(e) => updateBidCollat(i, e.target.value)}
+                                  placeholder="Collateral amount"
+                                  disabled={!isWalletConnected}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                      <button
+                        className="action-button"
+                        style={{
+                          ...primaryBtnStyle,
+                          width: "100%",
+                          padding: "14px 24px",
+                        }}
+                        onClick={placeBid}
+                        disabled={!isWalletConnected}
+                      >
+                        {isWalletConnected ? "Submit Bid" : "Connect wallet to bid"}
+                      </button>
+                    </>
+                  )}
+
+                  {activeTab === "supply" && (
+                    <>
+                      <Label>Supply Amount</Label>
+                      <input
+                        className="input-field"
+                        style={inputStyle}
+                        value={offerAmount}
+                        onChange={(e) => setOfferAmount(e.target.value)}
+                        placeholder="0"
+                        disabled={!isWalletConnected}
+                      />
+                      <Label>Minimum Interest Rate</Label>
+                      <input
+                        className="input-field"
+                        style={inputStyle}
+                        value={offerRate}
+                        onChange={(e) => setOfferRate(e.target.value)}
+                        placeholder="0"
+                        disabled={!isWalletConnected}
+                      />
+                      <button
+                        className="action-button"
+                        style={{
+                          ...primaryBtnStyle,
+                          width: "100%",
+                          padding: "14px 24px",
+                        }}
+                        onClick={placeOffer}
+                        disabled={!isWalletConnected}
+                      >
+                        {isWalletConnected ? "Submit Offer" : "Connect wallet to supply"}
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -876,7 +1199,7 @@ export function UserAuctionPage() {
                   fontFamily: FONT_FAMILY,
                 }}
               >
-                Latest Activity
+                {auctionMeta.isFinalized ? "Bids & Offers" : "Latest Activity"}
               </h3>
               <div className="latest-activity-scroll">
                 <table style={tableStyle}>
@@ -884,8 +1207,17 @@ export function UserAuctionPage() {
                     <tr>
                       <th style={thStyle}>Wallet</th>
                       <th style={thStyle}>Type</th>
-                      <th style={thStyle}>Bid</th>
-                      <th style={thStyle}>Time</th>
+                      {auctionMeta.isFinalized ? (
+                        <>
+                          <th style={thStyle}>Amount</th>
+                          <th style={thStyle}>Rate</th>
+                        </>
+                      ) : (
+                        <>
+                          <th style={thStyle}>Bid</th>
+                          <th style={thStyle}>Time</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -925,8 +1257,17 @@ export function UserAuctionPage() {
                           <td style={tdStyle}>
                             {row.type === "offer" ? "Offer" : "Bid"}
                           </td>
-                          <td style={tdStyle}>{row.bid}</td>
-                          <td style={tdStyle}>{row.time}</td>
+                          {auctionMeta.isFinalized ? (
+                            <>
+                              <td style={tdStyle}>{row.amount}</td>
+                              <td style={tdStyle}>{row.rate}%</td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={tdStyle}>{row.bid}</td>
+                              <td style={tdStyle}>{row.time}</td>
+                            </>
+                          )}
                         </tr>
                       )})
                     )}
@@ -936,155 +1277,157 @@ export function UserAuctionPage() {
             </div>
           </div>
 
-          {/* Manage Auctions — compact horizontal row */}
-          <div
-            className="user-auction-manage-row"
-            style={{
-              marginTop: "20px",
-              backgroundColor: "#FAFAFA",
-              borderRadius: "14px",
-              padding: "14px 20px",
-              border: "none",
-            }}
-          >
+          {/* Manage Auctions — only shown during active bidding */}
+          {!auctionMeta.isBiddingOver && (
             <div
+              className="user-auction-manage-row"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "24px",
-                flexWrap: "wrap",
+                marginTop: "20px",
+                backgroundColor: "#FAFAFA",
+                borderRadius: "14px",
+                padding: "14px 20px",
+                border: "none",
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  minWidth: 0,
-                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "24px",
+                  flexWrap: "wrap",
                 }}
               >
-                <h3
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#000",
-                    margin: 0,
-                    fontFamily: FONT_FAMILY,
-                  }}
-                >
-                  Manage Auctions
-                </h3>
                 <div
                   style={{
                     display: "flex",
-                    gap: "16px",
-                    fontSize: 13,
+                    flexDirection: "column",
+                    gap: 6,
+                    minWidth: 0,
+                    flex: 1,
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setManageTab("offers")}
+                  <h3
                     style={{
-                        padding: "6px 10px",
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: manageTab === "offers" ? "#000" : "#666",
-                        backgroundColor:
-                          manageTab === "offers" ? LIGHT_BLUE : "transparent",
-                        border: "none",
-                        borderRadius: 999,
-                        cursor: "pointer",
-                        fontFamily: FONT_FAMILY,
-                      }}
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#000",
+                      margin: 0,
+                      fontFamily: FONT_FAMILY,
+                    }}
                   >
-                    Open Offers
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setManageTab("bids")}
+                    Manage Auctions
+                  </h3>
+                  <div
                     style={{
-                        padding: "6px 10px",
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: manageTab === "bids" ? "#000" : "#666",
-                        backgroundColor:
-                          manageTab === "bids" ? LIGHT_BLUE : "transparent",
-                        border: "none",
-                        borderRadius: 999,
-                        cursor: "pointer",
-                        fontFamily: FONT_FAMILY,
-                      }}
+                      display: "flex",
+                      gap: "16px",
+                      fontSize: 13,
+                    }}
                   >
-                    Open Bids
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setManageTab("offers")}
+                      style={{
+                          padding: "6px 10px",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: manageTab === "offers" ? "#000" : "#666",
+                          backgroundColor:
+                            manageTab === "offers" ? LIGHT_BLUE : "transparent",
+                          border: "none",
+                          borderRadius: 999,
+                          cursor: "pointer",
+                          fontFamily: FONT_FAMILY,
+                        }}
+                    >
+                      Open Offers
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setManageTab("bids")}
+                      style={{
+                          padding: "6px 10px",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: manageTab === "bids" ? "#000" : "#666",
+                          backgroundColor:
+                            manageTab === "bids" ? LIGHT_BLUE : "transparent",
+                          border: "none",
+                          borderRadius: 999,
+                          cursor: "pointer",
+                          fontFamily: FONT_FAMILY,
+                        }}
+                    >
+                      Open Bids
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#000",
+                      fontFamily: FONT_FAMILY,
+                    }}
+                  >
+                    {manageTab === "offers"
+                      ? auctionMeta.userHasOffer
+                        ? "You have an active offer."
+                        : "No open offers."
+                      : auctionMeta.userHasBid
+                        ? "You have an active bid."
+                        : "No open bids."}
+                  </div>
                 </div>
+
                 <div
                   style={{
-                    fontSize: 13,
-                    color: "#000",
-                    fontFamily: FONT_FAMILY,
+                    display: "flex",
+                    gap: "8px",
+                    flexShrink: 0,
                   }}
                 >
-                  {manageTab === "offers"
-                    ? auctionMeta.userHasOffer
-                      ? "You have an active offer."
-                      : "No open offers."
-                    : auctionMeta.userHasBid
-                      ? "You have an active bid."
-                      : "No open bids."}
+                  <button
+                    type="button"
+                    style={{
+                      ...primaryBtnStyle,
+                      padding: "8px 18px",
+                      fontSize: 13,
+                    }}
+                    disabled={
+                      (manageTab === "offers" && !auctionMeta.userHasOffer) ||
+                      (manageTab === "bids" && !auctionMeta.userHasBid) ||
+                      !isWalletConnected
+                    }
+                    onClick={() => {
+                      setActiveTab(manageTab === "bids" ? "borrow" : "supply");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      ...primaryBtnStyle,
+                      padding: "8px 18px",
+                      fontSize: 13,
+                    }}
+                    disabled={
+                      (manageTab === "offers" && !auctionMeta.userHasOffer) ||
+                      (manageTab === "bids" && !auctionMeta.userHasBid) ||
+                      !isWalletConnected
+                    }
+                    onClick={() => {
+                      if (manageTab === "bids") removeBid();
+                      else removeOffer();
+                    }}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  flexShrink: 0,
-                }}
-              >
-                <button
-                  type="button"
-                  style={{
-                    ...primaryBtnStyle,
-                    padding: "8px 18px",
-                    fontSize: 13,
-                  }}
-                  disabled={
-                    (manageTab === "offers" && !auctionMeta.userHasOffer) ||
-                    (manageTab === "bids" && !auctionMeta.userHasBid) ||
-                    !isWalletConnected
-                  }
-                  onClick={() => {
-                    setActiveTab(manageTab === "bids" ? "borrow" : "supply");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    ...primaryBtnStyle,
-                    padding: "8px 18px",
-                    fontSize: 13,
-                  }}
-                  disabled={
-                    (manageTab === "offers" && !auctionMeta.userHasOffer) ||
-                    (manageTab === "bids" && !auctionMeta.userHasBid) ||
-                    !isWalletConnected
-                  }
-                  onClick={() => {
-                    if (manageTab === "bids") removeBid();
-                    else removeOffer();
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>

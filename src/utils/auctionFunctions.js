@@ -86,7 +86,7 @@ export async function deployContractsCustom(
     const LIQUIDATION_FEE = Number(customLiquidationFee);
     const PROTOCOL_LIQUIDATION_FEE = Number(customProtocolLiquidationFee);
     const AUCTION_TOKEN_AMOUNT = Number(customAuctionTokenAmount);
-    const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
+    const DECRYPTER = "0xbd3a990b1dd9ffbd4e7ca8c08ac67ea60a4c2539";
     const purchaseToken = customPurchaseToken;
     const maxBid = ethers.utils.parseUnits(customMaxBid, 18);
     const maxOffer = ethers.utils.parseUnits(customMaxOffer, 18);
@@ -109,9 +109,9 @@ export async function deployContractsCustom(
     await sendTx(cmContract, "setMaintenanceRatio", [customCollateralToken, Number(customCollateralRatio)]);
     await delay(300); // Delay between transactions
 
+    // TEMPORARY OVERRIDE: use hardcoded auction ID instead of Fairyring-generated ID
     const userAddr = await signer.getAddress();
-    const ID = await generateAuctionID(signer, userAddr);
-    await delay(500); // Delay after ID generation
+    const ID = "test";
 
     const AuctionTokenFactory = new ethers.ContractFactory(
       AuctionTokenArtifact.abi,
@@ -297,7 +297,7 @@ export async function placeBid(
     showToast("BidManager not found", "error");
     return;
   }
-  const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
+    const am = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
   if (!am) {
     showToast("AuctionEngine not found", "error");
     return;
@@ -308,23 +308,16 @@ export async function placeBid(
     const quantityBN = ethers.utils.parseUnits(bidAmount, tokenDecimals);
 
     let encryptedBid = "0x";
-    const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
-    if (!ae) {
-      showToast("AuctionEngine not found", "error");
-      return;
-    }
-    const ID = await ae.auctionID();
-    const fairyringContract = new ethers.Contract(
-      FAIRYRING_CONTRACT_ADDRESS,
-      FairyringArtifact.abi,
-      signer
-    );
-    const PK = await fairyringContract.latestEncryptionKey();
-    const PK_Val = PK.startsWith("0x") ? PK.slice(2) : PK;
+    // TEMPORARY OVERRIDE: use hardcoded ID + public key instead of Fairyring contract
+    const ID = "test";
+    const PK_Val =
+      "a9b9e8c9bcc04dc715a893309513bf77ff4be5569bfb7138cf7afcf1c594497d59befab32dd67b3c9e38178b24cd1737";
+    console.log("[placeBid] Using hardcoded ID for encryption:", ID);
     if (bidRate) {
       const bufferValue = Buffer.from(bidRate, "utf8");
       encryptedBid = await timelockEncrypt(ID, PK_Val, bufferValue);
       encryptedBid = "0x" + encryptedBid;
+      console.log("[placeBid] Encrypted bid payload:", encryptedBid);
     }
     const usedCollaterals = bidCollateralSelections.filter((c) => c.amount && c.amount !== "0");
     if (usedCollaterals.length === 0) {
@@ -415,21 +408,14 @@ export async function placeOffer(
     let encryptedOffer = "0x";
     if (offerRate) {
       const bufferValue = Buffer.from(offerRate, "utf8");
-      const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
-      if (!ae) {
-        showToast("AuctionEngine not found", "error");
-        return;
-      }
-      const ID = await ae.auctionID();
-      const fairyringContract = new ethers.Contract(
-        FAIRYRING_CONTRACT_ADDRESS,
-        FairyringArtifact.abi,
-        signer
-      );
-      const PK = await fairyringContract.latestEncryptionKey();
-      const PK_Val = PK.startsWith("0x") ? PK.slice(2) : PK;
+      // TEMPORARY OVERRIDE: use hardcoded ID + public key instead of Fairyring contract
+      const ID = "test";
+      const PK_Val =
+        "a9b9e8c9bcc04dc715a893309513bf77ff4be5569bfb7138cf7afcf1c594497d59befab32dd67b3c9e38178b24cd1737";
+      console.log("[placeOffer] Using hardcoded ID for encryption:", ID);
       encryptedOffer = await timelockEncrypt(ID, PK_Val, bufferValue);
       encryptedOffer = "0x" + encryptedOffer;
+      console.log("[placeOffer] Encrypted offer payload:", encryptedOffer);
     }
     const purchaseToken = await am.repaymentToken();
     const tokenDecimals = await getTokenDecimals(purchaseToken);
@@ -484,33 +470,29 @@ export async function finalizeAuction(
   }
 
   try {
-    const fairyringContract = new ethers.Contract(
-      FAIRYRING_CONTRACT_ADDRESS,
-      FairyringArtifact.abi,
-      signer
-    );
-    const id = await ae.auctionID();
-    const parts = id.split('/');
-    const num = parts.pop();
-    const auctionIdNumber = parseInt(num, 10);
-
+    // TEMPORARY OVERRIDE: use hardcoded decryption key instead of Fairyring contract
     setDecryptingAuctionAddress(auctionEngineAddress);
-    let first = true;
-    let decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
-    while (decryptionKey === "0x" || decryptionKey === "0x0") {
-      if (first) {
-        await sendTx(fairyringContract, "requestGeneralDecryptionKey", [auctionIdNumber]);
-        first = false;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-      decryptionKey = await fairyringContract.generalDecryptionKeys(walletAddress, auctionIdNumber);
+
+    // Use the provided hardcoded decryption key, encoded as uint8[]
+    const decryptionKeyHex =
+      "0xa2f4234b14c9d5ed09da203ced20ee4e77937092455d9d59aa406068f142f6c05af8374f014045f51e8b0950e28657f30dc7462b85955e9dbbda97c2f5a64613a6926b3b9f0a7e92bcb6b41c82d84cd57026d7d28b5948e7a7c2632ca13042ab";
+
+    let decryptionKeyArray;
+    try {
+      const asBytes = ethers.utils.arrayify(decryptionKeyHex);
+      decryptionKeyArray = Array.from(asBytes);
+      console.log("[finalizeAuction] hardcoded decryptionKey length =", decryptionKeyArray.length);
+    } catch (convErr) {
+      console.error("Failed to parse hardcoded decryption key:", decryptionKeyHex, convErr);
+      showToast("Invalid hardcoded decryption key", "error");
+      setDecryptingAuctionAddress(null);
+      return;
     }
+
+    await safeSendTx(ae, "decryptBidsBatch", [3, decryptionKeyArray]);
+    await safeSendTx(ae, "decryptOffersBatch", [3, decryptionKeyArray]);
+
     setDecryptingAuctionAddress(null);
-
-    const keyArray = hexToUint8Array(decryptionKey);
-    await safeSendTx(ae, "decryptBidsBatch", [3, keyArray]);
-    await safeSendTx(ae, "decryptOffersBatch", [3, keyArray]);
-
     showToast("Decryption finalized", "success");
   } catch (error) {
     console.error("Decryption failed:", error);

@@ -112,13 +112,10 @@ export async function safeSendTx(
     await delay(200);
     await contract.estimateGas[fnName](...args);
   } catch (estErr) {
-    if (
-      estErr.code === "UNPREDICTABLE_GAS_LIMIT" &&
-      (skipOnUnpredictable || wantsSkip(extractReason(estErr)))
-    ) {
-      console.log(`⤵  Skipping ${fnName}: ${extractReason(estErr)}`);
-      return null;
-    }
+    // Do NOT silently skip here; surface full error + reason
+    const reason = extractReason(estErr);
+    console.error(`⤵  ${fnName} estimateGas failed:`, estErr);
+    console.error(`⤵  ${fnName} revert reason (decoded if present): "${reason}"`);
     throw estErr;
   }
 

@@ -654,8 +654,9 @@ export function AppProvider({ children }) {
     }
     try {
       const userAddr = await signer.getAddress();
-      const ID = await generateAuctionID(signer, userAddr);
-      console.log("Generated ID:", ID);
+      // TEMPORARY OVERRIDE: use hardcoded auction ID instead of Fairyring-generated ID
+      const ID = "test";
+      console.log("Using hardcoded auction ID:", ID, "for user:", userAddr);
       const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       
       const CollateralManagerFactory = new ethers.ContractFactory(
@@ -685,12 +686,13 @@ export function AppProvider({ children }) {
       await sleep(500); // Delay after deployment
       const auctionTokenAddress = atContract.address;
 
-      const BID_DURATION = 2 * 24 * 3600;   // 2 days bidding
-      const REVEAL_DURATION = 2 * 24 * 3600; // 2 days repayment
+      // TEMP: much shorter timelines for testing
+      const BID_DURATION = 10 * 60;          // 10 minutes bidding
+      const REVEAL_DURATION = 10 * 60;       // 10 minutes reveal
       const LOAN_DURATION = 60 * 24 * 3600; // 60 days loan
       const FEE = 0;
       const AUCTION_TOKEN_AMOUNT = 1;
-      const DECRYPTER = "0xF760B0F08897CbE3bca53b7840774883Cbc4bF12";
+      const DECRYPTER = "0xbd3a990b1dd9ffbd4e7ca8c08ac67ea60a4c2539";
       
       const AuctionEngineFactory = new ethers.ContractFactory(
         AuctionEngineArtifact.abi,
