@@ -896,25 +896,8 @@ export function UserAuctionPage() {
 
                         {collateralTab === "lock" && (
                           <>
-                            {extraCollateralSelections.map((c, i) => {
-                              const symbol =
-                                collateralSymbolsByAddress[c.address?.toLowerCase()] || "";
-                              const logoPath = symbol ? getTokenLogoPath(symbol) : null;
-                              return (
-                                <div key={c.address} style={{ marginBottom: 8 }}>
-                                  <Label style={{ fontSize: 12, color: "#666" }}>
-                                    {logoPath && (
-                                      <img
-                                        src={logoPath}
-                                        alt={symbol}
-                                        style={{
-                                          width: 16,
-                                          height: 16,
-                                          borderRadius: 6,
-                                        }}
-                                      />
-                                    )}
-                                  </Label>
+                            {extraCollateralSelections.map((c, i) => (
+                              <div key={c.address} style={{ marginBottom: 8 }}>
                                   <input
                                     className="input-field"
                                     style={inputStyle}
@@ -927,8 +910,7 @@ export function UserAuctionPage() {
                                     placeholder="Amount to lock"
                                   />
                                 </div>
-                              );
-                            })}
+                            ))}
                             <button
                               className="action-button"
                               style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}
@@ -942,25 +924,8 @@ export function UserAuctionPage() {
 
                         {collateralTab === "unlock" && (
                           <>
-                            {removeCollateralSelections.map((c, i) => {
-                              const symbol =
-                                collateralSymbolsByAddress[c.address?.toLowerCase()] || "";
-                              const logoPath = symbol ? getTokenLogoPath(symbol) : null;
-                              return (
-                                <div key={c.address} style={{ marginBottom: 8 }}>
-                                  <Label style={{ fontSize: 12, color: "#666" }}>
-                                    {logoPath && (
-                                      <img
-                                        src={logoPath}
-                                        alt={symbol}
-                                        style={{
-                                          width: 16,
-                                          height: 16,
-                                          borderRadius: 6,
-                                        }}
-                                      />
-                                    )}
-                                  </Label>
+                            {removeCollateralSelections.map((c, i) => (
+                              <div key={c.address} style={{ marginBottom: 8 }}>
                                   <input
                                     className="input-field"
                                     style={inputStyle}
@@ -973,8 +938,7 @@ export function UserAuctionPage() {
                                     placeholder="Amount to unlock"
                                   />
                                 </div>
-                              );
-                            })}
+                            ))}
                             <button
                               className="action-button"
                               style={{ ...primaryBtnStyle, width: "100%", padding: "12px 24px" }}
@@ -1031,9 +995,13 @@ export function UserAuctionPage() {
                         <InfoCell label="Total Allocated Volume" value={auctionMeta.totalVolume} />
                       </div>
                       <div style={{ padding: "16px 0", fontSize: 14, color: "#666", fontFamily: FONT_FAMILY, lineHeight: 1.6 }}>
-                        {isWalletConnected
-                          ? "You did not receive an allocation in this auction."
-                          : "Connect your wallet to see your allocation details."}
+                        {auctionMeta.loading
+                          ? "Final results are loading. Please wait a moment…"
+                          : !isWalletConnected
+                            ? "Connect your wallet to see your allocation details."
+                            : auctionMeta.userHasBid || auctionMeta.userHasOffer
+                              ? "You may not have received an allocation, or results are still syncing. Refresh if this looks wrong."
+                              : "You did not participate in this auction."}
                       </div>
                     </>
                   )
