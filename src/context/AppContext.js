@@ -1017,11 +1017,14 @@ export function AppProvider({ children }) {
       .then((auctions) => {
         if (auctions && auctions.length > 0) {
           const latestAuction = auctions[auctions.length - 1];
-          setCollateralManagerAddress(latestAuction.collateralManagerAddress);
-          setAuctionEngineAddress(latestAuction.auctionEngineAddress);
-          setLendingVaultAddress(latestAuction.lendingVaultAddress);
-          setBidManagerAddress(latestAuction.bidManagerAddress);
-          setOfferManagerAddress(latestAuction.offerManagerAddress);
+          // Initialize selection only if nothing is selected yet.
+          // Use functional updates so we don't clobber a route-selected auction
+          // that may be set shortly after mount.
+          setCollateralManagerAddress((prev) => prev || latestAuction.collateralManagerAddress);
+          setAuctionEngineAddress((prev) => prev || latestAuction.auctionEngineAddress);
+          setLendingVaultAddress((prev) => prev || latestAuction.lendingVaultAddress);
+          setBidManagerAddress((prev) => prev || latestAuction.bidManagerAddress);
+          setOfferManagerAddress((prev) => prev || latestAuction.offerManagerAddress);
           setDeployedAuctions(auctions);
         }
         setServerLoaded(true);
