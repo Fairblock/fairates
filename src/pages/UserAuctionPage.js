@@ -699,7 +699,7 @@ export function UserAuctionPage() {
             zIndex: 1,
           }}
         >
-          {/* Top info section — Bid/Supply Token, Auction Timeline, Loan Term, Maturity Date, Collateral Asset */}
+          {/* Top info section — Borrow/Supply Token, Auction Timeline, Loan Term, Maturity Date, Collateral Asset */}
           <div
             className="user-auction-top-summary"
             style={{
@@ -743,7 +743,7 @@ export function UserAuctionPage() {
             />
           </div>
 
-          {/* Asset row: icon + name, then Bid Limit, Offer Limit, Active Bids, Active Offers */}
+          {/* Asset row: icon + name, then Borrow Limit, Supply Limit, Active Borrows, Active Supplies */}
           <div
             className="user-auction-asset-row"
             style={{
@@ -802,10 +802,10 @@ export function UserAuctionPage() {
                 marginLeft: "auto",
               }}
             >
-              <InfoCell label="Bid Limit" value={`${auctionMeta.minBid} – ${auctionMeta.maxBid}`} />
-              <InfoCell label="Offer Limit" value={`${auctionMeta.minOffer} – ${auctionMeta.maxOffer}`} />
-              <InfoCell label="Active Bids" value={String(auctionMeta.bids)} />
-              <InfoCell label="Active Offers" value={String(auctionMeta.offers)} />
+              <InfoCell label="Borrow Limit" value={`${auctionMeta.minBid} – ${auctionMeta.maxBid}`} />
+              <InfoCell label="Supply Limit" value={`${auctionMeta.minOffer} – ${auctionMeta.maxOffer}`} />
+              <InfoCell label="Active Borrows" value={String(auctionMeta.bids)} />
+              <InfoCell label="Active Supplies" value={String(auctionMeta.offers)} />
             </div>
           </div>
 
@@ -1147,7 +1147,7 @@ export function UserAuctionPage() {
                         onClick={placeBid}
                         disabled={!isWalletConnected}
                       >
-                        {isWalletConnected ? "Submit Bid" : "Connect wallet to bid"}
+                        {isWalletConnected ? "Submit Borrow" : "Connect wallet to borrow"}
                       </button>
                     </>
                   )}
@@ -1182,7 +1182,7 @@ export function UserAuctionPage() {
                         onClick={placeOffer}
                         disabled={!isWalletConnected}
                       >
-                        {isWalletConnected ? "Submit Offer" : "Connect wallet to supply"}
+                        {isWalletConnected ? "Submit Supply" : "Connect wallet to supply"}
                       </button>
                     </>
                   )}
@@ -1208,7 +1208,7 @@ export function UserAuctionPage() {
                   fontFamily: FONT_FAMILY,
                 }}
               >
-                {auctionMeta.isFinalized ? "Bids & Offers" : "Latest Activity"}
+                {auctionMeta.isFinalized ? "Borrows & Supplies" : "Latest Activity"}
               </h3>
               <div className="latest-activity-scroll">
                 <table style={tableStyle}>
@@ -1223,7 +1223,7 @@ export function UserAuctionPage() {
                         </>
                       ) : (
                         <>
-                          <th style={thStyle}>Bid</th>
+                          <th style={thStyle}>Details</th>
                           <th style={thStyle}>Time</th>
                         </>
                       )}
@@ -1264,7 +1264,7 @@ export function UserAuctionPage() {
                             )}
                           </td>
                           <td style={tdStyle}>
-                            {row.type === "offer" ? "Offer" : "Bid"}
+                            {row.type === "offer" ? "Supply" : "Borrow"}
                           </td>
                           {auctionMeta.isFinalized ? (
                             <>
@@ -1350,7 +1350,7 @@ export function UserAuctionPage() {
                           fontFamily: FONT_FAMILY,
                         }}
                     >
-                      Open Offers
+                      Open Supplies
                     </button>
                     <button
                       type="button"
@@ -1368,7 +1368,7 @@ export function UserAuctionPage() {
                           fontFamily: FONT_FAMILY,
                         }}
                     >
-                      Open Bids
+                      Open Borrows
                     </button>
                   </div>
                   <div
@@ -1380,11 +1380,11 @@ export function UserAuctionPage() {
                   >
                     {manageTab === "offers"
                       ? auctionMeta.userHasOffer
-                        ? "You have an active offer."
-                        : "No open offers."
+                        ? "You have an active supply."
+                        : "No open supplies."
                       : auctionMeta.userHasBid
-                        ? "You have an active bid."
-                        : "No open bids."}
+                        ? "You have an active borrow."
+                        : "No open borrows."}
                   </div>
                 </div>
 

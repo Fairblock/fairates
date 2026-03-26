@@ -255,7 +255,7 @@ export function LandingPage() {
 
             <div style={heroSubContainer}>
               <p style={heroSub}>
-                <strong>One rate</strong>: Fixed-rate for all lenders and borrowers through sealed-bid auctions.
+                <strong>One rate</strong>: Fixed-rate for all suppliers and borrowers through sealed auctions.
               </p>
               <p style={heroSub}>
                 <strong>Zero game</strong>: Fair price discovery. No centralized auctioneers or blackbox mechanisms powered by confidential computing
@@ -268,7 +268,7 @@ export function LandingPage() {
               onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
             >
-              Bid or Supply
+              Borrow or Supply
             </button>
           </div>
 

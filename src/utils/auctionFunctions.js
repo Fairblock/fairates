@@ -69,7 +69,7 @@ export async function deployContractsCustom(
     return;
   }
   if (!customMaxBid || !customMaxOffer) {
-    showToast("Please enter maximum bid and offer values", "warning");
+    showToast("Please enter maximum borrow and supply values", "warning");
     return;
   }
   if (!customPriceOracle || !customBidDuration || !customRevealDuration || !customRepaymentDuration || !customFee || !customAuctionTokenAmount || !customPurchaseToken) {
@@ -374,7 +374,7 @@ export async function placeBid(
       console.error("Failed to log bid activity:", activityError);
     }
 
-    showToast("Bid placed successfully", "success");
+    showToast("Borrow placed successfully", "success");
     setBidAmount("");
     setBidRate("");
     setBidCollateralSelections(bidCollateralSelections.map(c => ({ address: c.address, amount: "" })));
@@ -446,7 +446,7 @@ export async function placeOffer(
       console.error("Failed to log offer activity:", activityError);
     }
 
-    showToast("Offer placed successfully", "success");
+    showToast("Supply placed successfully", "success");
     setOfferAmount("");
     setOfferRate("");
   } catch (error) {
@@ -800,7 +800,7 @@ export async function removeBid(
   }
   try {
     await sendTx(bm, "removeBid");
-    showToast("Bid removed and collateral unlocked", "success");
+    showToast("Borrow removed and collateral unlocked", "success");
     setBidAmount("");
     setBidRate("");
     setBidCollateralSelections(
@@ -827,7 +827,7 @@ export async function removeOffer(
   }
   try {
     await sendTx(om, "removeOffer");
-    showToast("Offer removed and funds unlocked", "success");
+    showToast("Supply removed and funds unlocked", "success");
     setOfferAmount("");
     setOfferRate("");
   } catch (err) {

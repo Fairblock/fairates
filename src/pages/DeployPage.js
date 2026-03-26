@@ -310,7 +310,7 @@ export function DeployPage() {
                 />
 
                 <span style={sectionTitle}>Durations</span>
-                <label style={label}>Bid duration (secs)</label>
+                <label style={label}>Borrow duration (secs)</label>
                 <input
                   style={inp}
                   value={customBidDuration}
@@ -391,8 +391,8 @@ export function DeployPage() {
                   placeholder="1"
                 />
 
-                <span style={sectionTitle}>Bid settings</span>
-                <label style={label}>Min bid value</label>
+                <span style={sectionTitle}>Borrow settings</span>
+                <label style={label}>Min borrow value</label>
                 <input
                   style={inp}
                   value={customMinBid}
@@ -402,7 +402,7 @@ export function DeployPage() {
                   placeholder="10"
                 />
 
-                <label style={label}>Max bid value</label>
+                <label style={label}>Max borrow value</label>
                 <input
                   style={inp}
                   value={customMaxBid}
@@ -412,7 +412,7 @@ export function DeployPage() {
                   placeholder="15000"
                 />
 
-                <label style={label}>Max number of bids</label>
+                <label style={label}>Max number of borrows</label>
                 <input
                   style={inp}
                   value={customMaxNumBids}
@@ -422,8 +422,8 @@ export function DeployPage() {
                   placeholder="50"
                 />
 
-                <span style={sectionTitle}>Offer settings</span>
-                <label style={label}>Min offer value</label>
+                <span style={sectionTitle}>Supply settings</span>
+                <label style={label}>Min supply value</label>
                 <input
                   style={inp}
                   value={customMinOffer}
@@ -433,7 +433,7 @@ export function DeployPage() {
                   placeholder="10"
                 />
 
-                <label style={label}>Max offer value</label>
+                <label style={label}>Max supply value</label>
                 <input
                   style={inp}
                   value={customMaxOffer}
@@ -443,7 +443,7 @@ export function DeployPage() {
                   placeholder="10000"
                 />
 
-                <label style={label}>Max number of offers</label>
+                <label style={label}>Max number of supplies</label>
                 <input
                   style={inp}
                   value={customMaxNumOffers}
