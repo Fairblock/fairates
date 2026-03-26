@@ -224,7 +224,7 @@ function initializeEIP6963Detection() {
   window.dispatchEvent(new Event('eip6963:requestProvider'));
 }
 
-const SESSION_STORAGE_WALLET_KEY = "fairates_wallet_connected";
+const SESSION_STORAGE_WALLET_KEY = "fairrates_wallet_connected";
 
 export function AppProvider({ children }) {
   const [signer, setSigner] = useState(null);

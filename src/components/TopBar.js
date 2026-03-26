@@ -161,7 +161,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
           `}
         </style>
         <nav ref={navRef} style={landingPageTopBarStyle} className="landing-page-nav">
-          <img src="/fairates-logo.png" alt="Fairates" style={landingPageLogoStyle} />
+          <img src="/fairrates-logo.png" alt="fairrates" style={landingPageLogoStyle} />
 
           {deployLink && (
             <Link 
@@ -330,7 +330,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
           `}
         </style>
         <nav style={deployPageTopBarStyle} className={isDeveloperPage ? "developer-page-nav" : "user-page-nav"}>
-          <img src="/fairates-logo.png" alt="Fairates" style={deployPageLogoStyle} className="nav-logo" />
+          <img src="/fairrates-logo.png" alt="fairrates" style={deployPageLogoStyle} className="nav-logo" />
 
           <div className="nav-links-row">
             {sectionLinks.map(({ to, label }, index) => (
@@ -359,7 +359,7 @@ export function TopBar({ sectionLinks = [], isLandingPage = false }) {
 
   return (
     <nav style={topBarStyle}>
-      <img src="/fairates-logo.png" alt="Fairates" style={logoStyle} />
+      <img src="/fairrates-logo.png" alt="fairrates" style={logoStyle} />
 
       {sectionLinks.map(({ to, label }) => (
         <Link key={label} to={to} style={navLink} className="nav-link">

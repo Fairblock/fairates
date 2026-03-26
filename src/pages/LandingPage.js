@@ -14,7 +14,7 @@ export function LandingPage() {
   }, []);
 
   const links = [
-    { to: "https://docs.fairblock.network/docs/Fairates", label: "How it works" },
+    { to: "https://docs.fairblock.network/docs/fairrates", label: "How it works" },
   ];
 
   const pageContainer = {

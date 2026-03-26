@@ -430,7 +430,7 @@ export function InviteOnlyPage() {
 
           <div style={rightContent} className="invite-right-content">
             <div style={contentWrapper}>
-              <h1 style={title}>Fairates is invite-only</h1>
+              <h1 style={title}>fairrates is invite-only</h1>
               <p style={description}>
                 Enter your invite code to continue or join the waitlist. We'll reach out when you're eligible.
               </p>
