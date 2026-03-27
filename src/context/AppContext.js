@@ -654,9 +654,8 @@ export function AppProvider({ children }) {
     }
     try {
       const userAddr = await signer.getAddress();
-      // TEMPORARY OVERRIDE: use hardcoded auction ID instead of Fairyring-generated ID
-      const ID = "test";
-      console.log("Using hardcoded auction ID:", ID, "for user:", userAddr);
+      const ID = await generateAuctionID(signer, userAddr);
+      console.log("Generated ID:", ID);
       const priceOracle = "0x2fE2885Ee7c2e43B3219cD63629dbE736bDF8206";
       
       const CollateralManagerFactory = new ethers.ContractFactory(
