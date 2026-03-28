@@ -8,6 +8,30 @@ import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import CollateralManagerArtifact from "../CollateralManager.json";
 
+const META_LOAD_CONCURRENCY = 4;
+const META_LOAD_RETRIES = 3;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Run async work with at most `limit` in flight (reduces RPC rate-limit / timeout failures). */
+async function runPool(items, limit, fn) {
+  if (!items.length) return [];
+  const results = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (true) {
+      const idx = next++;
+      if (idx >= items.length) break;
+      results[idx] = await fn(items[idx], idx);
+    }
+  }
+  const workers = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workers }, () => worker()));
+  return results;
+}
+
 export function UserDashboard() {
   const { deployedAuctions, selectAuction, showToast, signer } = useAppContext();
   const navigate = useNavigate();
@@ -69,8 +93,12 @@ export function UserDashboard() {
           return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
         };
 
-        const entries = await Promise.all(
-          deployedAuctions.map(async (a) => {
+        async function loadOneAuctionMeta(a) {
+          const key = a.auctionEngineAddress.toLowerCase();
+          for (let attempt = 0; attempt < META_LOAD_RETRIES; attempt++) {
+            if (attempt > 0) {
+              await sleep(200 * attempt);
+            }
             try {
               const ae = new ethers.Contract(
                 a.auctionEngineAddress,
@@ -114,7 +142,7 @@ export function UserDashboard() {
               const repaymentSymbol = await safeSymbol(repaymentTokenAddress);
 
               return [
-                a.auctionEngineAddress.toLowerCase(),
+                key,
                 {
                   biddingStart: biddingStartBn.toNumber(),
                   biddingEnd: biddingEndBn.toNumber(),
@@ -126,10 +154,19 @@ export function UserDashboard() {
                 },
               ];
             } catch (err) {
-              console.error("Failed to load auction meta", err);
-              return [a.auctionEngineAddress.toLowerCase(), null];
+              console.error(
+                `Failed to load auction meta (${key}) attempt ${attempt + 1}/${META_LOAD_RETRIES}`,
+                err,
+              );
             }
-          }),
+          }
+          return [key, null];
+        }
+
+        const entries = await runPool(
+          deployedAuctions,
+          META_LOAD_CONCURRENCY,
+          loadOneAuctionMeta,
         );
 
         if (cancelled) return;
@@ -155,7 +192,7 @@ export function UserDashboard() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [deployedAuctions, showToast]);
+  }, [deployedAuctions, showToast, signer]);
 
   const pageContainer = {
     minHeight: "calc(100vh - var(--header-height, 80px))",

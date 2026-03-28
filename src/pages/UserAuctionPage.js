@@ -13,6 +13,35 @@ const LIGHT_BLUE = "#E4F5FF";
 const ACCENT_BLUE = "#00A3FF";
 const ERC20_META_ABI = ["function symbol() view returns (string)", "function decimals() view returns (uint8)"];
 
+const INITIAL_AUCTION_META = {
+  phase: "-",
+  status: "-",
+  decBids: 0,
+  decOffers: 0,
+  biddingEnd: 0,
+  revealEnd: 0,
+  repaymentDue: 0,
+  bids: 0,
+  offers: 0,
+  minBid: "-",
+  maxBid: "-",
+  minOffer: "-",
+  maxOffer: "-",
+  loading: true,
+  activityItems: [],
+  userHasBid: false,
+  userHasOffer: false,
+  assetLabel: "-",
+  collateralLabel: "-",
+  isFinalized: false,
+  isBiddingOver: false,
+  clearingRate: "-",
+  totalVolume: "-",
+  userBidAllocation: "0",
+  userOfferAllocation: "0",
+  userOwedAmount: "0",
+};
+
 export function UserAuctionPage() {
   const { auctionAddress } = useParams();
   const {
@@ -69,34 +98,14 @@ export function UserAuctionPage() {
   const [activeTab, setActiveTab] = useState("borrow"); // "borrow" | "supply"
   const [manageTab, setManageTab] = useState("offers"); // "offers" | "bids"
   const [collateralTab, setCollateralTab] = useState("lock"); // "lock" | "unlock"
-  const [auctionMeta, setAuctionMeta] = useState({
-    phase: "-",
-    status: "-",
-    decBids: 0,
-    decOffers: 0,
-    biddingEnd: 0,
-    revealEnd: 0,
-    repaymentDue: 0,
-    bids: 0,
-    offers: 0,
-    minBid: "-",
-    maxBid: "-",
-    minOffer: "-",
-    maxOffer: "-",
-    loading: true,
-    activityItems: [],
-    userHasBid: false,
-    userHasOffer: false,
-    assetLabel: "-",
-    collateralLabel: "-",
-    isFinalized: false,
-    isBiddingOver: false,
-    clearingRate: "-",
-    totalVolume: "-",
-    userBidAllocation: "0",
-    userOfferAllocation: "0",
-    userOwedAmount: "0",
-  });
+  const [auctionMeta, setAuctionMeta] = useState(() => ({ ...INITIAL_AUCTION_META }));
+
+  // Same route component instance is reused when only :auctionAddress changes; reset UI state
+  // so we don't keep loading:false and stale rows from the previous auction.
+  useEffect(() => {
+    if (!auctionAddress) return;
+    setAuctionMeta({ ...INITIAL_AUCTION_META });
+  }, [auctionAddress]);
 
   const [collateralSymbolsByAddress, setCollateralSymbolsByAddress] = useState({});
 
@@ -154,11 +163,24 @@ export function UserAuctionPage() {
   // Load auction details and activity
   useEffect(() => {
     async function loadDetails() {
+      const wanted = auctionAddress?.toLowerCase();
+      const engine = auctionEngineAddress?.toLowerCase();
+
       if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
+        setAuctionMeta((prev) => ({ ...prev, loading: true }));
+        return;
+      }
+
+      // Context updates from selectAuction apply on the next render; avoid fetching the wrong auction
+      // or finishing with loading:false while placeholders are still shown.
+      if (!wanted || engine !== wanted) {
+        setAuctionMeta((prev) => ({ ...prev, loading: true }));
         return;
       }
 
       try {
+        setAuctionMeta((prev) => ({ ...prev, loading: true }));
+
         const provider =
           signer?.provider ??
           new ethers.providers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
@@ -465,6 +487,7 @@ export function UserAuctionPage() {
     const interval = setInterval(loadDetails, 10000);
     return () => clearInterval(interval);
   }, [
+    auctionAddress,
     auctionEngineAddress,
     bidManagerAddress,
     offerManagerAddress,
