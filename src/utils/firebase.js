@@ -6,15 +6,15 @@ import {
 import {
   getFirestore,
   doc,
-  getDoc,
   setDoc,
   collection,
   addDoc,
   getDocs,
   query,
   where,
-  orderBy,
   limit,
+  writeBatch,
+  serverTimestamp,
 } from 'firebase/firestore';
 
 // Firebase configuration
@@ -34,47 +34,226 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firestore
 export const db = getFirestore(app);
 
-// Contract operations
-const CONTRACTS_COLLECTION = 'contracts';
-const CONTRACTS_DOC_ID = 'auctions';
+/** One Firestore document per auction; document id = lowercased auction engine address. */
+export const AUCTIONS_COLLECTION = 'auctions';
+const AUCTION_DOC_SCHEMA_VERSION = 2;
+/** Stay under Firestore's 500 writes per batch. */
+const MAX_FIRESTORE_BATCH = 450;
+
+function normalizeAuctionEngineDocId(auctionEngineAddress) {
+  if (!auctionEngineAddress || typeof auctionEngineAddress !== 'string') {
+    throw new Error('Auction record requires auctionEngineAddress');
+  }
+  const id = auctionEngineAddress.trim().toLowerCase();
+  if (!/^0x[a-f0-9]{40}$/.test(id)) {
+    throw new Error(`Invalid auctionEngineAddress for Firestore id: ${auctionEngineAddress}`);
+  }
+  return id;
+}
+
+function stripUndefinedDeep(value) {
+  if (value === undefined) return undefined;
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => stripUndefinedDeep(v))
+      .filter((v) => v !== undefined);
+  }
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (v === undefined) continue;
+    const next = stripUndefinedDeep(v);
+    if (next !== undefined) out[k] = next;
+  }
+  return out;
+}
 
 /**
- * Get all contracts from Firestore
- * @returns {Promise<Array>} Array of auction contracts
+ * Serialize an auction for a top-level Firestore document (no `undefined` values).
+ */
+function auctionToFirestoreFields(auction, options = {}) {
+  const { preserveRegisteredAt } = options;
+  const docId = normalizeAuctionEngineDocId(auction.auctionEngineAddress);
+
+  const registeredAt =
+    typeof preserveRegisteredAt === 'number'
+      ? preserveRegisteredAt
+      : typeof auction.registeredAt === 'number'
+        ? auction.registeredAt
+        : Date.now();
+
+  const fields = {
+    schemaVersion: AUCTION_DOC_SCHEMA_VERSION,
+    auctionEngineAddress: docId,
+    collateralManagerAddress: auction.collateralManagerAddress ?? null,
+    auctionTokenAddress: auction.auctionTokenAddress ?? null,
+    lendingVaultAddress: auction.lendingVaultAddress ?? null,
+    bidManagerAddress: auction.bidManagerAddress ?? null,
+    offerManagerAddress: auction.offerManagerAddress ?? null,
+    registeredAt,
+    listMeta:
+      auction.listMeta && typeof auction.listMeta === 'object'
+        ? stripUndefinedDeep({ ...auction.listMeta })
+        : null,
+  };
+  return {
+    ...stripUndefinedDeep(fields),
+    updatedAt: serverTimestamp(),
+  };
+}
+
+/**
+ * Map a Firestore auction document back to the shape used by the app (no schema noise).
+ */
+function firestoreDocToAuction(docSnap) {
+  const id = docSnap.id;
+  const data = docSnap.data() || {};
+  const out = {
+    auctionEngineAddress: data.auctionEngineAddress || id,
+    collateralManagerAddress: data.collateralManagerAddress || undefined,
+    auctionTokenAddress: data.auctionTokenAddress || undefined,
+    lendingVaultAddress: data.lendingVaultAddress || undefined,
+    bidManagerAddress: data.bidManagerAddress || undefined,
+    offerManagerAddress: data.offerManagerAddress || undefined,
+  };
+  if (data.listMeta && typeof data.listMeta === 'object') {
+    out.listMeta = { ...data.listMeta };
+  }
+  if (typeof data.registeredAt === 'number') {
+    out.registeredAt = data.registeredAt;
+  }
+  return out;
+}
+
+/**
+ * List all auctions (sorted newest bidding window first when listMeta exists).
+ * @returns {Promise<Array>} Array of auction contract records
  */
 export async function getContracts() {
   try {
-    const contractsRef = doc(db, CONTRACTS_COLLECTION, CONTRACTS_DOC_ID);
-    const contractsSnap = await getDoc(contractsRef);
-    
-    if (contractsSnap.exists()) {
-      const data = contractsSnap.data();
-      return data.auctions || [];
-    }
-    return [];
+    const colRef = collection(db, AUCTIONS_COLLECTION);
+    const snap = await getDocs(colRef);
+    const list = snap.docs
+      .map((d) => firestoreDocToAuction(d))
+      .filter((a) => a.auctionEngineAddress);
+
+    list.sort((a, b) => {
+      const ta = Number(a.listMeta?.biddingStart) || a.registeredAt || 0;
+      const tb = Number(b.listMeta?.biddingStart) || b.registeredAt || 0;
+      return tb - ta;
+    });
+    return list;
   } catch (error) {
-    console.error('Error fetching contracts from Firestore:', error);
+    console.error('Error fetching auctions from Firestore:', error);
     throw error;
   }
 }
 
+async function commitBatches(operations) {
+  if (!operations.length) return;
+  for (let i = 0; i < operations.length; i += MAX_FIRESTORE_BATCH) {
+    const batch = writeBatch(db);
+    const chunk = operations.slice(i, i + MAX_FIRESTORE_BATCH);
+    for (const op of chunk) {
+      if (op.type === 'delete') {
+        batch.delete(op.ref);
+      } else if (op.type === 'set') {
+        batch.set(op.ref, op.data, { merge: false });
+      } else if (op.type === 'merge') {
+        batch.set(op.ref, op.data, { merge: true });
+      }
+    }
+    await batch.commit();
+  }
+}
+
 /**
- * Save contracts to Firestore
- * @param {Array} auctions - Array of auction contracts to save
+ * Replace the auction registry to match the given array: upserts each auction doc
+ * and deletes any stored auction not present in the array.
+ * @param {Array} auctions - Full list of auction records
  * @returns {Promise<void>}
  */
 export async function saveContracts(auctions) {
+  if (!Array.isArray(auctions)) {
+    throw new TypeError('saveContracts: auctions must be an array');
+  }
+
   try {
-    const contractsRef = doc(db, CONTRACTS_COLLECTION, CONTRACTS_DOC_ID);
-    await setDoc(contractsRef, { auctions }, { merge: false });
+    const existingSnap = await getDocs(collection(db, AUCTIONS_COLLECTION));
+    const existingById = new Map(
+      existingSnap.docs.map((d) => [d.id, d.data() || {}]),
+    );
+
+    const wantedEntries = [];
+    const wantedIds = new Set();
+    for (const a of auctions) {
+      if (!a?.auctionEngineAddress) continue;
+      const id = normalizeAuctionEngineDocId(a.auctionEngineAddress);
+      if (wantedIds.has(id)) continue;
+      wantedIds.add(id);
+      wantedEntries.push({ id, auction: a });
+    }
+
+    const operations = [];
+
+    for (const id of existingById.keys()) {
+      if (!wantedIds.has(id)) {
+        operations.push({
+          type: 'delete',
+          ref: doc(db, AUCTIONS_COLLECTION, id),
+        });
+      }
+    }
+
+    for (const { id, auction } of wantedEntries) {
+      const prev = existingById.get(id);
+      const preserveRegisteredAt =
+        typeof prev?.registeredAt === 'number'
+          ? prev.registeredAt
+          : typeof auction.registeredAt === 'number'
+            ? auction.registeredAt
+            : Date.now();
+
+      operations.push({
+        type: 'set',
+        ref: doc(db, AUCTIONS_COLLECTION, id),
+        data: auctionToFirestoreFields(auction, {
+          preserveRegisteredAt,
+        }),
+      });
+    }
+
+    await commitBatches(operations);
   } catch (error) {
-    console.error('Error saving contracts to Firestore:', error);
+    console.error('Error saving auctions to Firestore:', error);
     throw error;
   }
 }
 
 /**
- * For auctions missing `listMeta`, attach it from freshly loaded row data and save once.
+ * Patch a single auction document (merge). Use for small updates without rewriting the full list.
+ * @param {string} auctionEngineAddress
+ * @param {Record<string, unknown>} patch plain fields to merge (e.g. { listMeta })
+ */
+export async function mergeAuctionDocument(auctionEngineAddress, patch) {
+  const id = normalizeAuctionEngineDocId(auctionEngineAddress);
+  const ref = doc(db, AUCTIONS_COLLECTION, id);
+  const cleaned =
+    patch && typeof patch === 'object'
+      ? stripUndefinedDeep({ ...patch })
+      : {};
+  await setDoc(
+    ref,
+    {
+      ...cleaned,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+/**
+ * For auctions missing `listMeta`, attach it from freshly loaded row data and persist per-doc.
  * @param {Array} deployedAuctions current auction records (e.g. from context)
  * @param {Map<string, object>} metaByEngineLower row meta from chain keyed by engine address lowercased
  * @returns {Promise<boolean>} true if Firestore was updated
@@ -82,19 +261,29 @@ export async function saveContracts(auctions) {
 export async function backfillMissingListMetaInFirestore(deployedAuctions, metaByEngineLower) {
   if (!deployedAuctions?.length || !metaByEngineLower?.size) return false;
   if (!deployedAuctions.some((a) => !auctionHasPersistedListMeta(a))) return false;
-  let changed = false;
-  const updated = deployedAuctions.map((a) => {
+
+  const operations = [];
+  for (const a of deployedAuctions) {
     const k = a.auctionEngineAddress?.toLowerCase();
-    if (!k || auctionHasPersistedListMeta(a)) return a;
+    if (!k || auctionHasPersistedListMeta(a)) continue;
     const row = metaByEngineLower.get(k);
-    if (!row) return a;
+    if (!row) continue;
     const lm = buildListMetaFromRow(row);
-    if (!lm) return a;
-    changed = true;
-    return { ...a, listMeta: lm };
-  });
-  if (!changed) return false;
-  await saveContracts(updated);
+    if (!lm) continue;
+    operations.push({
+      type: 'merge',
+      ref: doc(db, AUCTIONS_COLLECTION, k),
+      data: {
+        listMeta: stripUndefinedDeep({ ...lm }),
+        schemaVersion: AUCTION_DOC_SCHEMA_VERSION,
+        updatedAt: serverTimestamp(),
+      },
+    });
+  }
+
+  if (operations.length === 0) return false;
+
+  await commitBatches(operations);
   return true;
 }
 

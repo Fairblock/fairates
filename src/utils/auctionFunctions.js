@@ -213,18 +213,17 @@ export async function deployContractsCustom(
       console.warn("listMeta snapshot after deploy failed", e);
     }
 
+    const base = Array.isArray(deployedAuctions) ? deployedAuctions : [];
+    const nextList = [...base, recordToSave];
+    setDeployedAuctions(nextList);
+
     if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
       setMyAuctions((prev) => [...prev, recordToSave]);
     }
 
-    let newList;
-    setDeployedAuctions((prev) => {
-      newList = [...prev, recordToSave];
-      return newList;
-    });
     selectAuction(recordToSave);
 
-    await saveContracts(newList);
+    await saveContracts(nextList);
 
     await refreshAuctions();
     showToast("All contracts deployed successfully!", "success");

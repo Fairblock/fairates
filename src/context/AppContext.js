@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import { timelockEncrypt } from "ts-ibe";
@@ -266,6 +273,10 @@ export function AppProvider({ children }) {
 
   const [myAuctions, setMyAuctions] = useState([]);
   const [deployedAuctions, setDeployedAuctions] = useState([]);
+  const deployedAuctionsRef = useRef([]);
+  useEffect(() => {
+    deployedAuctionsRef.current = deployedAuctions;
+  }, [deployedAuctions]);
   const [collateralManagerAddress, setCollateralManagerAddress] = useState("");
   const [auctionEngineAddress, setAuctionEngineAddress] = useState("");
   const [lendingVaultAddress, setLendingVaultAddress] = useState("");
@@ -799,18 +810,16 @@ export function AppProvider({ children }) {
         console.warn("listMeta snapshot after deploy failed", e);
       }
 
+      const nextList = [...deployedAuctionsRef.current, recordToSave];
+      setDeployedAuctions(nextList);
+
       if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
         setMyAuctions((prev) => [...prev, recordToSave]);
       }
 
-      let newList;
-      setDeployedAuctions((prev) => {
-        newList = [...prev, recordToSave];
-        return newList;
-      });
       selectAuction(recordToSave);
 
-      await saveContracts(newList);
+      await saveContracts(nextList);
 
       await refreshAuctions();
 
@@ -1056,7 +1065,7 @@ export function AppProvider({ children }) {
         }
         setServerLoaded(true);
       })
-      .catch((error) => console.error("Error fetching contracts from Firestore:", error));
+      .catch((error) => console.error("Error fetching auctions from Firestore:", error));
   }, []);
 
   const contextValue = {
