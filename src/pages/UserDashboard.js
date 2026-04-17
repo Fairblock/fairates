@@ -7,6 +7,11 @@ import { displaySymbol, getTokenLogoPath } from "../utils/symbolDisplay";
 import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import CollateralManagerArtifact from "../CollateralManager.json";
+import {
+  auctionListMetaByEngine,
+  buildMetaFromDeployedCache,
+  persistMergedAuctionListMeta,
+} from "../utils/auctionListMetaCache.js";
 
 const META_LOAD_CONCURRENCY = 3;
 const META_LOAD_RETRIES = 4;
@@ -39,7 +44,9 @@ export function UserDashboard() {
   const [headerHeight, setHeaderHeight] = useState(80);
   const [activeTab, setActiveTab] = useState("live");
   const [visibleCount, setVisibleCount] = useState(16);
-  const [auctionMeta, setAuctionMeta] = useState({});
+  const [auctionMeta, setAuctionMeta] = useState(() =>
+    buildMetaFromDeployedCache(deployedAuctions),
+  );
   const [loading, setLoading] = useState(true);
   const auctionMetaLoadInFlightRef = useRef(false);
 
@@ -62,8 +69,35 @@ export function UserDashboard() {
     };
   }, []);
 
+  // Restore rows from memory when the auction list appears or changes (e.g. after async fetch in context).
+  useEffect(() => {
+    if (!deployedAuctions?.length) return;
+    setAuctionMeta((prev) => {
+      const validKeys = new Set(
+        deployedAuctions.map((a) => a.auctionEngineAddress.toLowerCase()),
+      );
+      const next = { ...prev };
+      for (const k of Object.keys(next)) {
+        if (!validKeys.has(k)) delete next[k];
+      }
+      let changed = false;
+      for (const a of deployedAuctions) {
+        const k = a.auctionEngineAddress.toLowerCase();
+        if (!next[k]) {
+          const c = auctionListMetaByEngine.get(k);
+          if (c) {
+            next[k] = c;
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [deployedAuctions]);
+
   useEffect(() => {
     if (!deployedAuctions || deployedAuctions.length === 0) {
+      auctionListMetaByEngine.clear();
       setAuctionMeta({});
       setLoading(false);
       return;
@@ -189,6 +223,19 @@ export function UserDashboard() {
           }
         }
 
+        const failedAfterRound2 = deployedAuctions.filter(
+          (a) => !byKey.get(a.auctionEngineAddress.toLowerCase()),
+        );
+        if (failedAfterRound2.length > 0 && !cancelled) {
+          await sleep(900);
+          if (!cancelled) {
+            const retry2 = await runPool(failedAfterRound2, 1, loadOneAuctionMeta);
+            for (const [k, v] of retry2) {
+              if (v) byKey.set(k, v);
+            }
+          }
+        }
+
         if (cancelled) return;
 
         setAuctionMeta((prev) => {
@@ -202,6 +249,7 @@ export function UserDashboard() {
           for (const [key, value] of byKey) {
             if (value) merged[key] = value;
           }
+          persistMergedAuctionListMeta([...validKeys], merged);
           return merged;
         });
         setLoading(false);

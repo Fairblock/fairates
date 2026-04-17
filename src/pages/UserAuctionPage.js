@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
 import { getLatestAuctionActivity } from "../utils/firebase";
+import { upsertAuctionListMetaFromDetail } from "../utils/auctionListMetaCache.js";
 import { displaySymbol, getTokenLogoPath } from "../utils/symbolDisplay";
 import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
@@ -233,6 +234,7 @@ export function UserAuctionPage() {
         ];
 
         const [
+          biddingStart,
           biddingEnd,
           revealEnd,
           repaymentDue,
@@ -249,6 +251,7 @@ export function UserAuctionPage() {
           auctionTokenAddress,
           repaymentTokenAddress,
         ] = await Promise.all([
+          ae.biddingStart(),
           ae.biddingEnd(),
           ae.revealEnd(),
           ae.repaymentDue(),
@@ -461,10 +464,12 @@ export function UserAuctionPage() {
         const collateralAddresses =
           (availableCollaterals || []).map((c) => c.address).filter(Boolean);
         let collateralLabel = "–";
+        let collateralSymbolsForListCache = [];
         if (collateralAddresses.length > 0) {
           const collSymbols = await Promise.all(
             collateralAddresses.map(safeSymbol)
           );
+          collateralSymbolsForListCache = collSymbols;
 
           const symbolMap = {};
           collateralAddresses.forEach((addr, idx) => {
@@ -488,6 +493,15 @@ export function UserAuctionPage() {
         }
 
         if (!effectCancelled) {
+          upsertAuctionListMetaFromDetail(auctionEngineAddress.toLowerCase(), {
+            biddingStart: biddingStart.toNumber(),
+            biddingEnd: biddingEnd.toNumber(),
+            revealEnd: revealEnd.toNumber(),
+            repaymentDue: repaymentDue.toNumber(),
+            repaymentSymbol: pairLabel,
+            collateralSymbols: collateralSymbolsForListCache,
+            isFinalized: !!finalized,
+          });
           setAuctionMeta({
             status: statusTxt,
             phase: phaseTxt,
