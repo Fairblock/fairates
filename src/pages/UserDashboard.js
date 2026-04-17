@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
@@ -8,8 +8,9 @@ import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import CollateralManagerArtifact from "../CollateralManager.json";
 
-const META_LOAD_CONCURRENCY = 4;
-const META_LOAD_RETRIES = 3;
+const META_LOAD_CONCURRENCY = 3;
+const META_LOAD_RETRIES = 4;
+const META_RETRY_SEQUENTIAL_DELAY_MS = 450;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,6 +41,7 @@ export function UserDashboard() {
   const [visibleCount, setVisibleCount] = useState(16);
   const [auctionMeta, setAuctionMeta] = useState({});
   const [loading, setLoading] = useState(true);
+  const auctionMetaLoadInFlightRef = useRef(false);
 
   useEffect(() => {
     document.body.classList.add("user-page-active");
@@ -70,6 +72,9 @@ export function UserDashboard() {
     let cancelled = false;
 
     async function loadAuctionMeta() {
+      if (auctionMetaLoadInFlightRef.current) return;
+      auctionMetaLoadInFlightRef.current = true;
+
       try {
         const provider =
           signer?.provider ??
@@ -163,19 +168,42 @@ export function UserDashboard() {
           return [key, null];
         }
 
-        const entries = await runPool(
+        let entryTuples = await runPool(
           deployedAuctions,
           META_LOAD_CONCURRENCY,
           loadOneAuctionMeta,
         );
 
+        const byKey = new Map(entryTuples);
+        const failedAuctions = deployedAuctions.filter(
+          (a) => !byKey.get(a.auctionEngineAddress.toLowerCase()),
+        );
+
+        if (failedAuctions.length > 0 && !cancelled) {
+          await sleep(META_RETRY_SEQUENTIAL_DELAY_MS);
+          if (!cancelled) {
+            const retryTuples = await runPool(failedAuctions, 1, loadOneAuctionMeta);
+            for (const [k, v] of retryTuples) {
+              if (v) byKey.set(k, v);
+            }
+          }
+        }
+
         if (cancelled) return;
 
-        const next = {};
-        for (const [key, value] of entries) {
-          if (value) next[key] = value;
-        }
-        setAuctionMeta(next);
+        setAuctionMeta((prev) => {
+          const validKeys = new Set(
+            deployedAuctions.map((a) => a.auctionEngineAddress.toLowerCase()),
+          );
+          const merged = {};
+          for (const k of Object.keys(prev)) {
+            if (validKeys.has(k)) merged[k] = prev[k];
+          }
+          for (const [key, value] of byKey) {
+            if (value) merged[key] = value;
+          }
+          return merged;
+        });
         setLoading(false);
       } catch (err) {
         console.error("Failed to load auctions overview", err);
@@ -183,6 +211,8 @@ export function UserDashboard() {
           showToast("Failed to load auction details", "error");
         }
         setLoading(false);
+      } finally {
+        auctionMetaLoadInFlightRef.current = false;
       }
     }
 
