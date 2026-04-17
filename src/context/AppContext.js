@@ -34,6 +34,7 @@ import {
   removeOffer as removeOfferUtil,
 } from "../utils/auctionFunctions.js";
 import { getContracts, saveContracts } from "../utils/firebase.js";
+import { loadAuctionListMetaSnapshot } from "../utils/auctionListMetaFromChain.js";
 
 // Helper function to extract user-friendly error messages
 export function getErrorMessage(error) {
@@ -284,19 +285,27 @@ export function AppProvider({ children }) {
                          ethers.getDefaultProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
         const iface    = new ethers.utils.Interface(["function owner() view returns (address)"]);
   
-        const mine = await Promise.all(
-          auctions.map(async a => {
-            try {
-              const data   = await provider.call({
-                to:   a.auctionEngineAddress,
-                data: iface.encodeFunctionData("owner"),
-              });
-              const [owner] = iface.decodeFunctionResult("owner", data);
-              return owner.toLowerCase() === addr.toLowerCase() ? a : null;
-            } catch { return null; }
-          })
-        );
-  
+        const OWNER_CHUNK = 16;
+        const mine = [];
+        for (let i = 0; i < auctions.length; i += OWNER_CHUNK) {
+          const slice = auctions.slice(i, i + OWNER_CHUNK);
+          const part = await Promise.all(
+            slice.map(async (a) => {
+              try {
+                const data = await provider.call({
+                  to: a.auctionEngineAddress,
+                  data: iface.encodeFunctionData("owner"),
+                });
+                const [owner] = iface.decodeFunctionResult("owner", data);
+                return owner.toLowerCase() === addr.toLowerCase() ? a : null;
+              } catch {
+                return null;
+              }
+            }),
+          );
+          mine.push(...part);
+        }
+
         setMyAuctions(mine.filter(Boolean));
       } catch (err) {
         console.error("refreshAuctions:", err);
@@ -386,6 +395,13 @@ export function AppProvider({ children }) {
       if (cm) {
         try {
           const tokens = await cm.getAcceptedCollateralTokens();
+          if (!tokens || tokens.length === 0) {
+            setAvailableCollaterals([{ address: DEFAULT_COLLATERAL, ratio: "1 (default)" }]);
+            setBidCollateralSelections([{ address: DEFAULT_COLLATERAL, amount: "" }]);
+            setLiquidationCollateralSelections([{ address: DEFAULT_COLLATERAL, amount: "" }]);
+            setUnlockCollateralSelections([{ address: DEFAULT_COLLATERAL, unlock: false }]);
+            return;
+          }
           const tokensWithDefaults = tokens.map(token => ({
             address: token,
             ratio: "1 (default)"
@@ -772,15 +788,27 @@ export function AppProvider({ children }) {
         offerManagerAddress: omContract.address
       };
 
-      setDeployedAuctions((prev) => [...prev, auctionContracts]);
-
-      if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
-        setMyAuctions(prev => [...prev, auctionContracts]);
+      let recordToSave = auctionContracts;
+      try {
+        const listMeta = await loadAuctionListMetaSnapshot(
+          signer.provider,
+          auctionContracts,
+        );
+        if (listMeta) recordToSave = { ...auctionContracts, listMeta };
+      } catch (e) {
+        console.warn("listMeta snapshot after deploy failed", e);
       }
 
-      const newList = [...deployedAuctions, auctionContracts];
-      setDeployedAuctions(newList);
-      selectAuction(auctionContracts);
+      if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
+        setMyAuctions((prev) => [...prev, recordToSave]);
+      }
+
+      let newList;
+      setDeployedAuctions((prev) => {
+        newList = [...prev, recordToSave];
+        return newList;
+      });
+      selectAuction(recordToSave);
 
       await saveContracts(newList);
 

@@ -14,6 +14,7 @@ import {
   ERC20ABI,
 } from "../styles.js";
 import { saveContracts, logAuctionActivity } from "./firebase.js";
+import { loadAuctionListMetaSnapshot } from "./auctionListMetaFromChain.js";
 
 /**
  * Delay utility to prevent rate limiting
@@ -201,15 +202,27 @@ export async function deployContractsCustom(
       offerManagerAddress: omContract.address
     };
 
-    setDeployedAuctions((prev) => [...prev, auctionContracts]);
+    let recordToSave = auctionContracts;
+    try {
+      const listMeta = await loadAuctionListMetaSnapshot(
+        signer.provider,
+        auctionContracts,
+      );
+      if (listMeta) recordToSave = { ...auctionContracts, listMeta };
+    } catch (e) {
+      console.warn("listMeta snapshot after deploy failed", e);
+    }
 
     if (userAddr && userAddr.toLowerCase() === walletAddress.toLowerCase()) {
-      setMyAuctions(prev => [...prev, auctionContracts]);
+      setMyAuctions((prev) => [...prev, recordToSave]);
     }
-    
-    const newList = [...deployedAuctions, auctionContracts];
-    setDeployedAuctions(newList);
-    selectAuction(auctionContracts);
+
+    let newList;
+    setDeployedAuctions((prev) => {
+      newList = [...prev, recordToSave];
+      return newList;
+    });
+    selectAuction(recordToSave);
 
     await saveContracts(newList);
 

@@ -12,8 +12,13 @@ import {
   buildMetaFromDeployedCache,
   persistMergedAuctionListMeta,
 } from "../utils/auctionListMetaCache.js";
+import {
+  auctionHasPersistedListMeta,
+  buildListMetaFromRow,
+} from "../utils/auctionListMetaFromChain.js";
+import { backfillMissingListMetaInFirestore } from "../utils/firebase.js";
 
-const META_LOAD_CONCURRENCY = 3;
+const META_LOAD_CONCURRENCY = 10;
 const META_LOAD_RETRIES = 4;
 const META_RETRY_SEQUENTIAL_DELAY_MS = 450;
 
@@ -39,7 +44,8 @@ async function runPool(items, limit, fn) {
 }
 
 export function UserDashboard() {
-  const { deployedAuctions, selectAuction, showToast, signer } = useAppContext();
+  const { deployedAuctions, selectAuction, showToast, signer, refreshAuctions } =
+    useAppContext();
   const navigate = useNavigate();
   const [headerHeight, setHeaderHeight] = useState(80);
   const [activeTab, setActiveTab] = useState("live");
@@ -49,6 +55,7 @@ export function UserDashboard() {
   );
   const [loading, setLoading] = useState(true);
   const auctionMetaLoadInFlightRef = useRef(false);
+  const finalizedPatchThrottleRef = useRef(0);
 
   useEffect(() => {
     document.body.classList.add("user-page-active");
@@ -110,9 +117,108 @@ export function UserDashboard() {
       auctionMetaLoadInFlightRef.current = true;
 
       try {
+        const deploySnapshot = deployedAuctions;
         const provider =
           signer?.provider ??
           new ethers.providers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrls[0]);
+
+        const mergeByKeyIntoState = (map) => {
+          setAuctionMeta((prev) => {
+            const validKeys = new Set(
+              deploySnapshot.map((a) => a.auctionEngineAddress.toLowerCase()),
+            );
+            const merged = {};
+            for (const k of Object.keys(prev)) {
+              if (validKeys.has(k)) merged[k] = prev[k];
+            }
+            for (const [key, value] of map) {
+              if (value) merged[key] = value;
+            }
+            persistMergedAuctionListMeta([...validKeys], merged);
+            return merged;
+          });
+        };
+
+        const scheduleFinalizedPatch = () => {
+          const targets = deploySnapshot.filter(auctionHasPersistedListMeta);
+          if (!targets.length) return;
+          const now = Date.now();
+          if (now - finalizedPatchThrottleRef.current < 60_000) return;
+          finalizedPatchThrottleRef.current = now;
+          setTimeout(() => {
+            void (async () => {
+              try {
+                const tuples = await runPool(targets, 12, async (a) => {
+                  const k = a.auctionEngineAddress.toLowerCase();
+                  try {
+                    const ae = new ethers.Contract(
+                      a.auctionEngineAddress,
+                      AuctionEngineArtifact.abi,
+                      provider,
+                    );
+                    const fr = await ae.isFinalized();
+                    return [k, !!fr];
+                  } catch {
+                    return [k, null];
+                  }
+                });
+                const finByKey = new Map(tuples.filter((t) => t[1] !== null));
+                if (finByKey.size === 0) return;
+                setAuctionMeta((prev) => {
+                  const next = { ...prev };
+                  let changed = false;
+                  for (const [k, fin] of finByKey) {
+                    if (next[k] && next[k].isFinalized !== fin) {
+                      next[k] = { ...next[k], isFinalized: fin };
+                      changed = true;
+                    }
+                  }
+                  return changed ? next : prev;
+                });
+              } catch (e) {
+                console.error("Background finalized patch failed", e);
+              }
+            })();
+          }, 0);
+        };
+
+        const byKey = new Map();
+        const needsRpc = [];
+        for (const a of deploySnapshot) {
+          const k = a.auctionEngineAddress.toLowerCase();
+          if (auctionHasPersistedListMeta(a)) {
+            const row = buildListMetaFromRow(a.listMeta);
+            if (row) byKey.set(k, row);
+            else needsRpc.push(a);
+          } else {
+            needsRpc.push(a);
+          }
+        }
+
+        if (needsRpc.length === 0) {
+          if (!cancelled) {
+            mergeByKeyIntoState(byKey);
+            setLoading(false);
+          }
+          if (cancelled) return;
+          let didBackfill = false;
+          try {
+            didBackfill = await backfillMissingListMetaInFirestore(
+              deploySnapshot,
+              byKey,
+            );
+          } catch (e) {
+            console.error("Firestore listMeta backfill failed", e);
+          }
+          scheduleFinalizedPatch();
+          if (didBackfill && refreshAuctions) void refreshAuctions();
+          return;
+        }
+
+        if (byKey.size > 0 && !cancelled) {
+          mergeByKeyIntoState(byKey);
+          setLoading(false);
+        }
 
         const ERC20_META_ABI = ["function symbol() view returns (string)"];
         const erc20For = (addr) =>
@@ -132,7 +238,7 @@ export function UserDashboard() {
           return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
         };
 
-        async function loadOneAuctionMeta(a) {
+        async function loadOneAuctionMetaFromChain(a) {
           const key = a.auctionEngineAddress.toLowerCase();
           for (let attempt = 0; attempt < META_LOAD_RETRIES; attempt++) {
             if (attempt > 0) {
@@ -203,56 +309,66 @@ export function UserDashboard() {
         }
 
         let entryTuples = await runPool(
-          deployedAuctions,
+          needsRpc,
           META_LOAD_CONCURRENCY,
-          loadOneAuctionMeta,
+          loadOneAuctionMetaFromChain,
         );
+        for (const tup of entryTuples) {
+          if (tup && tup[1]) byKey.set(tup[0], tup[1]);
+        }
 
-        const byKey = new Map(entryTuples);
-        const failedAuctions = deployedAuctions.filter(
+        const failedNeedRpc = needsRpc.filter(
           (a) => !byKey.get(a.auctionEngineAddress.toLowerCase()),
         );
 
-        if (failedAuctions.length > 0 && !cancelled) {
+        if (failedNeedRpc.length > 0 && !cancelled) {
           await sleep(META_RETRY_SEQUENTIAL_DELAY_MS);
           if (!cancelled) {
-            const retryTuples = await runPool(failedAuctions, 1, loadOneAuctionMeta);
-            for (const [k, v] of retryTuples) {
-              if (v) byKey.set(k, v);
+            const retryTuples = await runPool(
+              failedNeedRpc,
+              1,
+              loadOneAuctionMetaFromChain,
+            );
+            for (const tup of retryTuples) {
+              if (tup && tup[1]) byKey.set(tup[0], tup[1]);
             }
           }
         }
 
-        const failedAfterRound2 = deployedAuctions.filter(
+        const failedRound2 = needsRpc.filter(
           (a) => !byKey.get(a.auctionEngineAddress.toLowerCase()),
         );
-        if (failedAfterRound2.length > 0 && !cancelled) {
+        if (failedRound2.length > 0 && !cancelled) {
           await sleep(900);
           if (!cancelled) {
-            const retry2 = await runPool(failedAfterRound2, 1, loadOneAuctionMeta);
-            for (const [k, v] of retry2) {
-              if (v) byKey.set(k, v);
+            const retry2 = await runPool(
+              failedRound2,
+              1,
+              loadOneAuctionMetaFromChain,
+            );
+            for (const tup of retry2) {
+              if (tup && tup[1]) byKey.set(tup[0], tup[1]);
             }
           }
         }
 
         if (cancelled) return;
 
-        setAuctionMeta((prev) => {
-          const validKeys = new Set(
-            deployedAuctions.map((a) => a.auctionEngineAddress.toLowerCase()),
-          );
-          const merged = {};
-          for (const k of Object.keys(prev)) {
-            if (validKeys.has(k)) merged[k] = prev[k];
-          }
-          for (const [key, value] of byKey) {
-            if (value) merged[key] = value;
-          }
-          persistMergedAuctionListMeta([...validKeys], merged);
-          return merged;
-        });
+        mergeByKeyIntoState(byKey);
         setLoading(false);
+
+        let didBackfill = false;
+        try {
+          didBackfill = await backfillMissingListMetaInFirestore(
+            deploySnapshot,
+            byKey,
+          );
+        } catch (e) {
+          console.error("Firestore listMeta backfill failed", e);
+        }
+
+        scheduleFinalizedPatch();
+        if (didBackfill && refreshAuctions) void refreshAuctions();
       } catch (err) {
         console.error("Failed to load auctions overview", err);
         if (showToast) {
@@ -270,7 +386,7 @@ export function UserDashboard() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [deployedAuctions, showToast, signer]);
+  }, [deployedAuctions, showToast, signer, refreshAuctions]);
 
   const pageContainer = {
     minHeight: "calc(100vh - var(--header-height, 80px))",

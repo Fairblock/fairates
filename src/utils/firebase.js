@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import {
+  auctionHasPersistedListMeta,
+  buildListMetaFromRow,
+} from './auctionListMetaFromChain.js';
+import {
   getFirestore,
   doc,
   getDoc,
@@ -67,6 +71,31 @@ export async function saveContracts(auctions) {
     console.error('Error saving contracts to Firestore:', error);
     throw error;
   }
+}
+
+/**
+ * For auctions missing `listMeta`, attach it from freshly loaded row data and save once.
+ * @param {Array} deployedAuctions current auction records (e.g. from context)
+ * @param {Map<string, object>} metaByEngineLower row meta from chain keyed by engine address lowercased
+ * @returns {Promise<boolean>} true if Firestore was updated
+ */
+export async function backfillMissingListMetaInFirestore(deployedAuctions, metaByEngineLower) {
+  if (!deployedAuctions?.length || !metaByEngineLower?.size) return false;
+  if (!deployedAuctions.some((a) => !auctionHasPersistedListMeta(a))) return false;
+  let changed = false;
+  const updated = deployedAuctions.map((a) => {
+    const k = a.auctionEngineAddress?.toLowerCase();
+    if (!k || auctionHasPersistedListMeta(a)) return a;
+    const row = metaByEngineLower.get(k);
+    if (!row) return a;
+    const lm = buildListMetaFromRow(row);
+    if (!lm) return a;
+    changed = true;
+    return { ...a, listMeta: lm };
+  });
+  if (!changed) return false;
+  await saveContracts(updated);
+  return true;
 }
 
 // Auction activity logging

@@ -5,7 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import { getLatestAuctionActivity } from "../utils/firebase";
 import { upsertAuctionListMetaFromDetail } from "../utils/auctionListMetaCache.js";
 import { displaySymbol, getTokenLogoPath } from "../utils/symbolDisplay";
-import { FONT_FAMILY, ARBITRUM_SEPOLIA } from "../styles.js";
+import { FONT_FAMILY, ARBITRUM_SEPOLIA, DEFAULT_COLLATERAL } from "../styles.js";
 import AuctionEngineArtifact from "../AuctionEngine.json";
 import BidManagerArtifact from "../BidManager.json";
 import OfferManagerArtifact from "../OfferManager.json";
@@ -147,12 +147,18 @@ export function UserAuctionPage() {
     setBidRate("");
     setOfferAmount("");
     setOfferRate("");
-    setBidCollateralSelections((prev) =>
-      prev.map((c) => ({
-        ...c,
-        amount: "",
-      })),
-    );
+    setBidCollateralSelections((prev) => {
+      if (prev.length > 0) {
+        return prev.map((c) => ({ ...c, amount: "" }));
+      }
+      if (availableCollaterals.length > 0) {
+        return availableCollaterals.map((c) => ({
+          address: c.address,
+          amount: "",
+        }));
+      }
+      return [{ address: DEFAULT_COLLATERAL, amount: "" }];
+    });
   };
 
   // Reset inputs whenever the active auction changes
