@@ -163,6 +163,7 @@ export function UserAuctionPage() {
   // Load auction details and activity
   const auctionDetailsInitialLoadDoneRef = useRef(false);
   const lastAuctionDetailsScopeRef = useRef("");
+  const loadDetailsInFlightRef = useRef(false);
 
   useEffect(() => {
     const scope = `${(auctionAddress || "").toLowerCase()}|${(
@@ -173,26 +174,38 @@ export function UserAuctionPage() {
       auctionDetailsInitialLoadDoneRef.current = false;
     }
 
+    let effectCancelled = false;
+
     async function loadDetails() {
-      const wanted = auctionAddress?.toLowerCase();
-      const engine = auctionEngineAddress?.toLowerCase();
-
-      if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
-        setAuctionMeta((prev) => ({ ...prev, loading: true }));
-        return;
-      }
-
-      // Context updates from selectAuction apply on the next render; avoid fetching the wrong auction
-      // or finishing with loading:false while placeholders are still shown.
-      if (!wanted || engine !== wanted) {
-        setAuctionMeta((prev) => ({ ...prev, loading: true }));
-        return;
-      }
+      if (effectCancelled || loadDetailsInFlightRef.current) return;
+      loadDetailsInFlightRef.current = true;
 
       try {
+        const wanted = auctionAddress?.toLowerCase();
+        const engine = auctionEngineAddress?.toLowerCase();
+
+        if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
+          if (!effectCancelled) {
+            setAuctionMeta((prev) => ({ ...prev, loading: true }));
+          }
+          return;
+        }
+
+        // Context updates from selectAuction apply on the next render; avoid fetching the wrong auction
+        // or finishing with loading:false while placeholders are still shown.
+        if (!wanted || engine !== wanted) {
+          if (!effectCancelled) {
+            setAuctionMeta((prev) => ({ ...prev, loading: true }));
+          }
+          return;
+        }
+
+        try {
         // Periodic refresh (10s interval) should update data without the full-page loader.
         if (!auctionDetailsInitialLoadDoneRef.current) {
-          setAuctionMeta((prev) => ({ ...prev, loading: true }));
+          if (!effectCancelled) {
+            setAuctionMeta((prev) => ({ ...prev, loading: true }));
+          }
         }
 
         const provider =
@@ -225,7 +238,7 @@ export function UserAuctionPage() {
           repaymentDue,
           bidsArr,
           offersArr,
-          cancelled,
+          auctionCancelled,
           finalized,
           maxBid,
           minBid,
@@ -253,12 +266,12 @@ export function UserAuctionPage() {
           ae.repaymentToken(),
         ]);
 
-        const statusTxt = cancelled
+        const statusTxt = auctionCancelled
           ? "Cancelled"
           : finalized
             ? "Finalized"
             : phaseTxt;
-        const isBiddingOver = phaseTxt !== "Bidding" || cancelled;
+        const isBiddingOver = phaseTxt !== "Bidding" || auctionCancelled;
 
         let clearingRate = "-";
         let totalVolume = "-";
@@ -406,13 +419,22 @@ export function UserAuctionPage() {
         let userHasBid = false;
         let userHasOffer = false;
         if (walletAddress) {
+          const w = walletAddress.toLowerCase();
           try {
             const bidIdx = await bm.bidSubmitted(walletAddress);
             userHasBid = bidIdx && !bidIdx.isZero();
           } catch (_) {}
           userHasOffer = (offersArr || []).some(
-            (o) => o.submitter && o.submitter.toLowerCase() === walletAddress.toLowerCase()
+            (o) => o.submitter && o.submitter.toLowerCase() === w
           );
+          if (finalized) {
+            if (!userHasBid) {
+              userHasBid = revealedBids.some((b) => (b.bidder || "").toLowerCase() === w);
+            }
+            if (!userHasOffer) {
+              userHasOffer = revealedOffers.some((o) => (o.offerer || "").toLowerCase() === w);
+            }
+          }
         }
 
         const erc20For = (addr) =>
@@ -450,7 +472,9 @@ export function UserAuctionPage() {
               symbolMap[addr.toLowerCase()] = collSymbols[idx];
             }
           });
-          setCollateralSymbolsByAddress(symbolMap);
+          if (!effectCancelled) {
+            setCollateralSymbolsByAddress(symbolMap);
+          }
 
           if (collSymbols.length === 1) {
             collateralLabel = collSymbols[0];
@@ -463,44 +487,54 @@ export function UserAuctionPage() {
           }
         }
 
-        setAuctionMeta({
-          status: statusTxt,
-          phase: phaseTxt,
-          biddingEnd: biddingEnd.toNumber(),
-          revealEnd: revealEnd.toNumber(),
-          repaymentDue: repaymentDue.toNumber(),
-          bids: bidsArr.length,
-          offers: offersArr.length,
-          maxBid: ethers.utils.formatUnits(maxBid, 18),
-          minBid: ethers.utils.formatUnits(minBid, 18),
-          maxOffer: ethers.utils.formatUnits(maxOffer, 18),
-          minOffer: ethers.utils.formatUnits(minOffer, 18),
-          decBids: finalized ? Number(bidsDec) : 0,
-          decOffers: finalized ? Number(offersDec) : 0,
-          activityItems: latestActivity,
-          userHasBid,
-          userHasOffer,
-          loading: false,
-          assetLabel: pairLabel,
-          collateralLabel,
-          isFinalized: !!finalized,
-          isBiddingOver,
-          clearingRate,
-          totalVolume,
-          userBidAllocation,
-          userOfferAllocation,
-          userOwedAmount,
-        });
-        auctionDetailsInitialLoadDoneRef.current = true;
+        if (!effectCancelled) {
+          setAuctionMeta({
+            status: statusTxt,
+            phase: phaseTxt,
+            biddingEnd: biddingEnd.toNumber(),
+            revealEnd: revealEnd.toNumber(),
+            repaymentDue: repaymentDue.toNumber(),
+            bids: bidsArr.length,
+            offers: offersArr.length,
+            maxBid: ethers.utils.formatUnits(maxBid, 18),
+            minBid: ethers.utils.formatUnits(minBid, 18),
+            maxOffer: ethers.utils.formatUnits(maxOffer, 18),
+            minOffer: ethers.utils.formatUnits(minOffer, 18),
+            decBids: finalized ? Number(bidsDec) : 0,
+            decOffers: finalized ? Number(offersDec) : 0,
+            activityItems: latestActivity,
+            userHasBid,
+            userHasOffer,
+            loading: false,
+            assetLabel: pairLabel,
+            collateralLabel,
+            isFinalized: !!finalized,
+            isBiddingOver,
+            clearingRate,
+            totalVolume,
+            userBidAllocation,
+            userOfferAllocation,
+            userOwedAmount,
+          });
+          auctionDetailsInitialLoadDoneRef.current = true;
+        }
       } catch (err) {
         console.error("loadDetails:", err);
-        setAuctionMeta((prev) => ({ ...prev, loading: false }));
+        if (!effectCancelled) {
+          setAuctionMeta((prev) => ({ ...prev, loading: false }));
+        }
+      }
+      } finally {
+        loadDetailsInFlightRef.current = false;
       }
     }
 
     loadDetails();
     const interval = setInterval(loadDetails, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      effectCancelled = true;
+      clearInterval(interval);
+    };
   }, [
     auctionAddress,
     auctionEngineAddress,
