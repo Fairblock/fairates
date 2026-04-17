@@ -43,6 +43,45 @@ const INITIAL_AUCTION_META = {
   userOwedAmount: "0",
 };
 
+/** Attach submit tx hashes from Firestore onto revealed rows (FIFO per wallet + type by time). */
+function attachActivityTxHashesToRevealedRows(rows, activityDocs) {
+  if (!rows?.length || !activityDocs?.length) return rows;
+
+  const byKey = new Map();
+  for (const entry of activityDocs) {
+    if (!entry?.txHash) continue;
+    const t = entry.type === "offer" ? "offer" : "bid";
+    const w = (entry.wallet || "").toLowerCase();
+    if (!w) continue;
+    const key = `${w}:${t}`;
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(entry);
+  }
+  for (const arr of byKey.values()) {
+    arr.sort((a, b) => {
+      const at = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+      const bt = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+      return at - bt;
+    });
+  }
+  const nextIdx = new Map();
+  const takeTxHash = (wallet, type) => {
+    const key = `${(wallet || "").toLowerCase()}:${type}`;
+    const arr = byKey.get(key);
+    if (!arr?.length) return null;
+    const i = nextIdx.get(key) || 0;
+    if (i >= arr.length) return null;
+    nextIdx.set(key, i + 1);
+    const hit = arr[i];
+    return hit?.txHash || null;
+  };
+
+  return rows.map((row) => {
+    const txHash = takeTxHash(row.wallet, row.type);
+    return txHash ? { ...row, txHash } : row;
+  });
+}
+
 export function UserAuctionPage() {
   const { auctionAddress } = useParams();
   const {
@@ -170,7 +209,10 @@ export function UserAuctionPage() {
   // Load auction details and activity
   const auctionDetailsInitialLoadDoneRef = useRef(false);
   const lastAuctionDetailsScopeRef = useRef("");
-  const loadDetailsInFlightRef = useRef(false);
+  /** Bumped each effect run so in-flight loads from a previous wallet/effect do not commit or block the next fetch. */
+  const auctionDetailsLoadGenRef = useRef(0);
+  /** `${engine}|${wallet}` last applied to userHasBid / allocations — stale until next successful load. */
+  const lastParticipationHydrationKeyRef = useRef("");
 
   useEffect(() => {
     const scope = `${(auctionAddress || "").toLowerCase()}|${(
@@ -179,38 +221,55 @@ export function UserAuctionPage() {
     if (lastAuctionDetailsScopeRef.current !== scope) {
       lastAuctionDetailsScopeRef.current = scope;
       auctionDetailsInitialLoadDoneRef.current = false;
+      lastParticipationHydrationKeyRef.current = "";
     }
 
     let effectCancelled = false;
+    auctionDetailsLoadGenRef.current += 1;
+    const thisLoadGen = auctionDetailsLoadGenRef.current;
+    const isCurrent = () =>
+      !effectCancelled && auctionDetailsLoadGenRef.current === thisLoadGen;
 
     async function loadDetails() {
-      if (effectCancelled || loadDetailsInFlightRef.current) return;
-      loadDetailsInFlightRef.current = true;
+      if (!isCurrent()) return;
+
+      const wanted = auctionAddress?.toLowerCase();
+      const engine = auctionEngineAddress?.toLowerCase();
+
+      if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
+        if (isCurrent()) {
+          setAuctionMeta((prev) => ({ ...prev, loading: true }));
+        }
+        return;
+      }
+
+      // Context updates from selectAuction apply on the next render; avoid fetching the wrong auction
+      // or finishing with loading:false while placeholders are still shown.
+      if (!wanted || engine !== wanted) {
+        if (isCurrent()) {
+          setAuctionMeta((prev) => ({ ...prev, loading: true }));
+        }
+        return;
+      }
 
       try {
-        const wanted = auctionAddress?.toLowerCase();
-        const engine = auctionEngineAddress?.toLowerCase();
-
-        if (!auctionEngineAddress || !bidManagerAddress || !offerManagerAddress) {
-          if (!effectCancelled) {
+        const participationHydrationKey = `${(auctionEngineAddress || "").toLowerCase()}|${(
+          walletAddress || ""
+        ).toLowerCase()}`;
+        // Connect or account switch: participation fields are stale until refetch. Do not flash
+        // loading on wallet disconnect (empty address).
+        if (
+          walletAddress &&
+          lastParticipationHydrationKeyRef.current !== participationHydrationKey
+        ) {
+          if (isCurrent()) {
             setAuctionMeta((prev) => ({ ...prev, loading: true }));
           }
-          return;
         }
 
-        // Context updates from selectAuction apply on the next render; avoid fetching the wrong auction
-        // or finishing with loading:false while placeholders are still shown.
-        if (!wanted || engine !== wanted) {
-          if (!effectCancelled) {
-            setAuctionMeta((prev) => ({ ...prev, loading: true }));
-          }
-          return;
-        }
-
-        try {
         // Periodic refresh (10s interval) should update data without the full-page loader.
         if (!auctionDetailsInitialLoadDoneRef.current) {
-          if (!effectCancelled) {
+          if (isCurrent()) {
             setAuctionMeta((prev) => ({ ...prev, loading: true }));
           }
         }
@@ -362,6 +421,17 @@ export function UserAuctionPage() {
               rate: o.rate,
             });
           });
+          try {
+            const activityDocs = await getLatestAuctionActivity(auctionEngineAddress, 50);
+            if (activityDocs.length > 0) {
+              latestActivity = attachActivityTxHashesToRevealedRows(
+                latestActivity,
+                activityDocs
+              );
+            }
+          } catch (activityErr) {
+            console.error("Failed to merge activity tx hashes for finalized auction:", activityErr);
+          }
         } else {
           const fallbackActivity = [];
           (bidsArr || []).forEach((b) => {
@@ -483,7 +553,7 @@ export function UserAuctionPage() {
               symbolMap[addr.toLowerCase()] = collSymbols[idx];
             }
           });
-          if (!effectCancelled) {
+          if (isCurrent()) {
             setCollateralSymbolsByAddress(symbolMap);
           }
 
@@ -498,7 +568,7 @@ export function UserAuctionPage() {
           }
         }
 
-        if (!effectCancelled) {
+        if (isCurrent()) {
           upsertAuctionListMetaFromDetail(auctionEngineAddress.toLowerCase(), {
             biddingStart: biddingStart.toNumber(),
             biddingEnd: biddingEnd.toNumber(),
@@ -537,15 +607,13 @@ export function UserAuctionPage() {
             userOwedAmount,
           });
           auctionDetailsInitialLoadDoneRef.current = true;
+          lastParticipationHydrationKeyRef.current = participationHydrationKey;
         }
       } catch (err) {
         console.error("loadDetails:", err);
-        if (!effectCancelled) {
+        if (isCurrent()) {
           setAuctionMeta((prev) => ({ ...prev, loading: false }));
         }
-      }
-      } finally {
-        loadDetailsInFlightRef.current = false;
       }
     }
 
