@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
@@ -161,7 +161,18 @@ export function UserAuctionPage() {
   }, [auctionEngineAddress]);
 
   // Load auction details and activity
+  const auctionDetailsInitialLoadDoneRef = useRef(false);
+  const lastAuctionDetailsScopeRef = useRef("");
+
   useEffect(() => {
+    const scope = `${(auctionAddress || "").toLowerCase()}|${(
+      auctionEngineAddress || ""
+    ).toLowerCase()}`;
+    if (lastAuctionDetailsScopeRef.current !== scope) {
+      lastAuctionDetailsScopeRef.current = scope;
+      auctionDetailsInitialLoadDoneRef.current = false;
+    }
+
     async function loadDetails() {
       const wanted = auctionAddress?.toLowerCase();
       const engine = auctionEngineAddress?.toLowerCase();
@@ -179,7 +190,10 @@ export function UserAuctionPage() {
       }
 
       try {
-        setAuctionMeta((prev) => ({ ...prev, loading: true }));
+        // Periodic refresh (10s interval) should update data without the full-page loader.
+        if (!auctionDetailsInitialLoadDoneRef.current) {
+          setAuctionMeta((prev) => ({ ...prev, loading: true }));
+        }
 
         const provider =
           signer?.provider ??
@@ -477,6 +491,7 @@ export function UserAuctionPage() {
           userOfferAllocation,
           userOwedAmount,
         });
+        auctionDetailsInitialLoadDoneRef.current = true;
       } catch (err) {
         console.error("loadDetails:", err);
         setAuctionMeta((prev) => ({ ...prev, loading: false }));
