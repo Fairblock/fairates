@@ -1257,6 +1257,8 @@ export function UserAuctionPage() {
                         value={bidRate}
                         onChange={(e) => setBidRate(e.target.value)}
                         placeholder="0"
+                        maxLength={54}
+                        title="Up to 54 UTF-8 bytes (fits encrypted payload limit on-chain)"
                         disabled={!isWalletConnected}
                       />
                       {bidCollateralSelections.length > 0 && (
@@ -1330,6 +1332,8 @@ export function UserAuctionPage() {
                         value={offerRate}
                         onChange={(e) => setOfferRate(e.target.value)}
                         placeholder="0"
+                        maxLength={54}
+                        title="Up to 54 UTF-8 bytes (fits encrypted payload limit on-chain)"
                         disabled={!isWalletConnected}
                       />
                       <button

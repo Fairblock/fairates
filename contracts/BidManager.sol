@@ -46,6 +46,8 @@ contract BidManager is ReentrancyGuard, Ownable {
     uint256 private _bidCount;
     uint256 public constant MAX_COLLATERAL_TOKENS_PER_BID = 10;
 
+    uint256 public constant MAX_ENCRYPTED_RATE_BYTES = 320;
+
     uint256 public removalCutoffBuffer = 1 hours;
     mapping(address => bool) public whitelistedBidders;
     bool public whitelistEnabled;
@@ -159,7 +161,11 @@ contract BidManager is ReentrancyGuard, Ownable {
             collateralTokens.length == collateralAmounts.length,
             "Mismatched input lengths"
         );
-        require(encryptedRate.length > 0 && encryptedRate.length <= 256, "invalid encryptedRate size");
+        require(
+            encryptedRate.length > 0 &&
+                encryptedRate.length <= MAX_ENCRYPTED_RATE_BYTES,
+            "invalid encryptedRate size"
+        );
         require(
             collateralTokens.length > 0 && collateralTokens.length <= MAX_COLLATERAL_TOKENS_PER_BID,
             "Too many collateral tokens"

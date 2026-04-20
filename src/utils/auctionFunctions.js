@@ -16,6 +16,11 @@ import {
 import { saveContracts, logAuctionActivity } from "./firebase.js";
 import { loadAuctionListMetaSnapshot } from "./auctionListMetaFromChain.js";
 
+/** Cleartext rate UTF-8 bytes; must fit under BidManager.MAX_ENCRYPTED_RATE_BYTES (320). */
+const MAX_INTEREST_RATE_UTF8_BYTES =
+  320 -
+  266; /* fixed ts-ibe / age framing + Poly1305 payload wrapper (~266 bytes) */
+
 /**
  * Delay utility to prevent rate limiting
  * @param {number} ms milliseconds to delay
@@ -334,6 +339,13 @@ export async function placeBid(
     const PK = await fairyringContract.latestEncryptionKey();
     const PK_Val = PK.startsWith("0x") ? PK.slice(2) : PK;
     if (bidRate) {
+      if (Buffer.byteLength(bidRate, "utf8") > MAX_INTEREST_RATE_UTF8_BYTES) {
+        showToast(
+          `Interest rate text is too long (max ${MAX_INTEREST_RATE_UTF8_BYTES} UTF-8 bytes).`,
+          "warning"
+        );
+        return;
+      }
       const bufferValue = Buffer.from(bidRate, "utf8");
       encryptedBid = await timelockEncrypt(ID, PK_Val, bufferValue);
       encryptedBid = "0x" + encryptedBid;
@@ -426,6 +438,13 @@ export async function placeOffer(
   try {
     let encryptedOffer = "0x";
     if (offerRate) {
+      if (Buffer.byteLength(offerRate, "utf8") > MAX_INTEREST_RATE_UTF8_BYTES) {
+        showToast(
+          `Interest rate text is too long (max ${MAX_INTEREST_RATE_UTF8_BYTES} UTF-8 bytes).`,
+          "warning"
+        );
+        return;
+      }
       const bufferValue = Buffer.from(offerRate, "utf8");
       const ae = new ethers.Contract(auctionEngineAddress, AuctionEngineArtifact.abi, signer);
       if (!ae) {
