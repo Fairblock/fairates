@@ -71,3 +71,5 @@ serviceAccountKey.json
 build/
 generateInviteCodes.js
 firestore.rules
+
+scripts/generateAbis.js
