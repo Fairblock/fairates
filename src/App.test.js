@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+jest.mock("ts-ibe", () => ({
+  timelockEncrypt: jest.fn(),
+}));
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+import { getErrorMessage } from "./context/AppContext";
+
+test("formats user-rejected wallet errors", () => {
+  expect(getErrorMessage({ code: 4001, message: "User rejected the request" })).toBe(
+    "Transaction cancelled",
+  );
 });

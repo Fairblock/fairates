@@ -39,7 +39,7 @@ export async function eip1559Overrides(signer, estimateFn) {
  * Send a contract method with dynamic gas
  * @param {import("ethers").Contract} contract     ethers v5 or v6 contract
  * @param {string} fnName                          function name to call
- * @param {any[]}  args=[]                         positional arguments
+ * @param {unknown[]}  args=[]                      positional arguments
  * @returns {Promise<import("ethers").ContractReceipt>}
  */
 export async function sendTx(contract, fnName, args = []) {
@@ -59,7 +59,7 @@ export async function sendTx(contract, fnName, args = []) {
 /**
  * Deploy a ContractFactory with dynamic gas
  * @param {import("ethers").ContractFactory} factory
- * @param {any[]} ctorArgs=[]
+ * @param {unknown[]} ctorArgs=[]
  * @returns {Promise<import("ethers").Contract>}
  */
 export async function deployWithGas(factory, ctorArgs = []) {
