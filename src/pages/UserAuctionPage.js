@@ -502,7 +502,9 @@ export function UserAuctionPage() {
           try {
             const bidIdx = await bm.bidSubmitted(walletAddress);
             userHasBid = bidIdx && !bidIdx.isZero();
-          } catch (_) {}
+          } catch (error) {
+            console.warn("Failed to determine whether the connected wallet submitted a bid", error);
+          }
           userHasOffer = (offersArr || []).some(
             (o) => o.submitter && o.submitter.toLowerCase() === w
           );
